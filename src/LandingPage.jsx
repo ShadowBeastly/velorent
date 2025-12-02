@@ -60,37 +60,49 @@ export default function LandingPage({ onGetStarted, onLogin }) {
       highlighted: false
     },
     {
-      name: "Starter",
-      price: { monthly: 29, yearly: 290 },
+      name: "Basic",
+      price: { monthly: 39, yearly: 390 },
       description: "Für kleine Verleiher",
       features: [
         "15 Fahrräder",
-        "3 Benutzer",
+        "2 Benutzer",
         "Alles aus Free",
         "Online-Buchungswidget",
         "Statistiken & Reports",
-        "PDF Mietverträge",
+        "PDF Mietverträge"
+      ],
+      cta: "14 Tage kostenlos testen",
+      highlighted: false
+    },
+    {
+      name: "Pro",
+      price: { monthly: 89, yearly: 890 },
+      description: "Für Hotels & Profis",
+      features: [
+        "50 Fahrräder",
+        "5 Benutzer",
+        "Alles aus Basic",
+        "White-Label Widget",
+        "Multi-Standort",
         "Priority Support"
       ],
       cta: "14 Tage kostenlos testen",
       highlighted: true,
-      badge: "BELIEBT"
+      badge: "EMPFEHLUNG"
     },
     {
-      name: "Pro",
-      price: { monthly: 79, yearly: 790 },
-      description: "Für Hotels & große Verleiher",
+      name: "Unlimited",
+      price: { monthly: 149, yearly: 1490 },
+      description: "Maximale Power",
       features: [
         "Unbegrenzte Fahrräder",
-        "10 Benutzer",
-        "Alles aus Starter",
-        "Multi-Standort",
+        "Unbegrenzte Benutzer",
+        "Alles aus Pro",
         "API Zugang",
-        "Eigenes Branding",
-        "Telefon-Support",
-        "Persönlicher Ansprechpartner"
+        "Premium Support",
+        "Onboarding Hilfe"
       ],
-      cta: "14 Tage kostenlos testen",
+      cta: "Kontakt aufnehmen",
       highlighted: false
     }
   ];
@@ -466,7 +478,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {pricing.map((plan, i) => (
               <div
                 key={i}

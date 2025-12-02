@@ -33,20 +33,22 @@ serve(async (req) => {
 
   try {
     switch (event.type) {
-      
+
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        
+
         if (session.mode === "subscription" && session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
           );
-          
+
           const orgId = subscription.metadata?.organization_id;
-          
+
           if (orgId) {
             const priceId = subscription.items.data[0]?.price.id || "";
-            const tier = priceId.toLowerCase().includes("pro") ? "pro" : "starter";
+            let tier = "basic";
+            if (priceId.toLowerCase().includes("pro")) tier = "pro";
+            if (priceId.toLowerCase().includes("unlimited")) tier = "unlimited";
 
             await supabase
               .from("organizations")
@@ -54,7 +56,7 @@ serve(async (req) => {
                 stripe_subscription_id: subscription.id,
                 subscription_tier: tier,
                 subscription_status: "active",
-                trial_ends_at: subscription.trial_end 
+                trial_ends_at: subscription.trial_end
                   ? new Date(subscription.trial_end * 1000).toISOString()
                   : null
               })
@@ -72,8 +74,10 @@ serve(async (req) => {
 
         if (orgId) {
           const priceId = subscription.items.data[0]?.price.id || "";
-          const tier = priceId.toLowerCase().includes("pro") ? "pro" : "starter";
-          
+          let tier = "basic";
+          if (priceId.toLowerCase().includes("pro")) tier = "pro";
+          if (priceId.toLowerCase().includes("unlimited")) tier = "unlimited";
+
           let status = "active";
           if (subscription.status === "past_due") status = "past_due";
           if (subscription.status === "canceled") status = "canceled";
@@ -114,7 +118,7 @@ serve(async (req) => {
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         console.log("Payment failed for customer:", invoice.customer);
-        
+
         // Optional: Send email notification
         // await supabase.functions.invoke("send-email", { ... });
         break;

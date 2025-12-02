@@ -455,7 +455,8 @@ BEGIN
         'require_address', v_settings.require_address,
         'deposit_required', v_settings.deposit_required,
         'terms_url', v_settings.terms_url,
-        'privacy_url', v_settings.privacy_url
+        'privacy_url', v_settings.privacy_url,
+        'subscription_tier', v_org.subscription_tier
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

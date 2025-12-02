@@ -40,16 +40,16 @@ SELECT
   END AS is_active,
   CASE
     WHEN o.subscription_tier = 'free' THEN 3
-    WHEN o.subscription_tier = 'starter' THEN 15
-    WHEN o.subscription_tier = 'pro' THEN 999999
-    WHEN o.subscription_tier = 'enterprise' THEN 999999
+    WHEN o.subscription_tier = 'basic' THEN 15
+    WHEN o.subscription_tier = 'pro' THEN 50
+    WHEN o.subscription_tier = 'unlimited' THEN 999999
     ELSE 3
   END AS bike_limit,
   CASE
     WHEN o.subscription_tier = 'free' THEN 1
-    WHEN o.subscription_tier = 'starter' THEN 3
-    WHEN o.subscription_tier = 'pro' THEN 10
-    WHEN o.subscription_tier = 'enterprise' THEN 999999
+    WHEN o.subscription_tier = 'basic' THEN 2
+    WHEN o.subscription_tier = 'pro' THEN 5
+    WHEN o.subscription_tier = 'unlimited' THEN 999999
     ELSE 1
   END AS user_limit
 FROM organizations o;

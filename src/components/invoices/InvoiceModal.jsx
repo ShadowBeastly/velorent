@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, Printer, Plus, Trash2 } from "lucide-react";
+import { X, Printer, Plus, Trash2, Download } from "lucide-react";
 import { fmtDate, fmtCurrency } from "../../utils/formatUtils";
+import { generateInvoicePDF } from "../../utils/InvoiceGenerator";
 
-export default function InvoiceModal({ invoice, customers, bookings, onSave, onClose, darkMode }) {
+export default function InvoiceModal({ invoice, customers, bookings, org, onSave, onClose, darkMode }) {
     const [formData, setFormData] = useState({
         invoice_number: "",
         customer_id: "",
@@ -69,6 +70,17 @@ export default function InvoiceModal({ invoice, customers, bookings, onSave, onC
         });
     };
 
+    const handleDownload = () => {
+        const { subtotal, taxAmount, total } = calculateTotals();
+        // Merge calculated totals into formData for the generator
+        const invoiceData = {
+            ...formData,
+            total,
+            customer: customers.find(c => c.id === formData.customer_id)
+        };
+        generateInvoicePDF(invoiceData, org);
+    };
+
     const printRef = useRef();
     const handlePrint = () => {
         const content = printRef.current.innerHTML;
@@ -94,8 +106,11 @@ export default function InvoiceModal({ invoice, customers, bookings, onSave, onC
                         {invoice ? "Rechnung bearbeiten" : "Neue Rechnung"}
                     </h2>
                     <div className="flex gap-2">
+                        <button onClick={handleDownload} className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2">
+                            <Download className="w-4 h-4" /> PDF
+                        </button>
                         <button onClick={handlePrint} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center gap-2">
-                            <Printer className="w-4 h-4" /> Vorschau / Drucken
+                            <Printer className="w-4 h-4" /> Vorschau
                         </button>
                         <button onClick={onClose} className={`p-2 rounded-full ${darkMode ? "hover:bg-slate-800 text-white" : "hover:bg-slate-100 text-slate-900"}`}>
                             <X className="w-5 h-5" />
@@ -221,7 +236,7 @@ export default function InvoiceModal({ invoice, customers, bookings, onSave, onC
                                     <p className="text-slate-500">Nr. {formData.invoice_number}</p>
                                 </div>
                                 <div className="meta">
-                                    <strong>VeloRent Pro</strong><br />
+                                    <strong>{org?.name || "VeloRent Pro"}</strong><br />
                                     Musterstraße 1<br />
                                     12345 Musterstadt
                                 </div>

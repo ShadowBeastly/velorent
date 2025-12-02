@@ -3,6 +3,7 @@ import { Plus, Loader2, FileText, Download, Trash2, Edit } from "lucide-react";
 import { useInvoices } from "../hooks/useInvoices";
 import { useOrganization } from "../context/OrgContext";
 import InvoiceModal from "../components/invoices/InvoiceModal";
+import { generateInvoicePDF } from "../utils/InvoiceGenerator";
 import { fmtCurrency, fmtDate } from "../utils/formatUtils";
 
 export default function InvoicesPage({ customers, bookings, darkMode }) {
@@ -30,6 +31,10 @@ export default function InvoicesPage({ customers, bookings, darkMode }) {
         if (confirm("Möchten Sie diese Rechnung wirklich löschen?")) {
             await remove(id);
         }
+    };
+
+    const handleDownloadPDF = (invoice) => {
+        generateInvoicePDF(invoice, currentOrg);
     };
 
     const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
@@ -94,15 +99,22 @@ export default function InvoicesPage({ customers, bookings, darkMode }) {
                                         <td className="px-4 py-3 font-medium">{fmtCurrency(inv.total)}</td>
                                         <td className="px-4 py-3">
                                             <span className={`text-xs px-2 py-1 rounded-full border ${inv.status === "paid" ? "bg-green-100 text-green-700 border-green-200" :
-                                                    inv.status === "sent" ? "bg-blue-100 text-blue-700 border-blue-200" :
-                                                        inv.status === "cancelled" ? "bg-red-100 text-red-700 border-red-200" :
-                                                            "bg-slate-100 text-slate-700 border-slate-200"
+                                                inv.status === "sent" ? "bg-blue-100 text-blue-700 border-blue-200" :
+                                                    inv.status === "cancelled" ? "bg-red-100 text-red-700 border-red-200" :
+                                                        "bg-slate-100 text-slate-700 border-slate-200"
                                                 }`}>
                                                 {inv.status}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => handleDownloadPDF(inv)}
+                                                    className={`p-2 rounded-lg text-blue-500 ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-200"}`}
+                                                    title="PDF Herunterladen"
+                                                >
+                                                    <Download className="w-4 h-4" />
+                                                </button>
                                                 <button
                                                     onClick={() => { setEditInvoice(inv); setShowModal(true); }}
                                                     className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-200"}`}
@@ -135,6 +147,7 @@ export default function InvoicesPage({ customers, bookings, darkMode }) {
                     invoice={editInvoice}
                     customers={customers.customers}
                     bookings={bookings.bookings}
+                    org={currentOrg}
                     onSave={handleSave}
                     onClose={() => setShowModal(false)}
                     darkMode={darkMode}

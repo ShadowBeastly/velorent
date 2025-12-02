@@ -276,7 +276,7 @@ export function AGB({ onBack }) {
         Fahrradvermietungen zur Verfügung (Software as a Service, SaaS).
       </p>
       <p>
-        (2) Der Funktionsumfang richtet sich nach dem gewählten Tarif (Free, Starter, Pro).
+        (2) Der Funktionsumfang richtet sich nach dem gewählten Tarif (Free, Basic, Pro, Unlimited).
       </p>
       <p>
         (3) Die Software wird über das Internet bereitgestellt und erfordert einen

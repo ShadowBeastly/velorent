@@ -12,7 +12,7 @@ const DEFAULT_SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
 const DEFAULT_SUPABASE_KEY = "YOUR_ANON_KEY";
 
 // ============ WIDGET COMPONENT ============
-export default function VeloRentBookingWidget({ 
+export default function VeloRentBookingWidget({
   supabaseUrl = DEFAULT_SUPABASE_URL,
   supabaseKey = DEFAULT_SUPABASE_KEY,
   apiKey,
@@ -21,23 +21,23 @@ export default function VeloRentBookingWidget({
   className = ""
 }) {
   const supabase = useMemo(() => createClient(supabaseUrl, supabaseKey), [supabaseUrl, supabaseKey]);
-  
+
   // State
   const [step, setStep] = useState(1); // 1: Bike, 2: Dates, 3: Details, 4: Confirm, 5: Success
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Data
   const [settings, setSettings] = useState(null);
   const [bikes, setBikes] = useState([]);
   const [blockedDates, setBlockedDates] = useState([]);
-  
+
   // Selection
   const [selectedBike, setSelectedBike] = useState(null);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [availability, setAvailability] = useState(null);
-  
+
   // Form
   const [form, setForm] = useState({
     name: "",
@@ -47,7 +47,7 @@ export default function VeloRentBookingWidget({
     notes: "",
     acceptTerms: false
   });
-  
+
   // Booking Result
   const [bookingResult, setBookingResult] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -70,7 +70,7 @@ export default function VeloRentBookingWidget({
       // Settings laden
       const { data: settingsData, error: settingsError } = await supabase
         .rpc("get_widget_settings", { p_api_key: apiKey });
-      
+
       if (settingsError || settingsData?.error) {
         throw new Error(settingsData?.error || settingsError?.message || "Fehler beim Laden");
       }
@@ -79,7 +79,7 @@ export default function VeloRentBookingWidget({
       // Bikes laden
       const { data: bikesData, error: bikesError } = await supabase
         .rpc("get_public_bikes", { p_api_key: apiKey });
-      
+
       if (bikesError) throw new Error(bikesError.message);
       setBikes(bikesData || []);
 
@@ -151,7 +151,7 @@ export default function VeloRentBookingWidget({
 
       setBookingResult(data);
       setStep(5);
-      
+
       if (onBookingComplete) {
         onBookingComplete(data);
       }
@@ -173,7 +173,7 @@ export default function VeloRentBookingWidget({
     const primary = settings?.primary_color || "#f97316";
     const secondary = settings?.secondary_color || "#fbbf24";
     const radius = settings?.border_radius || 12;
-    
+
     return {
       container: {
         fontFamily: settings?.font_family || "Inter, system-ui, sans-serif",
@@ -305,9 +305,9 @@ export default function VeloRentBookingWidget({
                 {step > s ? <Check style={{ width: 16, height: 16 }} /> : s}
               </div>
               {s < 4 && (
-                <div style={{ 
-                  flex: 1, 
-                  height: "2px", 
+                <div style={{
+                  flex: 1,
+                  height: "2px",
                   backgroundColor: step > s ? settings?.primary_color || "#f97316" : "#e2e8f0",
                   alignSelf: "center"
                 }} />
@@ -319,14 +319,14 @@ export default function VeloRentBookingWidget({
 
       {/* Content */}
       <div style={{ padding: "0 24px 24px" }}>
-        
+
         {/* Step 1: Select Bike */}
         {step === 1 && (
           <div>
             <h3 style={{ margin: "0 0 16px", fontSize: "18px", fontWeight: "600" }}>
               Fahrrad wählen
             </h3>
-            
+
             {bikes.length === 0 ? (
               <p style={{ color: "#64748b", textAlign: "center", padding: "32px" }}>
                 Derzeit keine Räder verfügbar
@@ -361,11 +361,11 @@ export default function VeloRentBookingWidget({
                         <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8" }}>pro Tag</p>
                       </div>
                     </div>
-                    
+
                     {selectedBike?.id === bike.id && (
-                      <div style={{ 
-                        marginTop: "12px", 
-                        paddingTop: "12px", 
+                      <div style={{
+                        marginTop: "12px",
+                        paddingTop: "12px",
                         borderTop: "1px solid #e2e8f0",
                         display: "flex",
                         alignItems: "center",
@@ -386,8 +386,8 @@ export default function VeloRentBookingWidget({
             <button
               onClick={() => selectedBike && setStep(2)}
               disabled={!selectedBike}
-              style={{ 
-                ...styles.primaryBtn, 
+              style={{
+                ...styles.primaryBtn,
                 marginTop: "24px",
                 opacity: selectedBike ? 1 : 0.5,
                 cursor: selectedBike ? "pointer" : "not-allowed"
@@ -421,9 +421,9 @@ export default function VeloRentBookingWidget({
 
             {/* Availability Result */}
             {availability && (
-              <div style={{ 
-                marginTop: "16px", 
-                padding: "16px", 
+              <div style={{
+                marginTop: "16px",
+                padding: "16px",
                 borderRadius: `${settings?.border_radius || 12}px`,
                 backgroundColor: availability.available ? "#f0fdf4" : "#fef2f2",
                 border: `1px solid ${availability.available ? "#bbf7d0" : "#fecaca"}`
@@ -468,8 +468,8 @@ export default function VeloRentBookingWidget({
               <button
                 onClick={() => availability?.available && setStep(3)}
                 disabled={!availability?.available}
-                style={{ 
-                  ...styles.primaryBtn, 
+                style={{
+                  ...styles.primaryBtn,
                   opacity: availability?.available ? 1 : 0.5,
                   cursor: availability?.available ? "pointer" : "not-allowed"
                 }}
@@ -577,7 +577,7 @@ export default function VeloRentBookingWidget({
               <button
                 onClick={() => form.name.length >= 2 && setStep(4)}
                 disabled={form.name.length < 2}
-                style={{ 
+                style={{
                   ...styles.primaryBtn,
                   opacity: form.name.length >= 2 ? 1 : 0.5
                 }}
@@ -597,8 +597,8 @@ export default function VeloRentBookingWidget({
             </h3>
 
             {/* Summary */}
-            <div style={{ 
-              backgroundColor: "#f8fafc", 
+            <div style={{
+              backgroundColor: "#f8fafc",
               borderRadius: `${settings?.border_radius || 12}px`,
               padding: "16px",
               marginBottom: "16px"
@@ -606,7 +606,7 @@ export default function VeloRentBookingWidget({
               <h4 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 Ihre Buchung
               </h4>
-              
+
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "#64748b" }}>Fahrrad</span>
@@ -636,8 +636,8 @@ export default function VeloRentBookingWidget({
             </div>
 
             {/* Customer Info */}
-            <div style={{ 
-              backgroundColor: "#f8fafc", 
+            <div style={{
+              backgroundColor: "#f8fafc",
               borderRadius: `${settings?.border_radius || 12}px`,
               padding: "16px",
               marginBottom: "16px"
@@ -651,10 +651,10 @@ export default function VeloRentBookingWidget({
             </div>
 
             {/* Terms */}
-            <label style={{ 
-              display: "flex", 
-              alignItems: "flex-start", 
-              gap: "12px", 
+            <label style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "12px",
               cursor: "pointer",
               marginBottom: "16px"
             }}>
@@ -662,9 +662,9 @@ export default function VeloRentBookingWidget({
                 type="checkbox"
                 checked={form.acceptTerms}
                 onChange={(e) => setForm({ ...form, acceptTerms: e.target.checked })}
-                style={{ 
-                  width: "20px", 
-                  height: "20px", 
+                style={{
+                  width: "20px",
+                  height: "20px",
                   accentColor: settings?.primary_color || "#f97316",
                   marginTop: "2px"
                 }}
@@ -682,9 +682,9 @@ export default function VeloRentBookingWidget({
             </label>
 
             {error && (
-              <div style={{ 
-                padding: "12px", 
-                backgroundColor: "#fef2f2", 
+              <div style={{
+                padding: "12px",
+                backgroundColor: "#fef2f2",
                 border: "1px solid #fecaca",
                 borderRadius: "8px",
                 color: "#dc2626",
@@ -707,7 +707,7 @@ export default function VeloRentBookingWidget({
               <button
                 onClick={handleSubmit}
                 disabled={!form.acceptTerms || submitting}
-                style={{ 
+                style={{
                   ...styles.primaryBtn,
                   opacity: form.acceptTerms && !submitting ? 1 : 0.5
                 }}
@@ -731,10 +731,10 @@ export default function VeloRentBookingWidget({
         {/* Step 5: Success */}
         {step === 5 && bookingResult && (
           <div style={{ textAlign: "center", padding: "24px 0" }}>
-            <div style={{ 
-              width: "80px", 
-              height: "80px", 
-              borderRadius: "50%", 
+            <div style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
               backgroundColor: "#f0fdf4",
               display: "flex",
               alignItems: "center",
@@ -747,22 +747,22 @@ export default function VeloRentBookingWidget({
             <h3 style={{ margin: "0 0 8px", fontSize: "24px", fontWeight: "700", color: "#16a34a" }}>
               Buchung erfolgreich!
             </h3>
-            
+
             <p style={{ margin: "0 0 24px", color: "#64748b" }}>
               {bookingResult.message || settings?.success_text}
             </p>
 
-            <div style={{ 
-              backgroundColor: "#f8fafc", 
+            <div style={{
+              backgroundColor: "#f8fafc",
               borderRadius: `${settings?.border_radius || 12}px`,
               padding: "20px",
               marginBottom: "24px"
             }}>
               <p style={{ margin: "0 0 8px", color: "#64748b", fontSize: "14px" }}>Buchungsnummer</p>
-              <p style={{ 
-                margin: 0, 
-                fontSize: "28px", 
-                fontWeight: "700", 
+              <p style={{
+                margin: 0,
+                fontSize: "28px",
+                fontWeight: "700",
                 letterSpacing: "2px",
                 color: settings?.primary_color || "#f97316"
               }}>
@@ -775,10 +775,10 @@ export default function VeloRentBookingWidget({
               </p>
             </div>
 
-            <div style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              gap: "8px", 
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
               justifyContent: "center",
               padding: "12px",
               backgroundColor: "#eff6ff",
@@ -810,15 +810,17 @@ export default function VeloRentBookingWidget({
       </div>
 
       {/* Footer */}
-      <div style={{ 
-        padding: "16px 24px", 
-        borderTop: "1px solid #e2e8f0", 
-        textAlign: "center",
-        fontSize: "12px",
-        color: "#94a3b8"
-      }}>
-        Powered by VeloRent Pro
-      </div>
+      {(!settings?.subscription_tier || (settings.subscription_tier !== 'pro' && settings.subscription_tier !== 'unlimited')) && (
+        <div style={{
+          padding: "16px 24px",
+          borderTop: "1px solid #e2e8f0",
+          textAlign: "center",
+          fontSize: "12px",
+          color: "#94a3b8"
+        }}>
+          Powered by VeloRent Pro
+        </div>
+      )}
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -829,11 +831,11 @@ export default function VeloRentBookingWidget({
 }
 
 // ============ DATE RANGE PICKER COMPONENT ============
-function DateRangePicker({ 
-  startDate, 
-  endDate, 
-  onStartDateChange, 
-  onEndDateChange, 
+function DateRangePicker({
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
   blockedDates = [],
   minDays = 1,
   maxDays = 30,
@@ -846,7 +848,7 @@ function DateRangePicker({
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const maxDate = new Date(today);
   maxDate.setDate(maxDate.getDate() + maxAdvanceDays);
 
@@ -857,15 +859,15 @@ function DateRangePicker({
     const month = viewMonth.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    
+
     const startPad = (firstDay.getDay() + 6) % 7;
     const days = [];
-    
+
     for (let i = -startPad; i <= lastDay.getDate() + (6 - (lastDay.getDay() + 6) % 7); i++) {
       const d = new Date(year, month, i + 1);
       days.push(d);
     }
-    
+
     return { days, monthLabel: viewMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" }) };
   }, [viewMonth]);
 
@@ -897,7 +899,7 @@ function DateRangePicker({
         alert(`Maximal ${maxDays} Tage buchbar`);
         return;
       }
-      
+
       // Check if any blocked date in range
       for (let check = new Date(startDate); check <= d; check.setDate(check.getDate() + 1)) {
         if (isBlocked(check)) {
@@ -905,7 +907,7 @@ function DateRangePicker({
           return;
         }
       }
-      
+
       onEndDateChange(d);
       setSelecting("start");
     }
@@ -915,8 +917,8 @@ function DateRangePicker({
     <div>
       {/* Selected Dates Display */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
-        <div style={{ 
-          padding: "12px", 
+        <div style={{
+          padding: "12px",
           border: selecting === "start" ? `2px solid ${primaryColor}` : "1px solid #e2e8f0",
           borderRadius: `${borderRadius}px`,
           cursor: "pointer"
@@ -926,8 +928,8 @@ function DateRangePicker({
             {startDate ? startDate.toLocaleDateString("de-DE") : "Datum wählen"}
           </p>
         </div>
-        <div style={{ 
-          padding: "12px", 
+        <div style={{
+          padding: "12px",
           border: selecting === "end" ? `2px solid ${primaryColor}` : "1px solid #e2e8f0",
           borderRadius: `${borderRadius}px`,
           cursor: "pointer"
@@ -943,14 +945,14 @@ function DateRangePicker({
       <div style={{ border: "1px solid #e2e8f0", borderRadius: `${borderRadius}px`, overflow: "hidden" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px", backgroundColor: "#f8fafc" }}>
-          <button 
+          <button
             onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1))}
             style={{ background: "none", border: "none", cursor: "pointer", padding: "8px" }}
           >
             <ChevronLeft style={{ width: 20, height: 20 }} />
           </button>
           <span style={{ fontWeight: "600" }}>{calendar.monthLabel}</span>
-          <button 
+          <button
             onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1))}
             style={{ background: "none", border: "none", cursor: "pointer", padding: "8px" }}
           >
@@ -986,20 +988,20 @@ function DateRangePicker({
                 style={{
                   padding: "10px",
                   border: "none",
-                  background: isStart || isEnd 
-                    ? primaryColor 
-                    : inRange 
-                    ? `${primaryColor}20` 
-                    : blocked
-                    ? "#fee2e2"
-                    : "transparent",
-                  color: isStart || isEnd 
-                    ? "white" 
-                    : disabled 
-                    ? "#cbd5e1" 
-                    : !isCurrentMonth 
-                    ? "#94a3b8" 
-                    : "#1e293b",
+                  background: isStart || isEnd
+                    ? primaryColor
+                    : inRange
+                      ? `${primaryColor}20`
+                      : blocked
+                        ? "#fee2e2"
+                        : "transparent",
+                  color: isStart || isEnd
+                    ? "white"
+                    : disabled
+                      ? "#cbd5e1"
+                      : !isCurrentMonth
+                        ? "#94a3b8"
+                        : "#1e293b",
                   fontWeight: isToday || isStart || isEnd ? "600" : "400",
                   cursor: disabled ? "not-allowed" : "pointer",
                   borderRadius: isStart ? `${borderRadius}px 0 0 ${borderRadius}px` : isEnd ? `0 ${borderRadius}px ${borderRadius}px 0` : 0,

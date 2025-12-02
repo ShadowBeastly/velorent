@@ -24,7 +24,7 @@ CREATE TABLE organizations (
     tax_id TEXT,
     logo_url TEXT,
     settings JSONB DEFAULT '{}', -- Individuelle Einstellungen
-    subscription_tier TEXT DEFAULT 'free', -- free, starter, pro, enterprise
+    subscription_tier TEXT DEFAULT 'free', -- free, basic, pro, unlimited
     subscription_status TEXT DEFAULT 'active',
     trial_ends_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),

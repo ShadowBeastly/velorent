@@ -15,10 +15,12 @@ const supabase = createClient(
 );
 
 const PRICES: Record<string, string> = {
-  starter_monthly: Deno.env.get("STRIPE_STARTER_MONTHLY_PRICE_ID") || "",
-  starter_yearly: Deno.env.get("STRIPE_STARTER_YEARLY_PRICE_ID") || "",
+  basic_monthly: Deno.env.get("STRIPE_BASIC_MONTHLY_PRICE_ID") || "",
+  basic_yearly: Deno.env.get("STRIPE_BASIC_YEARLY_PRICE_ID") || "",
   pro_monthly: Deno.env.get("STRIPE_PRO_MONTHLY_PRICE_ID") || "",
-  pro_yearly: Deno.env.get("STRIPE_PRO_YEARLY_PRICE_ID") || ""
+  pro_yearly: Deno.env.get("STRIPE_PRO_YEARLY_PRICE_ID") || "",
+  unlimited_monthly: Deno.env.get("STRIPE_UNLIMITED_MONTHLY_PRICE_ID") || "",
+  unlimited_yearly: Deno.env.get("STRIPE_UNLIMITED_YEARLY_PRICE_ID") || ""
 };
 
 const corsHeaders = {
@@ -42,7 +44,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(
       authHeader.replace("Bearer ", "")
     );
-    
+
     if (authError || !user) {
       throw new Error("Unauthorized");
     }
@@ -87,7 +89,7 @@ serve(async (req) => {
 
     // Create checkout session
     const origin = req.headers.get("origin") || "https://velorent.de";
-    
+
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       mode: "subscription",

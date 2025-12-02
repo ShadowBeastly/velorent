@@ -121,10 +121,10 @@ npm run build
 
 | Plan | Preis/Monat | Features |
 |------|------------|----------|
-| **Free** | 0€ | 5 Räder, 1 User, Basis-Features |
-| **Starter** | 29€ | 20 Räder, 3 User, Reports |
-| **Pro** | 79€ | Unlimited Räder, 10 User, API |
-| **Enterprise** | 199€+ | White-Label, Support, Custom |
+| **Free** | 0€ | 3 Räder, 1 User, Basis-Features |
+| **Basic** | 39€ | 15 Räder, 2 User, Widget |
+| **Pro** | 89€ | 50 Räder, 5 User, White-Label Widget |
+| **Unlimited** | 149€ | ∞ Räder, ∞ User, API & Support |
 
 ### Stripe Integration
 
