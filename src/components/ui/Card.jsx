@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 const Card = ({ children, className = '', hover = false, glass = false, ...props }) => {
     const baseStyles = "rounded-2xl transition-all duration-300";

@@ -1,4 +1,3 @@
-import React from "react";
 import { ArrowLeft, Shield, FileText, Scale } from "lucide-react";
 
 // ============ LEGAL PAGE WRAPPER ============
@@ -260,11 +259,11 @@ export function AGB({ onBack }) {
       <h2>§ 1 Geltungsbereich</h2>
       <p>
         (1) Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der Software
-        "VeloRent Pro" (nachfolgend "Software" oder "Dienst"), die von [DEIN NAME/FIRMA]
-        (nachfolgend "Anbieter") bereitgestellt wird.
+        &quot;VeloRent Pro&quot; (nachfolgend &quot;Software&quot; oder &quot;Dienst&quot;), die von [DEIN NAME/FIRMA]
+        (nachfolgend &quot;Anbieter&quot;) bereitgestellt wird.
       </p>
       <p>
-        (2) Vertragspartner sind der Anbieter und der Nutzer (nachfolgend "Kunde").
+        (2) Vertragspartner sind der Anbieter und der Nutzer (nachfolgend &quot;Kunde&quot;).
       </p>
       <p>
         (3) Abweichende Geschäftsbedingungen des Kunden werden nicht anerkannt.

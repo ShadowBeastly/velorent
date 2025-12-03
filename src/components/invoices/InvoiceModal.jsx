@@ -4,31 +4,28 @@ import { fmtDate, fmtCurrency } from "../../utils/formatUtils";
 import { generateInvoicePDF } from "../../utils/InvoiceGenerator";
 
 export default function InvoiceModal({ invoice, customers, bookings, org, onSave, onClose, darkMode }) {
-    const [formData, setFormData] = useState({
-        invoice_number: "",
-        customer_id: "",
-        booking_id: "",
-        items: [{ description: "Fahrradmiete", quantity: 1, unit_price: 0, total: 0 }],
-        notes: "",
-        status: "draft",
-        due_date: new Date().toISOString().split("T")[0],
-        tax_rate: 19
-    });
-
-    useEffect(() => {
+    const [formData, setFormData] = useState(() => {
         if (invoice) {
-            setFormData({
+            return {
                 ...invoice,
                 items: invoice.items || [],
                 due_date: invoice.due_date || new Date().toISOString().split("T")[0]
-            });
+            };
         } else {
-            // Generate temp invoice number
             const year = new Date().getFullYear();
             const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-            setFormData(prev => ({ ...prev, invoice_number: `RE-${year}-${random}` }));
+            return {
+                invoice_number: `RE-${year}-${random}`,
+                customer_id: "",
+                booking_id: "",
+                items: [{ description: "Fahrradmiete", quantity: 1, unit_price: 0, total: 0 }],
+                notes: "",
+                status: "draft",
+                due_date: new Date().toISOString().split("T")[0],
+                tax_rate: 19
+            };
         }
-    }, [invoice]);
+    });
 
     const calculateTotals = () => {
         const subtotal = formData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);

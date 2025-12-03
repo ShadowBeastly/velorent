@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Building, Loader2 } from "lucide-react";
 import { useOrganization } from "../context/OrgContext";
 import { useAuth } from "../context/AuthContext";
@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 export default function OnboardingPage() {
     const org = useOrganization();
     const auth = useAuth();
-    const [step, setStep] = useState(1);
+
     const [name, setName] = useState("");
     const [slug, setSlug] = useState("");
     const [loading, setLoading] = useState(false);

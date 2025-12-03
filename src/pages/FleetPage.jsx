@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { Plus, Loader2, Check, RefreshCw, X, LayoutGrid, List, Search, Filter, MoreHorizontal, Battery, Gauge } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Loader2, Check, RefreshCw, X, LayoutGrid, List, MoreHorizontal, Battery, Gauge } from "lucide-react";
 import { BIKE_COLORS } from "../utils/constants";
 import { fmtCurrency } from "../utils/formatUtils";
 
@@ -17,7 +17,7 @@ export default function FleetPage({ bikes, bookings, darkMode, searchQuery }) {
                 b.frame_number?.toLowerCase().includes(searchQuery.toLowerCase());
 
             const isOut = bookings.bookings.some(bk => bk.bike_id === b.id && bk.status === "picked_up");
-            const status = isOut ? "out" : b.status; // 'available', 'maintenance', 'out'
+
 
             const matchesStatus = statusFilter === "all" ||
                 (statusFilter === "out" && isOut) ||
@@ -124,7 +124,7 @@ export default function FleetPage({ bikes, bookings, darkMode, searchQuery }) {
                                 </tr>
                             </thead>
                             <tbody className={`divide-y ${darkMode ? "divide-slate-800" : "divide-slate-100"}`}>
-                                {filtered.map((bike, idx) => {
+                                {filtered.map((bike) => {
                                     const globalIdx = bikes.bikes.findIndex(b => b.id === bike.id);
                                     const isOut = bookings.bookings.some(b => b.bike_id === bike.id && b.status === "picked_up");
 
@@ -210,7 +210,7 @@ export default function FleetPage({ bikes, bookings, darkMode, searchQuery }) {
             ) : (
                 // GRID VIEW (Legacy)
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filtered.map((bike, idx) => {
+                    {filtered.map((bike) => {
                         const globalIdx = bikes.bikes.findIndex(b => b.id === bike.id);
                         const isOut = bookings.bookings.some(b => b.bike_id === bike.id && b.status === "picked_up");
 
@@ -307,7 +307,7 @@ function BikeModal({ bike, onSave, onDelete, onClose, darkMode }) {
         setSaving(true);
         try {
             await onSave(form);
-        } catch (error) {
+        } catch {
             // Error is handled in parent, but we stop loading here
         } finally {
             setSaving(false);

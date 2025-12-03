@@ -673,19 +673,18 @@ function MainApp() {
           {/* Navigation */}
           <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
             {navigation.map(item => (
-              <button
+              <Button
                 key={item.id}
                 onClick={() => setCurrentPage(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${currentPage === item.id
-                  ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25"
-                  : darkMode
-                    ? "text-slate-400 hover:text-white hover:bg-slate-800"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                variant="ghost"
+                className={`w-full justify-start gap-3 ${currentPage === item.id
+                  ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-amber-600"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
                 {sidebarOpen && <span className="font-medium">{item.label}</span>}
-              </button>
+              </Button>
             ))}
           </nav>
 
@@ -702,20 +701,24 @@ function MainApp() {
                     {org.currentOrg?.userRole || "Member"}
                   </p>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => auth.signOut()}
-                  className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}
+                  className="p-2"
                 >
                   <LogOut className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             ) : (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => auth.signOut()}
-                className={`w-full flex justify-center p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}
+                className="w-full justify-center p-2"
               >
                 <LogOut className="w-5 h-5" />
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -1074,35 +1077,37 @@ function CalendarPage({ bikes, bookings, customers, darkMode }) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className={`rounded-2xl border p-4 ${cardStyle}`}>
+      <Card className="p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1))} className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <h3 className="text-lg font-semibold min-w-[180px] text-center">{matrix.title}</h3>
-            <button onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1))} className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
-              <ChevronRight className="w-5 h-5" />
-            </button>
-            <button onClick={() => setCursor(new Date())} className={`px-4 py-2 rounded-lg text-sm ${darkMode ? "bg-slate-800 hover:bg-slate-700" : "bg-slate-100 hover:bg-slate-200"}`}>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg p-1">
+              <Button variant="ghost" size="sm" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1))}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm font-semibold min-w-[140px] text-center">{matrix.title}</span>
+              <Button variant="ghost" size="sm" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1))}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setCursor(new Date())}>
               Heute
-            </button>
+            </Button>
           </div>
-          <button
+          <Button
             onClick={() => { setEditBooking(null); setSelectedDate(new Date()); setShowModal(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25"
+            className="gap-2"
           >
             <Plus className="w-4 h-4" />
             Neue Buchung
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       {/* Calendar Grid */}
-      <div className={`rounded-2xl border overflow-hidden ${cardStyle}`}>
-        <div className={`grid grid-cols-7 border-b ${darkMode ? "border-slate-800 bg-slate-800/50" : "border-slate-200 bg-slate-50"}`}>
+      <Card className="overflow-hidden p-0">
+        <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
           {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(d => (
-            <div key={d} className={`py-3 text-center text-sm font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{d}</div>
+            <div key={d} className="py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{d}</div>
           ))}
         </div>
         <div className="grid grid-cols-7">
@@ -1115,21 +1120,21 @@ function CalendarPage({ bikes, bookings, customers, darkMode }) {
             return (
               <div
                 key={i}
-                className={`min-h-[100px] p-2 border-b border-r ${darkMode ? "border-slate-800" : "border-slate-100"} ${isOther ? (darkMode ? "bg-slate-950/50" : "bg-slate-50/50") : ""}`}
+                className={`min-h-[120px] p-2 border-b border-r border-slate-100 dark:border-slate-800/50 ${isOther ? "bg-slate-50/50 dark:bg-slate-900/30" : ""}`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <span className={`text-sm ${isToday ? "w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center" : isOther ? "text-slate-500" : ""}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full ${isToday ? "bg-brand-600 text-white shadow-glow" : isOther ? "text-slate-400 dark:text-slate-600" : "text-slate-700 dark:text-slate-300"}`}>
                     {day.getDate()}
                   </span>
                   <button
                     onClick={() => { setEditBooking(null); setSelectedDate(day); setShowModal(true); }}
-                    className="opacity-0 hover:opacity-100 p-1 rounded hover:bg-slate-700 transition-opacity"
+                    className="opacity-0 hover:opacity-100 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-brand-500 transition-all"
                   >
                     <Plus className="w-3 h-3" />
                   </button>
                 </div>
-                <div className="space-y-1">
-                  {dayBookings.slice(0, 2).map(b => {
+                <div className="space-y-1.5">
+                  {dayBookings.slice(0, 3).map(b => {
                     const idx = bikes.bikes.findIndex(x => x.id === b.bike_id);
                     return (
                       <button
@@ -1149,23 +1154,25 @@ function CalendarPage({ bikes, bookings, customers, darkMode }) {
             );
           })}
         </div>
-      </div>
+      </Card>
 
       {/* Booking Modal */}
-      {showModal && (
-        <BookingModal
-          booking={editBooking}
-          initialDate={selectedDate}
-          bikes={bikes.bikes}
-          customers={customers.customers}
-          existingBookings={bookings.bookings}
-          onSave={handleSave}
-          onDelete={async (id) => { await bookings.remove(id); setShowModal(false); }}
-          onClose={() => setShowModal(false)}
-          darkMode={darkMode}
-        />
-      )}
-    </div>
+      {
+        showModal && (
+          <BookingModal
+            booking={editBooking}
+            initialDate={selectedDate}
+            bikes={bikes.bikes}
+            customers={customers.customers}
+            existingBookings={bookings.bookings}
+            onSave={handleSave}
+            onDelete={async (id) => { await bookings.remove(id); setShowModal(false); }}
+            onClose={() => setShowModal(false)}
+            darkMode={darkMode}
+          />
+        )
+      }
+    </div >
   );
 }
 
@@ -1248,25 +1255,25 @@ function BookingModal({ booking, initialDate, bikes, customers, existingBookings
     setSaving(false);
   };
 
-  const modalBg = darkMode ? "bg-slate-900" : "bg-white";
-  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${darkMode ? "bg-slate-800 border-slate-700 focus:border-orange-500 text-white" : "bg-white border-slate-300 focus:border-orange-500"
-    }`;
+  const modalBg = darkMode ? "bg-slate-950" : "bg-white";
+  const inputBaseStyle = "w-full px-3 py-2 rounded-lg border outline-none transition-all duration-200";
+  const inputStyle = `${inputBaseStyle} ${darkMode ? "bg-slate-900 border-slate-800 focus:border-brand-500 text-white" : "bg-white border-slate-200 focus:border-brand-500"}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl ${modalBg} shadow-2xl`}>
-        <div className={`sticky top-0 flex items-center justify-between p-4 border-b ${darkMode ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"}`}>
-          <h3 className="text-lg font-semibold">{booking ? "Buchung bearbeiten" : "Neue Buchung"}</h3>
-          <button onClick={onClose} className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+      <div className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl ${modalBg} shadow-2xl border border-slate-200 dark:border-slate-800`}>
+        <div className={`sticky top-0 flex items-center justify-between p-4 border-b ${darkMode ? "border-slate-800 bg-slate-950/95" : "border-slate-100 bg-white/95"} backdrop-blur`}>
+          <h3 className="text-lg font-heading font-semibold">{booking ? "Buchung bearbeiten" : "Neue Buchung"}</h3>
+          <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-5">
           {/* Bike & Customer */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Rad</label>
+              <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Rad</label>
               <select value={form.bike_id} onChange={(e) => setForm(f => ({ ...f, bike_id: e.target.value }))} className={inputStyle}>
                 {bikes.map((b, i) => (
                   <option key={b.id} value={b.id}>Rad {i + 1}: {b.name} - {fmtCurrency(b.price_per_day)}/Tag</option>
@@ -1274,7 +1281,7 @@ function BookingModal({ booking, initialDate, bikes, customers, existingBookings
               </select>
             </div>
             <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Bestandskunde</label>
+              <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Bestandskunde</label>
               <select value={form.customer_id} onChange={(e) => handleCustomerSelect(e.target.value)} className={inputStyle}>
                 <option value="">— Neuer Kunde —</option>
                 {customers.map(c => (
@@ -1285,59 +1292,71 @@ function BookingModal({ booking, initialDate, bikes, customers, existingBookings
           </div>
 
           {/* Customer Details */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Kundenname *</label>
-              <input type="text" value={form.customer_name} onChange={(e) => setForm(f => ({ ...f, customer_name: e.target.value }))} className={inputStyle} placeholder="Max Mustermann" />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Telefon</label>
-              <input type="tel" value={form.customer_phone} onChange={(e) => setForm(f => ({ ...f, customer_phone: e.target.value }))} className={inputStyle} />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Input
+              label="Kundenname *"
+              value={form.customer_name}
+              onChange={(e) => setForm(f => ({ ...f, customer_name: e.target.value }))}
+              placeholder="Max Mustermann"
+            />
+            <Input
+              label="Telefon"
+              type="tel"
+              value={form.customer_phone}
+              onChange={(e) => setForm(f => ({ ...f, customer_phone: e.target.value }))}
+            />
           </div>
 
           {/* Dates */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Von *</label>
-              <input type="date" value={form.start_date} onChange={(e) => setForm(f => ({ ...f, start_date: e.target.value }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Bis *</label>
-              <input type="date" value={form.end_date} onChange={(e) => setForm(f => ({ ...f, end_date: e.target.value }))} className={inputStyle} />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Input
+              label="Von *"
+              type="date"
+              value={form.start_date}
+              onChange={(e) => setForm(f => ({ ...f, start_date: e.target.value }))}
+            />
+            <Input
+              label="Bis *"
+              type="date"
+              value={form.end_date}
+              onChange={(e) => setForm(f => ({ ...f, end_date: e.target.value }))}
+            />
           </div>
 
           {/* Price & Status */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Tage: {days}</label>
-              <div className={`px-3 py-2 rounded-lg ${darkMode ? "bg-slate-800" : "bg-slate-100"}`}>
+              <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Tage: {days}</label>
+              <div className={`px-3 py-2.5 rounded-lg border ${darkMode ? "bg-slate-900 border-slate-800 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-600"}`}>
                 {selectedBike ? fmtCurrency(selectedBike.price_per_day) : "—"}/Tag
               </div>
             </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Gesamtpreis</label>
-              <input type="number" value={form.total_price} onChange={(e) => setForm(f => ({ ...f, total_price: Number(e.target.value) }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Kaution</label>
-              <input type="number" value={form.deposit_amount} onChange={(e) => setForm(f => ({ ...f, deposit_amount: Number(e.target.value) }))} className={inputStyle} />
-            </div>
+            <Input
+              label="Gesamtpreis"
+              type="number"
+              value={form.total_price}
+              onChange={(e) => setForm(f => ({ ...f, total_price: Number(e.target.value) }))}
+            />
+            <Input
+              label="Kaution"
+              type="number"
+              value={form.deposit_amount}
+              onChange={(e) => setForm(f => ({ ...f, deposit_amount: Number(e.target.value) }))}
+            />
           </div>
 
           {/* Status */}
           <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Status</label>
+            <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Status</label>
             <div className="flex flex-wrap gap-2">
               {Object.entries(STATUS).map(([key, { label, color }]) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => setForm(f => ({ ...f, status: key }))}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${form.status === key
-                    ? `${color} ring-2 ring-orange-500 ring-offset-2 ${darkMode ? "ring-offset-slate-900" : "ring-offset-white"}`
-                    : darkMode ? "bg-slate-800 border-slate-700 text-slate-400" : "bg-slate-100 border-slate-200"
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border transition-all ${form.status === key
+                    ? `${color} ring-2 ring-brand-500 ring-offset-2 ${darkMode ? "ring-offset-slate-950" : "ring-offset-white"}`
+                    : darkMode ? "bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700" : "bg-white border-slate-200 text-slate-500 hover:border-slate-300"
                     }`}
                 >
                   {label}
@@ -1348,29 +1367,32 @@ function BookingModal({ booking, initialDate, bikes, customers, existingBookings
 
           {/* Notes */}
           <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Notizen</label>
+            <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Notizen</label>
             <textarea value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={inputStyle} />
           </div>
         </div>
 
         {/* Footer */}
-        <div className={`sticky bottom-0 flex items-center justify-between p-4 border-t ${darkMode ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"}`}>
+        <div className={`sticky bottom-0 flex items-center justify-between p-4 border-t ${darkMode ? "border-slate-800 bg-slate-950/95" : "border-slate-100 bg-white/95"} backdrop-blur`}>
           <div>
             {booking && (
-              <button onClick={() => { if (confirm("Wirklich löschen?")) onDelete(booking.id); }} className="flex items-center gap-2 px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-lg">
+              <Button
+                variant="danger"
+                onClick={() => { if (confirm("Wirklich löschen?")) onDelete(booking.id); }}
+                className="gap-2"
+              >
                 <Trash2 className="w-4 h-4" />
                 Löschen
-              </button>
+              </Button>
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={onClose} className={`px-4 py-2 rounded-lg ${darkMode ? "bg-slate-800 hover:bg-slate-700" : "bg-slate-100 hover:bg-slate-200"}`}>
+            <Button variant="ghost" onClick={onClose}>
               Abbrechen
-            </button>
-            <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2 disabled:opacity-50">
-              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            </Button>
+            <Button onClick={handleSave} isLoading={saving} className="gap-2">
               Speichern
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -1390,8 +1412,6 @@ function BookingsPage({ bikes, bookings, customers, darkMode, searchQuery }) {
       .filter(b => searchQuery === "" || b.customer_name.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [bookings.bookings, statusFilter, searchQuery]);
 
-  const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
-
   const handleSave = async (data) => {
     if (editBooking) await bookings.update(editBooking.id, data);
     else await bookings.create(data);
@@ -1399,105 +1419,106 @@ function BookingsPage({ bikes, bookings, customers, darkMode, searchQuery }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
-      <div className={`rounded-2xl border p-4 ${cardStyle}`}>
+      <Card className="p-4">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-2 flex-wrap">
             {["all", ...Object.keys(STATUS)].map(s => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${statusFilter === s
-                  ? "bg-orange-500 text-white"
-                  : darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${statusFilter === s
+                  ? "bg-brand-600 text-white shadow-lg shadow-brand-500/25"
+                  : darkMode ? "text-slate-400 hover:bg-slate-800 hover:text-slate-200" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
               >
                 {s === "all" ? "Alle" : STATUS[s]?.label}
               </button>
             ))}
           </div>
-          <button
+          <Button
             onClick={() => { setEditBooking(null); setShowModal(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25"
+            className="gap-2"
           >
             <Plus className="w-4 h-4" />
             Neue Buchung
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       {/* Table */}
-      <div className={`rounded-2xl border overflow-hidden ${cardStyle}`}>
+      <Card className="overflow-hidden p-0">
         {bookings.loading ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+            <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className={darkMode ? "bg-slate-800/50" : "bg-slate-50"}>
-                <tr className={`text-left text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                  <th className="px-4 py-3">Nr.</th>
-                  <th className="px-4 py-3">Kunde</th>
-                  <th className="px-4 py-3">Rad</th>
-                  <th className="px-4 py-3">Zeitraum</th>
-                  <th className="px-4 py-3">Preis</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Aktionen</th>
+              <thead className={`border-b ${darkMode ? "bg-slate-900/50 border-slate-800" : "bg-slate-50 border-slate-200"}`}>
+                <tr className={`text-left text-xs font-bold uppercase tracking-wider ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  <th className="px-6 py-4">Nr.</th>
+                  <th className="px-6 py-4">Kunde</th>
+                  <th className="px-6 py-4">Rad</th>
+                  <th className="px-6 py-4">Zeitraum</th>
+                  <th className="px-6 py-4">Preis</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Aktionen</th>
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? "divide-slate-800" : "divide-slate-100"}`}>
                 {filtered.map(b => {
                   const bikeIdx = bikes.bikes.findIndex(x => x.id === b.bike_id);
                   return (
-                    <tr key={b.id} className={darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"}>
-                      <td className="px-4 py-3 font-mono text-sm">{b.booking_number}</td>
-                      <td className="px-4 py-3">
+                    <tr key={b.id} className={`transition-colors ${darkMode ? "hover:bg-slate-800/30" : "hover:bg-slate-50"}`}>
+                      <td className="px-6 py-4 font-mono text-sm opacity-60">{b.booking_number}</td>
+                      <td className="px-6 py-4">
                         <div className="font-medium">{b.customer_name}</div>
-                        <div className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{b.customer_phone}</div>
+                        <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{b.customer_phone}</div>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-6 h-6 rounded ${BIKE_COLORS[bikeIdx % BIKE_COLORS.length]} flex items-center justify-center text-white text-xs font-bold`}>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg ${BIKE_COLORS[bikeIdx % BIKE_COLORS.length]} flex items-center justify-center text-white text-xs font-bold shadow-md`}>
                             {bikeIdx + 1}
                           </div>
-                          <span className="text-sm">{b.bike?.name || "—"}</span>
+                          <span className="text-sm font-medium">{b.bike?.name || "—"}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm">{fmtDate(b.start_date)} → {fmtDate(b.end_date)}</td>
-                      <td className="px-4 py-3 font-medium">{fmtCurrency(b.total_price)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-1 rounded-full border ${STATUS[b.status]?.color}`}>
+                      <td className="px-6 py-4 text-sm text-slate-500">{fmtDate(b.start_date)} → {fmtDate(b.end_date)}</td>
+                      <td className="px-6 py-4 font-medium text-brand-500">{fmtCurrency(b.total_price)}</td>
+                      <td className="px-6 py-4">
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${STATUS[b.status]?.color}`}>
                           {STATUS[b.status]?.label}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
-                        <button
+                      <td className="px-6 py-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => { setEditBooking(b); setShowModal(true); }}
-                          className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-200"}`}
                         >
-                          <Edit className="w-4 h-4" />
-                        </button>
+                          Bearbeiten
+                        </Button>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+            {filtered.length === 0 && (
+              <div className="text-center py-12 text-slate-500">
+                Keine Buchungen gefunden
+              </div>
+            )}
           </div>
         )}
-        {!bookings.loading && filtered.length === 0 && (
-          <div className={`text-center py-12 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-            Keine Buchungen gefunden
-          </div>
-        )}
-      </div>
+      </Card>
 
+      {/* Booking Modal */}
       {showModal && (
         <BookingModal
           booking={editBooking}
-          initialDate={new Date()}
           bikes={bikes.bikes}
           customers={customers.customers}
           existingBookings={bookings.bookings}
@@ -1509,684 +1530,815 @@ function BookingsPage({ bikes, bookings, customers, darkMode, searchQuery }) {
       )}
     </div>
   );
-}
 
-// ============ FLEET PAGE ============
-function FleetPage({ bikes, bookings, darkMode, searchQuery }) {
-  const [showModal, setShowModal] = useState(false);
-  const [editBike, setEditBike] = useState(null);
 
-  const filtered = useMemo(() => {
-    return bikes.bikes.filter(b =>
-      searchQuery === "" ||
-      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.frame_number?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [bikes.bikes, searchQuery]);
+  // ============ FLEET PAGE ============
+  // ============ FLEET PAGE ============
+  function FleetPage({ bikes, bookings, darkMode, searchQuery }) {
+    const [showModal, setShowModal] = useState(false);
+    const [editBike, setEditBike] = useState(null);
 
-  const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
+    const filtered = useMemo(() => {
+      return bikes.bikes.filter(b =>
+        searchQuery === "" ||
+        b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.frame_number?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }, [bikes.bikes, searchQuery]);
 
-  const handleSave = async (data) => {
-    if (editBike) await bikes.update(editBike.id, data);
-    else await bikes.create(data);
-    setShowModal(false);
-  };
+    const handleSave = async (data) => {
+      if (editBike) await bikes.update(editBike.id, data);
+      else await bikes.create(data);
+      setShowModal(false);
+    };
 
-  return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className={`rounded-2xl border p-4 ${cardStyle}`}>
-        <div className="flex items-center justify-between">
-          <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-            {filtered.length} Räder
-          </span>
-          <button
-            onClick={() => { setEditBike(null); setShowModal(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25"
-          >
-            <Plus className="w-4 h-4" />
-            Neues Rad
-          </button>
-        </div>
-      </div>
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <span className={`text-sm font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+              {filtered.length} Räder
+            </span>
+            <Button
+              onClick={() => { setEditBike(null); setShowModal(true); }}
+              className="gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Neues Rad
+            </Button>
+          </div>
+        </Card>
 
-      {/* Grid */}
-      {bikes.loading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((bike, idx) => {
-            const globalIdx = bikes.bikes.findIndex(b => b.id === bike.id);
-            const isOut = bookings.bookings.some(b => b.bike_id === bike.id && b.status === "picked_up");
+        {/* Grid */}
+        {bikes.loading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map(bike => {
+              const isOut = bookings.bookings.some(b => b.bike_id === bike.id && b.status === "picked_up");
+              const isMaint = bike.status === "maintenance";
+              const statusColor = isMaint ? "bg-rose-500" : isOut ? "bg-blue-500" : "bg-emerald-500";
+              const statusText = isMaint ? "Wartung" : isOut ? "Vermietet" : "Verfügbar";
 
-            return (
-              <div key={bike.id} className={`rounded-2xl border overflow-hidden ${cardStyle}`}>
-                <div className={`h-2 ${BIKE_COLORS[globalIdx % BIKE_COLORS.length]}`} />
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl ${BIKE_COLORS[globalIdx % BIKE_COLORS.length]} flex items-center justify-center text-white font-bold`}>
-                        {globalIdx + 1}
+              return (
+                <Card key={bike.id} className="p-0 overflow-hidden group hover:border-brand-500/50 transition-all duration-300">
+                  <div className={`h-32 ${darkMode ? "bg-slate-900" : "bg-slate-100"} relative p-4 flex items-start justify-between`}>
+                    <div className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider text-white ${statusColor} shadow-lg shadow-black/10`}>
+                      {statusText}
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => { setEditBike(bike); setShowModal(true); }}
+                        className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
+                      <h3 className="text-white font-bold text-lg truncate">{bike.name}</h3>
+                      <p className="text-white/80 text-xs font-mono">{bike.frame_number}</p>
+                    </div>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Kategorie</div>
+                        <div className="font-medium">{bike.category}</div>
                       </div>
                       <div>
-                        <h3 className="font-semibold">{bike.name}</h3>
-                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{bike.category}</p>
+                        <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Größe</div>
+                        <div className="font-medium">{bike.size}</div>
+                      </div>
+                      <div>
+                        <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Akku</div>
+                        <div className="font-medium">{bike.battery}</div>
+                      </div>
+                      <div>
+                        <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Motor</div>
+                        <div className="font-medium">{bike.motor}</div>
                       </div>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${isOut ? "bg-blue-100 text-blue-700" :
-                      bike.status === "maintenance" ? "bg-amber-100 text-amber-700" :
-                        "bg-emerald-100 text-emerald-700"
-                      }`}>
-                      {isOut ? "Unterwegs" : bike.status === "maintenance" ? "Wartung" : "Verfügbar"}
-                    </span>
-                  </div>
-
-                  <div className={`space-y-2 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
-                    <div className="flex justify-between">
-                      <span>Größe</span>
-                      <span className="font-medium">{bike.size}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Preis/Tag</span>
-                      <span className="font-medium text-orange-500">{fmtCurrency(bike.price_per_day)}</span>
-                    </div>
-                    {bike.battery && bike.battery !== "-" && (
-                      <div className="flex justify-between">
-                        <span>Akku</span>
-                        <span>{bike.battery}</span>
+                    <div className={`pt-4 border-t ${darkMode ? "border-slate-800" : "border-slate-100"} flex items-center justify-between`}>
+                      <div className="font-bold text-lg text-brand-500">
+                        {fmtCurrency(bike.price_per_day)}<span className="text-xs text-slate-500 font-normal">/Tag</span>
                       </div>
-                    )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={async () => {
+                          const newStatus = bike.status === "maintenance" ? "available" : "maintenance";
+                          await bikes.update(bike.id, { status: newStatus });
+                        }}
+                        className={bike.status === "maintenance" ? "text-emerald-500 hover:text-emerald-400" : "text-rose-500 hover:text-rose-400"}
+                      >
+                        {bike.status === "maintenance" ? "Freigeben" : "Wartung"}
+                      </Button>
+                    </div>
                   </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
-                  <div className={`flex gap-2 mt-4 pt-4 border-t ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
-                    <button
-                      onClick={() => { setEditBike(bike); setShowModal(true); }}
-                      className={`flex-1 py-2 rounded-lg text-sm ${darkMode ? "bg-slate-800 hover:bg-slate-700" : "bg-slate-100 hover:bg-slate-200"}`}
-                    >
-                      Bearbeiten
-                    </button>
-                    <button
-                      onClick={async () => {
-                        const newStatus = bike.status === "maintenance" ? "available" : "maintenance";
-                        await bikes.update(bike.id, { status: newStatus });
-                      }}
-                      className={`px-3 py-2 rounded-lg text-sm ${bike.status === "maintenance"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-amber-100 text-amber-700"
-                        }`}
-                    >
-                      {bike.status === "maintenance" ? <Check className="w-4 h-4" /> : <RefreshCw className="w-4 h-4" />}
-                    </button>
-                  </div>
+        {/* Bike Modal */}
+        {showModal && (
+          <BikeModal
+            bike={editBike}
+            onSave={handleSave}
+            onDelete={async (id) => { await bikes.remove(id); setShowModal(false); }}
+            onClose={() => setShowModal(false)}
+            darkMode={darkMode}
+          />
+        )}
+      </div>
+    );
+  }
+
+  function BikeModal({ bike, onSave, onDelete, onClose, darkMode }) {
+    const [form, setForm] = useState(() => bike || {
+      name: "",
+      category: "E-Bike",
+      size: "M",
+      price_per_day: 35,
+      deposit: 50,
+      battery: "500Wh",
+      motor: "Mittelmotor",
+      color: "Schwarz",
+      frame_number: `FR${Date.now().toString().slice(-6)}`,
+      status: "available"
+    });
+    const [saving, setSaving] = useState(false);
+
+    const modalBg = darkMode ? "bg-slate-900" : "bg-white";
+
+    const handleSave = async () => {
+      setSaving(true);
+      await onSave(form);
+      setSaving(false);
+    };
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className={`w-full max-w-lg rounded-2xl ${modalBg} shadow-2xl border ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
+          <div className={`flex items-center justify-between p-4 border-b ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
+            <h3 className="text-lg font-semibold">{bike ? "Rad bearbeiten" : "Neues Rad"}</h3>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <Input
+                  label="Name"
+                  value={form.name}
+                  onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="City E-Bike Premium"
+                  darkMode={darkMode}
+                />
+              </div>
+              <div>
+                <label className={`block text-xs font-medium mb-1.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Kategorie</label>
+                <div className="relative">
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm(f => ({ ...f, category: e.target.value }))}
+                    className={`w-full px-3 py-2 rounded-lg border outline-none appearance-none transition-all ${darkMode
+                      ? "bg-slate-950 border-slate-800 text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                      : "bg-white border-slate-200 text-slate-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                      }`}
+                  >
+                    <option>E-Bike</option>
+                    <option>E-MTB</option>
+                    <option>Lastenrad</option>
+                    <option>Kinder</option>
+                    <option>Bio</option>
+                    <option>E-Scooter</option>
+                  </select>
+                  <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Bike Modal */}
-      {showModal && (
-        <BikeModal
-          bike={editBike}
-          onSave={handleSave}
-          onDelete={async (id) => { await bikes.remove(id); setShowModal(false); }}
-          onClose={() => setShowModal(false)}
-          darkMode={darkMode}
-        />
-      )}
-    </div>
-  );
-}
-
-function BikeModal({ bike, onSave, onDelete, onClose, darkMode }) {
-  const [form, setForm] = useState(() => bike || {
-    name: "",
-    category: "E-Bike",
-    size: "M",
-    price_per_day: 35,
-    deposit: 50,
-    battery: "500Wh",
-    motor: "Mittelmotor",
-    color: "Schwarz",
-    frame_number: `FR${Date.now().toString().slice(-6)}`,
-    status: "available"
-  });
-  const [saving, setSaving] = useState(false);
-
-  const modalBg = darkMode ? "bg-slate-900" : "bg-white";
-  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-300"}`;
-
-  const handleSave = async () => {
-    setSaving(true);
-    await onSave(form);
-    setSaving(false);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className={`w-full max-w-lg rounded-2xl ${modalBg} shadow-2xl`}>
-        <div className={`flex items-center justify-between p-4 border-b ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
-          <h3 className="text-lg font-semibold">{bike ? "Rad bearbeiten" : "Neues Rad"}</h3>
-          <button onClick={onClose} className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Name</label>
-              <input type="text" value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className={inputStyle} placeholder="City E-Bike Premium" />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Kategorie</label>
-              <select value={form.category} onChange={(e) => setForm(f => ({ ...f, category: e.target.value }))} className={inputStyle}>
-                <option>E-Bike</option>
-                <option>E-MTB</option>
-                <option>Lastenrad</option>
-                <option>Kinder</option>
-                <option>Bio</option>
-                <option>E-Scooter</option>
-              </select>
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Größe</label>
-              <input type="text" value={form.size} onChange={(e) => setForm(f => ({ ...f, size: e.target.value }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Preis/Tag (€)</label>
-              <input type="number" value={form.price_per_day} onChange={(e) => setForm(f => ({ ...f, price_per_day: Number(e.target.value) }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Farbe</label>
-              <input type="text" value={form.color} onChange={(e) => setForm(f => ({ ...f, color: e.target.value }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Akku</label>
-              <input type="text" value={form.battery} onChange={(e) => setForm(f => ({ ...f, battery: e.target.value }))} className={inputStyle} placeholder="625Wh" />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Motor</label>
-              <input type="text" value={form.motor} onChange={(e) => setForm(f => ({ ...f, motor: e.target.value }))} className={inputStyle} />
-            </div>
-            <div className="col-span-2">
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Rahmennummer</label>
-              <input type="text" value={form.frame_number} onChange={(e) => setForm(f => ({ ...f, frame_number: e.target.value }))} className={inputStyle} />
+              <div>
+                <Input
+                  label="Größe"
+                  value={form.size}
+                  onChange={(e) => setForm(f => ({ ...f, size: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div>
+                <Input
+                  label="Preis/Tag (€)"
+                  type="number"
+                  value={form.price_per_day}
+                  onChange={(e) => setForm(f => ({ ...f, price_per_day: Number(e.target.value) }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div>
+                <Input
+                  label="Farbe"
+                  value={form.color}
+                  onChange={(e) => setForm(f => ({ ...f, color: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div>
+                <Input
+                  label="Akku"
+                  value={form.battery}
+                  onChange={(e) => setForm(f => ({ ...f, battery: e.target.value }))}
+                  placeholder="625Wh"
+                  darkMode={darkMode}
+                />
+              </div>
+              <div>
+                <Input
+                  label="Motor"
+                  value={form.motor}
+                  onChange={(e) => setForm(f => ({ ...f, motor: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div className="col-span-2">
+                <Input
+                  label="Rahmennummer"
+                  value={form.frame_number}
+                  onChange={(e) => setForm(f => ({ ...f, frame_number: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className={`flex items-center justify-between p-4 border-t ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
-          <div>
-            {bike && (
-              <button onClick={() => { if (confirm("Rad löschen?")) onDelete(bike.id); }} className="text-rose-500 hover:text-rose-400">
-                Löschen
-              </button>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <button onClick={onClose} className={`px-4 py-2 rounded-lg ${darkMode ? "bg-slate-800" : "bg-slate-100"}`}>Abbrechen</button>
-            <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium flex items-center gap-2">
-              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-              Speichern
-            </button>
+          <div className={`flex items-center justify-between p-4 border-t ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
+            <div>
+              {bike && (
+                <Button variant="danger" variantType="ghost" onClick={() => { if (confirm("Rad löschen?")) onDelete(bike.id); }}>
+                  Löschen
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Button variant="ghost" onClick={onClose}>Abbrechen</Button>
+              <Button onClick={handleSave} isLoading={saving}>
+                Speichern
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-// ============ CUSTOMERS PAGE ============
-function CustomersPage({ customers, bookings, darkMode, searchQuery }) {
-  const [showModal, setShowModal] = useState(false);
-  const [editCustomer, setEditCustomer] = useState(null);
+  // ============ CUSTOMERS PAGE ============
+  function CustomersPage({ customers, bookings, darkMode, searchQuery }) {
+    const [showModal, setShowModal] = useState(false);
+    const [editCustomer, setEditCustomer] = useState(null);
 
-  const filtered = useMemo(() => {
-    return customers.customers
-      .filter(c =>
-        searchQuery === "" ||
-        `${c.first_name} ${c.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.email?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      .sort((a, b) => (b.total_revenue || 0) - (a.total_revenue || 0));
-  }, [customers.customers, searchQuery]);
+    const filtered = useMemo(() => {
+      return customers.customers
+        .filter(c =>
+          searchQuery === "" ||
+          `${c.first_name} ${c.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.email?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => (b.total_revenue || 0) - (a.total_revenue || 0));
+    }, [customers.customers, searchQuery]);
 
-  const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
+    const handleSave = async (data) => {
+      if (editCustomer) await customers.update(editCustomer.id, data);
+      else await customers.create(data);
+      setShowModal(false);
+    };
 
-  const handleSave = async (data) => {
-    if (editCustomer) await customers.update(editCustomer.id, data);
-    else await customers.create(data);
-    setShowModal(false);
-  };
-
-  return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className={`rounded-2xl border p-4 ${cardStyle}`}>
-        <div className="flex items-center justify-between">
-          <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-            {filtered.length} Kunden
-          </span>
-          <button
-            onClick={() => { setEditCustomer(null); setShowModal(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25"
-          >
-            <Plus className="w-4 h-4" />
-            Neuer Kunde
-          </button>
-        </div>
-      </div>
-
-      {/* Grid */}
-      {customers.loading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(c => (
-            <div key={c.id} className={`rounded-2xl border p-5 ${cardStyle}`}>
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white text-lg font-bold">
-                    {(c.first_name || c.last_name || "?").charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{c.first_name} {c.last_name}</h3>
-                    <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                      {c.total_bookings || 0} Buchungen
-                    </p>
-                  </div>
-                </div>
-                <button onClick={() => { setEditCustomer(c); setShowModal(true); }} className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
-                  <Edit className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className={`space-y-2 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
-                {c.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    <span className="truncate">{c.email}</span>
-                  </div>
-                )}
-                {c.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    <span>{c.phone}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className={`flex items-center justify-between mt-4 pt-4 border-t ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
-                <span className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Gesamtumsatz</span>
-                <span className="font-semibold text-orange-500">{fmtCurrency(c.total_revenue || 0)}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Customer Modal */}
-      {showModal && (
-        <CustomerModal
-          customer={editCustomer}
-          onSave={handleSave}
-          onDelete={async (id) => { await customers.remove(id); setShowModal(false); }}
-          onClose={() => setShowModal(false)}
-          darkMode={darkMode}
-        />
-      )}
-    </div>
-  );
-}
-
-function CustomerModal({ customer, onSave, onDelete, onClose, darkMode }) {
-  const [form, setForm] = useState(() => customer || {
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    postal_code: "",
-    id_number: "",
-    notes: ""
-  });
-  const [saving, setSaving] = useState(false);
-
-  const modalBg = darkMode ? "bg-slate-900" : "bg-white";
-  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-300"}`;
-
-  const handleSave = async () => {
-    setSaving(true);
-    await onSave(form);
-    setSaving(false);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className={`w-full max-w-lg rounded-2xl ${modalBg} shadow-2xl`}>
-        <div className={`flex items-center justify-between p-4 border-b ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
-          <h3 className="text-lg font-semibold">{customer ? "Kunde bearbeiten" : "Neuer Kunde"}</h3>
-          <button onClick={onClose} className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Vorname</label>
-              <input type="text" value={form.first_name} onChange={(e) => setForm(f => ({ ...f, first_name: e.target.value }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Nachname</label>
-              <input type="text" value={form.last_name} onChange={(e) => setForm(f => ({ ...f, last_name: e.target.value }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>E-Mail</label>
-              <input type="email" value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Telefon</label>
-              <input type="tel" value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className={inputStyle} />
-            </div>
-            <div className="col-span-2">
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Adresse</label>
-              <input type="text" value={form.address} onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>PLZ</label>
-              <input type="text" value={form.postal_code} onChange={(e) => setForm(f => ({ ...f, postal_code: e.target.value }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Stadt</label>
-              <input type="text" value={form.city} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} className={inputStyle} />
-            </div>
-            <div className="col-span-2">
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Ausweis-Nr.</label>
-              <input type="text" value={form.id_number} onChange={(e) => setForm(f => ({ ...f, id_number: e.target.value }))} className={inputStyle} />
-            </div>
-            <div className="col-span-2">
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Notizen</label>
-              <textarea value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={inputStyle} />
-            </div>
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <span className={`text-sm font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+              {filtered.length} Kunden
+            </span>
+            <Button
+              onClick={() => { setEditCustomer(null); setShowModal(true); }}
+              className="gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Neuer Kunde
+            </Button>
           </div>
-        </div>
+        </Card>
 
-        <div className={`flex items-center justify-between p-4 border-t ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
-          <div>
-            {customer && (
-              <button onClick={() => { if (confirm("Kunde löschen?")) onDelete(customer.id); }} className="text-rose-500">Löschen</button>
-            )}
+        {/* Grid */}
+        {customers.loading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
           </div>
-          <div className="flex gap-3">
-            <button onClick={onClose} className={`px-4 py-2 rounded-lg ${darkMode ? "bg-slate-800" : "bg-slate-100"}`}>Abbrechen</button>
-            <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium flex items-center gap-2">
-              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-              Speichern
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============ ANALYTICS PAGE ============
-function AnalyticsPage({ bikes, bookings, customers, darkMode }) {
-  const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
-
-  const monthlyData = useMemo(() => {
-    const months = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      const monthStart = new Date(d.getFullYear(), d.getMonth(), 1);
-      const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-      const monthBookings = bookings.bookings.filter(b =>
-        b.status !== "cancelled" &&
-        new Date(b.start_date) >= monthStart &&
-        new Date(b.start_date) <= monthEnd
-      );
-      months.push({
-        name: d.toLocaleDateString("de-DE", { month: "short" }),
-        revenue: monthBookings.reduce((s, b) => s + (b.total_price || 0), 0),
-        bookings: monthBookings.length
-      });
-    }
-    return months;
-  }, [bookings.bookings]);
-
-  const bikeStats = useMemo(() => {
-    return bikes.bikes.map((bike, i) => {
-      const bikeBookings = bookings.bookings.filter(b => b.bike_id === bike.id && b.status !== "cancelled");
-      const totalDays = bikeBookings.reduce((s, b) => s + daysDiff(b.start_date, b.end_date), 0);
-      const revenue = bikeBookings.reduce((s, b) => s + (b.total_price || 0), 0);
-      return { name: `Rad ${i + 1}`, fullName: bike.name, days: totalDays, revenue, bookings: bikeBookings.length };
-    }).sort((a, b) => b.revenue - a.revenue);
-  }, [bikes.bikes, bookings.bookings]);
-
-  const statusDist = useMemo(() => {
-    const dist = {};
-    Object.keys(STATUS).forEach(s => { dist[s] = 0; });
-    bookings.bookings.forEach(b => { dist[b.status] = (dist[b.status] || 0) + 1; });
-    return Object.entries(dist).map(([k, v]) => ({
-      name: STATUS[k]?.label || k,
-      value: v,
-      color: k === "reserved" ? "#f59e0b" : k === "confirmed" ? "#10b981" : k === "picked_up" ? "#3b82f6" : k === "returned" ? "#64748b" : "#e11d48"
-    }));
-  }, [bookings.bookings]);
-
-  return (
-    <div className="space-y-6">
-      {/* Revenue Chart */}
-      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-        <h3 className="font-semibold text-lg mb-6">Umsatz & Buchungen (6 Monate)</h3>
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#334155" : "#e2e8f0"} />
-              <XAxis dataKey="name" stroke={darkMode ? "#64748b" : "#94a3b8"} />
-              <YAxis yAxisId="left" stroke={darkMode ? "#64748b" : "#94a3b8"} />
-              <YAxis yAxisId="right" orientation="right" stroke={darkMode ? "#64748b" : "#94a3b8"} />
-              <Tooltip contentStyle={{ backgroundColor: darkMode ? "#1e293b" : "#fff", border: "1px solid #334155", borderRadius: "8px" }} />
-              <Bar yAxisId="left" dataKey="revenue" name="Umsatz (€)" fill="#f97316" radius={[4, 4, 0, 0]} />
-              <Bar yAxisId="right" dataKey="bookings" name="Buchungen" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bike Stats */}
-        <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-          <h3 className="font-semibold text-lg mb-6">Rad-Auslastung (Top 5)</h3>
-          <div className="space-y-4">
-            {bikeStats.slice(0, 5).map((b, i) => (
-              <div key={i}>
-                <div className="flex justify-between mb-1 text-sm">
-                  <span>{b.name}</span>
-                  <span className="text-orange-500 font-medium">{fmtCurrency(b.revenue)}</span>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map(c => (
+              <Card key={c.id} className="p-5 hover:border-brand-500/50 transition-all duration-300">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-brand-500/25">
+                      {(c.first_name || c.last_name || "?").charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{c.first_name} {c.last_name}</h3>
+                      <p className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                        {c.total_bookings || 0} Buchungen
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setEditCustomer(c); setShowModal(true); }}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
                 </div>
-                <div className={`h-2 rounded-full ${darkMode ? "bg-slate-800" : "bg-slate-200"}`}>
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500"
-                    style={{ width: `${Math.min(100, (b.revenue / (bikeStats[0]?.revenue || 1)) * 100)}%` }}
-                  />
+
+                <div className={`space-y-3 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+                  {c.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 opacity-50" />
+                      <span className="truncate">{c.email}</span>
+                    </div>
+                  )}
+                  {c.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 opacity-50" />
+                      <span>{c.phone}</span>
+                    </div>
+                  )}
                 </div>
-                <p className={`text-xs mt-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                  {b.bookings} Buchungen • {b.days} Tage
-                </p>
-              </div>
+
+                <div className={`flex items-center justify-between mt-4 pt-4 border-t ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                  <span className={`text-xs font-medium ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Gesamtumsatz</span>
+                  <span className="font-bold text-brand-500">{fmtCurrency(c.total_revenue || 0)}</span>
+                </div>
+              </Card>
             ))}
           </div>
-        </div>
+        )}
 
-        {/* Status Distribution */}
-        <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-          <h3 className="font-semibold text-lg mb-6">Status-Verteilung</h3>
-          <div className="h-56">
+        {/* Customer Modal */}
+        {showModal && (
+          <CustomerModal
+            customer={editCustomer}
+            onSave={handleSave}
+            onDelete={async (id) => { await customers.remove(id); setShowModal(false); }}
+            onClose={() => setShowModal(false)}
+            darkMode={darkMode}
+          />
+        )}
+      </div>
+    );
+  }
+
+
+  function CustomerModal({ customer, onSave, onDelete, onClose, darkMode }) {
+    const [form, setForm] = useState(() => customer || {
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      address: "",
+      city: "",
+      postal_code: "",
+      id_number: "",
+      notes: ""
+    });
+    const [saving, setSaving] = useState(false);
+
+    const modalBg = darkMode ? "bg-slate-900" : "bg-white";
+
+    const handleSave = async () => {
+      setSaving(true);
+      await onSave(form);
+      setSaving(false);
+    };
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className={`w-full max-w-lg rounded-2xl ${modalBg} shadow-2xl border ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
+          <div className={`flex items-center justify-between p-4 border-b ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
+            <h3 className="text-lg font-semibold">{customer ? "Kunde bearbeiten" : "Neuer Kunde"}</h3>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Input
+                  label="Vorname"
+                  value={form.first_name}
+                  onChange={(e) => setForm(f => ({ ...f, first_name: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div>
+                <Input
+                  label="Nachname"
+                  value={form.last_name}
+                  onChange={(e) => setForm(f => ({ ...f, last_name: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div className="col-span-2">
+                <Input
+                  label="E-Mail"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
+                  icon={Mail}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div className="col-span-2">
+                <Input
+                  label="Telefon"
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
+                  icon={Phone}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div className="col-span-2">
+                <Input
+                  label="Adresse"
+                  value={form.address}
+                  onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div>
+                <Input
+                  label="PLZ"
+                  value={form.postal_code}
+                  onChange={(e) => setForm(f => ({ ...f, postal_code: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div>
+                <Input
+                  label="Stadt"
+                  value={form.city}
+                  onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div className="col-span-2">
+                <Input
+                  label="Ausweis-Nr."
+                  value={form.id_number}
+                  onChange={(e) => setForm(f => ({ ...f, id_number: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className={`block text-xs font-medium mb-1.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Notizen</label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
+                  rows={2}
+                  className={`w-full px-3 py-2 rounded-lg border outline-none transition-all ${darkMode
+                    ? "bg-slate-950 border-slate-800 text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                    : "bg-white border-slate-200 text-slate-900 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                    }`}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className={`flex items-center justify-between p-4 border-t ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
+            <div>
+              {customer && (
+                <Button variant="danger" variantType="ghost" onClick={() => { if (confirm("Kunde löschen?")) onDelete(customer.id); }}>
+                  Löschen
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Button variant="ghost" onClick={onClose}>Abbrechen</Button>
+              <Button onClick={handleSave} isLoading={saving}>
+                Speichern
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
+
+  // ============ ANALYTICS PAGE ============
+  function AnalyticsPage({ bikes, bookings, customers, darkMode }) {
+    const monthlyData = useMemo(() => {
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        const monthStart = new Date(d.getFullYear(), d.getMonth(), 1);
+        const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+        const monthBookings = bookings.bookings.filter(b =>
+          b.status !== "cancelled" &&
+          new Date(b.start_date) >= monthStart &&
+          new Date(b.start_date) <= monthEnd
+        );
+        months.push({
+          name: d.toLocaleDateString("de-DE", { month: "short" }),
+          revenue: monthBookings.reduce((s, b) => s + (b.total_price || 0), 0),
+          bookings: monthBookings.length
+        });
+      }
+      return months;
+    }, [bookings.bookings]);
+
+    const bikeStats = useMemo(() => {
+      return bikes.bikes.map((bike, i) => {
+        const bikeBookings = bookings.bookings.filter(b => b.bike_id === bike.id && b.status !== "cancelled");
+        const totalDays = bikeBookings.reduce((s, b) => s + daysDiff(b.start_date, b.end_date), 0);
+        const revenue = bikeBookings.reduce((s, b) => s + (b.total_price || 0), 0);
+        return { name: `Rad ${i + 1}`, fullName: bike.name, days: totalDays, revenue, bookings: bikeBookings.length };
+      }).sort((a, b) => b.revenue - a.revenue);
+    }, [bikes.bikes, bookings.bookings]);
+
+    const statusDist = useMemo(() => {
+      const dist = {};
+      Object.keys(STATUS).forEach(s => { dist[s] = 0; });
+      bookings.bookings.forEach(b => { dist[b.status] = (dist[b.status] || 0) + 1; });
+      return Object.entries(dist).map(([k, v]) => ({
+        name: STATUS[k]?.label || k,
+        value: v,
+        color: k === "reserved" ? "#f59e0b" : k === "confirmed" ? "#10b981" : k === "picked_up" ? "#3b82f6" : k === "returned" ? "#64748b" : "#e11d48"
+      }));
+    }, [bookings.bookings]);
+
+    return (
+      <div className="space-y-6">
+        {/* Revenue Chart */}
+        <Card className="p-6">
+          <h3 className="font-semibold text-lg mb-6">Umsatz & Buchungen (6 Monate)</h3>
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={statusDist} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value">
-                  {statusDist.map((e, i) => <Cell key={i} fill={e.color} />)}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#334155" : "#e2e8f0"} />
+                <XAxis dataKey="name" stroke={darkMode ? "#64748b" : "#94a3b8"} />
+                <YAxis yAxisId="left" stroke={darkMode ? "#64748b" : "#94a3b8"} />
+                <YAxis yAxisId="right" orientation="right" stroke={darkMode ? "#64748b" : "#94a3b8"} />
+                <Tooltip contentStyle={{ backgroundColor: darkMode ? "#1e293b" : "#fff", border: "1px solid #334155", borderRadius: "8px" }} />
+                <Bar yAxisId="left" dataKey="revenue" name="Umsatz (€)" fill="#f97316" radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="right" dataKey="bookings" name="Buchungen" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex flex-wrap justify-center gap-4 mt-4">
-            {statusDist.map((s, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: s.color }} />
-                <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>{s.name} ({s.value})</span>
+        </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Bike Stats */}
+          <Card className="p-6">
+            <h3 className="font-semibold text-lg mb-6">Rad-Auslastung (Top 5)</h3>
+            <div className="space-y-4">
+              {bikeStats.slice(0, 5).map((b, i) => (
+                <div key={i}>
+                  <div className="flex justify-between mb-1 text-sm">
+                    <span>{b.name}</span>
+                    <span className="text-orange-500 font-medium">{fmtCurrency(b.revenue)}</span>
+                  </div>
+                  <div className={`h-2 rounded-full ${darkMode ? "bg-slate-800" : "bg-slate-200"}`}>
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500"
+                      style={{ width: `${Math.min(100, (b.revenue / (bikeStats[0]?.revenue || 1)) * 100)}%` }}
+                    />
+                  </div>
+                  <p className={`text-xs mt-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                    {b.bookings} Buchungen • {b.days} Tage
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Status Distribution */}
+          <Card className="p-6">
+            <h3 className="font-semibold text-lg mb-6">Status-Verteilung</h3>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={statusDist} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value">
+                    {statusDist.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4 mt-4">
+              {statusDist.map((s, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: s.color }} />
+                  <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>{s.name} ({s.value})</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // ============ SETTINGS PAGE ============
+  function SettingsPage({ org, auth, darkMode }) {
+    const [form, setForm] = useState(org.currentOrg || {});
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+
+    const handleSave = async () => {
+      setSaving(true);
+      await supabase.from("organizations").update({
+        name: form.name,
+        address: form.address,
+        city: form.city,
+        postal_code: form.postal_code,
+        phone: form.phone,
+        email: form.email,
+        tax_id: form.tax_id
+      }).eq("id", org.currentOrg.id);
+      org.reload();
+      setSaving(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    };
+
+    return (
+      <div className="max-w-3xl space-y-6">
+        {/* Company Settings */}
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+              <Building className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Firmendaten</h3>
+              <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Diese Daten erscheinen auf Verträgen & Rechnungen</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Input
+                label="Firmenname"
+                value={form.name || ""}
+                onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
+                darkMode={darkMode}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Input
+                  label="Adresse"
+                  value={form.address || ""}
+                  onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))}
+                  darkMode={darkMode}
+                />
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============ SETTINGS PAGE ============
-function SettingsPage({ org, auth, darkMode }) {
-  const [form, setForm] = useState(org.currentOrg || {});
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    await supabase.from("organizations").update({
-      name: form.name,
-      address: form.address,
-      city: form.city,
-      postal_code: form.postal_code,
-      phone: form.phone,
-      email: form.email,
-      tax_id: form.tax_id
-    }).eq("id", org.currentOrg.id);
-    org.reload();
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
-  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-300"}`;
-
-  return (
-    <div className="max-w-3xl space-y-6">
-      {/* Company Settings */}
-      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-            <Building className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-lg">Firmendaten</h3>
-            <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Diese Daten erscheinen auf Verträgen & Rechnungen</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Firmenname</label>
-            <input type="text" value={form.name || ""} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className={inputStyle} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Adresse</label>
-              <input type="text" value={form.address || ""} onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))} className={inputStyle} />
+              <div>
+                <Input
+                  label="Stadt"
+                  value={form.city || ""}
+                  onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Input
+                  label="Telefon"
+                  type="tel"
+                  value={form.phone || ""}
+                  onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div>
+                <Input
+                  label="E-Mail"
+                  type="email"
+                  value={form.email || ""}
+                  onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
+                  darkMode={darkMode}
+                />
+              </div>
             </div>
             <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Stadt</label>
-              <input type="text" value={form.city || ""} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} className={inputStyle} />
+              <Input
+                label="USt-IdNr."
+                value={form.tax_id || ""}
+                onChange={(e) => setForm(f => ({ ...f, tax_id: e.target.value }))}
+                darkMode={darkMode}
+              />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Telefon</label>
-              <input type="tel" value={form.phone || ""} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className={inputStyle} />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>E-Mail</label>
-              <input type="email" value={form.email || ""} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} className={inputStyle} />
-            </div>
-          </div>
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>USt-IdNr.</label>
-            <input type="text" value={form.tax_id || ""} onChange={(e) => setForm(f => ({ ...f, tax_id: e.target.value }))} className={inputStyle} />
-          </div>
-        </div>
 
-        <div className="flex items-center gap-3 mt-6">
-          <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2">
-            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-            Speichern
-          </button>
-          {saved && <span className="text-emerald-500 flex items-center gap-1"><Check className="w-4 h-4" /> Gespeichert!</span>}
-        </div>
-      </div>
+          <div className="flex items-center gap-3 mt-6">
+            <Button onClick={handleSave} isLoading={saving} className="gap-2">
+              Speichern
+            </Button>
+            {saved && <span className="text-emerald-500 flex items-center gap-1"><Check className="w-4 h-4" /> Gespeichert!</span>}
+          </div>
+        </Card>
 
-      {/* API Key Info */}
-      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-            <Key className="w-5 h-5 text-white" />
+        {/* API Key Info */}
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+              <Key className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">API & Integrationen</h3>
+              <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Für externe Buchungssysteme</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-lg">API & Integrationen</h3>
-            <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Für externe Buchungssysteme</p>
+          <div className={`p-4 rounded-lg ${darkMode ? "bg-slate-800" : "bg-slate-100"}`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Organisation ID</p>
+                <p className={`text-xs font-mono ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{org.currentOrg?.id}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigator.clipboard.writeText(org.currentOrg?.id || "")}
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-        <div className={`p-4 rounded-lg ${darkMode ? "bg-slate-800" : "bg-slate-100"}`}>
+          <p className={`text-xs mt-3 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+            Nutze diese ID für API-Integrationen mit Booking.com, deiner Website oder anderen Systemen.
+          </p>
+        </Card>
+
+        {/* Subscription Info */}
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Abo & Abrechnung</h3>
+            </div>
+          </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Organisation ID</p>
-              <p className={`text-xs font-mono ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{org.currentOrg?.id}</p>
+              <p className="font-medium capitalize">{org.currentOrg?.subscription_tier || "Free"} Plan</p>
+              <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                Status: {org.currentOrg?.subscription_status === "active" ? "Aktiv" : "Inaktiv"}
+              </p>
             </div>
-            <button
-              onClick={() => navigator.clipboard.writeText(org.currentOrg?.id || "")}
-              className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-200"}`}
-            >
-              <Copy className="w-4 h-4" />
-            </button>
+            <Button className="bg-gradient-to-r from-violet-500 to-purple-500 border-none">
+              Upgrade
+            </Button>
           </div>
-        </div>
-        <p className={`text-xs mt-3 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-          Nutze diese ID für API-Integrationen mit Booking.com, deiner Website oder anderen Systemen.
-        </p>
+        </Card>
       </div>
+    );
+  }
 
-      {/* Subscription Info */}
-      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
-            <CreditCard className="w-5 h-5 text-white" />
-          </div>
+  function StatCard({ title, value, subtitle, icon: Icon, color, darkMode }) {
+    const colors = {
+      orange: "from-orange-500 to-amber-500 shadow-orange-500/25",
+      blue: "from-blue-500 to-cyan-500 shadow-blue-500/25",
+      emerald: "from-emerald-500 to-teal-500 shadow-emerald-500/25",
+      violet: "from-violet-500 to-purple-500 shadow-violet-500/25",
+    };
+
+    return (
+      <Card className="p-6 hover:border-brand-500/50 transition-all duration-300">
+        <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-semibold text-lg">Abo & Abrechnung</h3>
+            <p className={`text-sm font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{title}</p>
+            <h3 className="text-2xl font-bold mt-2">{value}</h3>
+            {subtitle && (
+              <p className={`text-xs mt-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{subtitle}</p>
+            )}
+          </div>
+          <div className={`p-3 rounded-xl bg-gradient-to-br ${colors[color] || colors.orange} shadow-lg`}>
+            <Icon className="w-6 h-6 text-white" />
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium capitalize">{org.currentOrg?.subscription_tier || "Free"} Plan</p>
-            <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-              Status: {org.currentOrg?.subscription_status === "active" ? "Aktiv" : "Inaktiv"}
-            </p>
-          </div>
-          <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-purple-500 text-white text-sm font-medium">
-            Upgrade
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+      </Card>
+    );
+  }

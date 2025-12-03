@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Bike, TrendingUp, Users, BarChart3 } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
 import ActivityList from "../components/dashboard/ActivityList";
@@ -7,7 +7,7 @@ import RecentBookingsTable from "../components/dashboard/RecentBookingsTable";
 import HandoverModal from "../components/dashboard/HandoverModal";
 import { fmtCurrency } from "../utils/formatUtils";
 
-export default function DashboardPage({ bikes, bookings, customers, darkMode, setCurrentPage }) {
+export default function DashboardPage({ bikes, bookings, customers, darkMode }) {
     const today = new Date().toISOString().slice(0, 10);
 
     // Stats

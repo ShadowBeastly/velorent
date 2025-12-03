@@ -5,7 +5,7 @@ import { fmtDateShort } from "../../utils/dateUtils";
 export default function ActivityList({ title, items, type, onAction, darkMode }) {
     const isPickup = type === "pickup";
     const emptyMessage = isPickup ? "Keine Abholungen heute" : "Keine Rückgaben heute";
-    const icon = isPickup ? ArrowRight : ArrowLeft;
+
     const actionLabel = isPickup ? "Check-out" : "Check-in";
 
     const getInitials = (name) => name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "??";

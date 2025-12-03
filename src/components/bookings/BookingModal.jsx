@@ -57,11 +57,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const days = form.start_date && form.end_date ? Math.max(1, daysDiff(form.start_date, form.end_date) + 1) : 1;
 
     // Auto-calc price if not manually edited (simple logic for now)
-    useEffect(() => {
-        if (selectedBike && !booking) {
-            setForm(f => ({ ...f, total_price: selectedBike.price_per_day * days }));
-        }
-    }, [selectedBike, days, booking]);
+
 
     // Filtered Customers
     const filteredCustomers = useMemo(() => {
@@ -182,11 +178,25 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className={labelStyle}>Startdatum</label>
-                                    <input type="date" value={form.start_date} onChange={(e) => setForm(f => ({ ...f, start_date: e.target.value }))} className={inputStyle} />
+                                    <input type="date" value={form.start_date} onChange={(e) => {
+                                        const newStart = e.target.value;
+                                        setForm(f => {
+                                            const d = newStart && f.end_date ? Math.max(1, daysDiff(newStart, f.end_date) + 1) : 1;
+                                            const bike = bikes.find(b => b.id === f.bike_id);
+                                            return { ...f, start_date: newStart, total_price: bike ? bike.price_per_day * d : 0 };
+                                        });
+                                    }} className={inputStyle} />
                                 </div>
                                 <div>
                                     <label className={labelStyle}>Enddatum</label>
-                                    <input type="date" value={form.end_date} onChange={(e) => setForm(f => ({ ...f, end_date: e.target.value }))} className={inputStyle} />
+                                    <input type="date" value={form.end_date} onChange={(e) => {
+                                        const newEnd = e.target.value;
+                                        setForm(f => {
+                                            const d = f.start_date && newEnd ? Math.max(1, daysDiff(f.start_date, newEnd) + 1) : 1;
+                                            const bike = bikes.find(b => b.id === f.bike_id);
+                                            return { ...f, end_date: newEnd, total_price: bike ? bike.price_per_day * d : 0 };
+                                        });
+                                    }} className={inputStyle} />
                                 </div>
                             </div>
 
@@ -198,7 +208,10 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         return (
                                             <div
                                                 key={bike.id}
-                                                onClick={() => setForm(f => ({ ...f, bike_id: bike.id }))}
+                                                onClick={() => setForm(f => {
+                                                    const d = f.start_date && f.end_date ? Math.max(1, daysDiff(f.start_date, f.end_date) + 1) : 1;
+                                                    return { ...f, bike_id: bike.id, total_price: bike.price_per_day * d };
+                                                })}
                                                 className={`p-3 rounded-xl border cursor-pointer transition-all ${isSelected
                                                     ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500"
                                                     : darkMode ? "border-slate-700 hover:border-slate-600 bg-slate-800" : "border-slate-200 hover:border-slate-300 bg-white"

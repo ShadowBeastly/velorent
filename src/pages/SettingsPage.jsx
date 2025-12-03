@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Building, Loader2, Check, Key, Copy, CreditCard } from "lucide-react";
 import { supabase } from "../utils/supabase";
 
-export default function SettingsPage({ org, auth, darkMode }) {
+export default function SettingsPage({ org, darkMode }) {
     const [form, setForm] = useState(org.currentOrg || {});
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Bike, Building, Plus, Check, ChevronRight, ChevronLeft,
-  Loader2, Sparkles, Users, Calendar, Globe
+  Loader2, Sparkles, Calendar, Globe
 } from "lucide-react";
 
 // ============ ONBOARDING WIZARD ============
@@ -25,11 +25,11 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
     enableEmails: true
   });
 
-  const totalSteps = 3;
+
 
   const handleCreateOrg = async () => {
     if (!orgName || !orgSlug) return;
-    
+
     setLoading(true);
     setError("");
 
@@ -88,7 +88,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
               }
             }
           });
-        } catch (e) {
+        } catch {
           console.log("Email sending failed, but continuing...");
         }
       }
@@ -137,17 +137,15 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
           <div className="flex items-center justify-between mb-2">
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
-                  step >= s 
-                    ? "bg-gradient-to-br from-orange-500 to-amber-500 text-white" 
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${step >= s
+                    ? "bg-gradient-to-br from-orange-500 to-amber-500 text-white"
                     : "bg-slate-800 text-slate-500"
-                }`}>
+                  }`}>
                   {step > s ? <Check className="w-5 h-5" /> : s}
                 </div>
                 {s < 3 && (
-                  <div className={`w-24 h-1 mx-2 rounded-full transition-all ${
-                    step > s ? "bg-gradient-to-r from-orange-500 to-amber-500" : "bg-slate-800"
-                  }`} />
+                  <div className={`w-24 h-1 mx-2 rounded-full transition-all ${step > s ? "bg-gradient-to-r from-orange-500 to-amber-500" : "bg-slate-800"
+                    }`} />
                 )}
               </div>
             ))}
@@ -161,7 +159,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
 
         {/* Card */}
         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl overflow-hidden">
-          
+
           {/* Step 1: Organization */}
           {step === 1 && (
             <div className="p-8">
@@ -186,7 +184,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
                     onChange={(e) => {
                       setOrgName(e.target.value);
                       setOrgSlug(e.target.value.toLowerCase()
-                        .replace(/[äöüß]/g, c => ({ä:'ae',ö:'oe',ü:'ue',ß:'ss'}[c]))
+                        .replace(/[äöüß]/g, c => ({ ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss' }[c]))
                         .replace(/[^a-z0-9]/g, "-")
                         .replace(/-+/g, "-")
                         .replace(/^-|-$/g, "")
@@ -396,7 +394,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
                 ) : (
                   <>
                     <Check className="w-5 h-5" />
-                    Los geht's!
+                    Los geht&apos;s!
                   </>
                 )}
               </button>

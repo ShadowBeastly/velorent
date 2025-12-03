@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "../utils/supabase";
 import { useAuth } from "./AuthContext";
 
@@ -19,15 +19,7 @@ function useProvideOrganization(userId) {
     const [currentOrg, setCurrentOrg] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (!userId) {
-            setLoading(false);
-            return;
-        }
-        loadOrganizations();
-    }, [userId]);
-
-    const loadOrganizations = async () => {
+    const loadOrganizations = useCallback(async () => {
         const { data } = await supabase
             .from("organization_members")
             .select(`
@@ -45,7 +37,15 @@ function useProvideOrganization(userId) {
         const savedOrg = orgs.find(o => o.id === savedOrgId);
         setCurrentOrg(savedOrg || orgs[0] || null);
         setLoading(false);
-    };
+    }, [userId]);
+
+    useEffect(() => {
+        if (!userId) {
+            setLoading(false);
+            return;
+        }
+        loadOrganizations();
+    }, [userId, loadOrganizations]);
 
     const switchOrg = (orgId) => {
         const org = organizations.find(o => o.id === orgId);

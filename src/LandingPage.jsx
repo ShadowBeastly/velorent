@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
-  Bike, Calendar, Users, BarChart3, Globe, Shield, Zap, Check,
-  ChevronRight, Star, Play, ArrowRight, Menu, X, Mail, Phone,
-  MapPin, Clock, CreditCard, Smartphone, Cloud, Lock, HeadphonesIcon,
-  Building, Euro, TrendingUp, Timer, CheckCircle, Sparkles, Rocket,
-  LayoutDashboard, PieChart
+  Bike, Calendar, Users, BarChart3, Globe, Check,
+  ChevronRight, Star, Play, ArrowRight, Menu, X, Mail,
+  Smartphone, Building, TrendingUp, CheckCircle, Sparkles
 } from "lucide-react";
 import Button from "./components/ui/Button";
 import Card from "./components/ui/Card";
@@ -525,7 +523,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                   ))}
                 </div>
                 <p className="text-lg text-slate-700 dark:text-slate-300 mb-8 italic leading-relaxed">
-                  "{t.quote}"
+                  &quot;{t.quote}&quot;
                 </p>
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">

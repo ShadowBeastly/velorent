@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from "react";
-import { Plus, Loader2, Edit, Mail, Phone, X, List, LayoutGrid, Search, MoreHorizontal, MapPin } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Loader2, Edit, Mail, Phone, X, List, LayoutGrid, MoreHorizontal, MapPin } from "lucide-react";
 import { fmtCurrency } from "../utils/formatUtils";
 
-export default function CustomersPage({ customers, bookings, darkMode, searchQuery }) {
+export default function CustomersPage({ customers, darkMode, searchQuery }) {
     const [showModal, setShowModal] = useState(false);
     const [editCustomer, setEditCustomer] = useState(null);
     const [viewMode, setViewMode] = useState("table");
@@ -230,7 +230,7 @@ function CustomerModal({ customer, onSave, onDelete, onClose, darkMode }) {
         setSaving(true);
         try {
             await onSave(form);
-        } catch (error) {
+        } catch {
             // Error handled in parent
         } finally {
             setSaving(false);

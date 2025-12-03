@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { Plus, Loader2, FileText, Download, Trash2, Edit } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Loader2, Download, Trash2, Edit } from "lucide-react";
 import { useInvoices } from "../hooks/useInvoices";
 import { useOrganization } from "../context/OrgContext";
 import InvoiceModal from "../components/invoices/InvoiceModal";

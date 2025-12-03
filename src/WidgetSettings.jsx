@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { 
-  Globe, Copy, Check, ExternalLink, Eye, EyeOff, RefreshCw, 
+import { useState, useEffect, useCallback } from "react";
+import {
+  Globe, Copy, Check, ExternalLink, Eye, EyeOff, RefreshCw,
   Palette, Settings, Code, Link, AlertCircle, CheckCircle, Loader2
 } from "lucide-react";
 
@@ -15,25 +15,19 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
   const [testUrl, setTestUrl] = useState("");
 
   const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
-  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${
-    darkMode ? "bg-slate-800 border-slate-700 text-white focus:border-orange-500" : "bg-white border-slate-300 focus:border-orange-500"
-  }`;
+  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${darkMode ? "bg-slate-800 border-slate-700 text-white focus:border-orange-500" : "bg-white border-slate-300 focus:border-orange-500"
+    }`;
 
-  // Load settings
-  useEffect(() => {
-    loadSettings();
-  }, [orgId]);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     setLoading(true);
-    
+
     // Try to get existing settings
     let { data, error } = await supabase
       .from("public_booking_settings")
       .select("*")
       .eq("organization_id", orgId)
       .single();
-    
+
     // Create if not exists
     if (error?.code === "PGRST116") {
       const { data: newData } = await supabase
@@ -43,14 +37,19 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
         .single();
       data = newData;
     }
-    
+
     setSettings(data);
     setLoading(false);
-  };
+  }, [orgId, supabase]);
+
+  // Load settings
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   const handleSave = async () => {
     setSaving(true);
-    
+
     const { error } = await supabase
       .from("public_booking_settings")
       .update({
@@ -72,9 +71,9 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
         privacy_url: settings.privacy_url
       })
       .eq("id", settings.id);
-    
+
     setSaving(false);
-    
+
     if (!error) {
       // Show success feedback
     }
@@ -84,14 +83,14 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
     if (!confirm("Achtung: Der alte API-Key wird ungültig. Alle eingebetteten Widgets müssen aktualisiert werden. Fortfahren?")) {
       return;
     }
-    
+
     const newKey = [...Array(48)].map(() => Math.random().toString(36)[2]).join('');
-    
+
     await supabase
       .from("public_booking_settings")
       .update({ public_api_key: newKey })
       .eq("id", settings.id);
-    
+
     setSettings({ ...settings, public_api_key: newKey });
   };
 
@@ -142,17 +141,15 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
               </p>
             </div>
           </div>
-          
+
           {/* Toggle */}
           <button
             onClick={() => setSettings({ ...settings, is_enabled: !settings.is_enabled })}
-            className={`relative w-14 h-7 rounded-full transition-colors ${
-              settings.is_enabled ? "bg-emerald-500" : darkMode ? "bg-slate-700" : "bg-slate-300"
-            }`}
+            className={`relative w-14 h-7 rounded-full transition-colors ${settings.is_enabled ? "bg-emerald-500" : darkMode ? "bg-slate-700" : "bg-slate-300"
+              }`}
           >
-            <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${
-              settings.is_enabled ? "translate-x-7" : ""
-            }`} />
+            <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${settings.is_enabled ? "translate-x-7" : ""
+              }`} />
           </button>
         </div>
 
@@ -181,9 +178,9 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
           <Code className="w-5 h-5 text-orange-500" />
           <h3 className="font-semibold">API-Schlüssel</h3>
         </div>
-        
+
         <p className={`text-sm mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-          Dieser Schlüssel wird benötigt, um das Widget auf Ihrer Website einzubetten. 
+          Dieser Schlüssel wird benötigt, um das Widget auf Ihrer Website einzubetten.
           Halten Sie ihn geheim – er identifiziert Ihren Account.
         </p>
 
@@ -318,7 +315,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
               Vorschau
             </label>
-            <div 
+            <div
               className="h-10 flex items-center justify-center text-white text-sm font-medium"
               style={{
                 background: `linear-gradient(135deg, ${settings.primary_color || "#f97316"}, ${settings.secondary_color || "#fbbf24"})`,

@@ -1,4 +1,3 @@
-import React from "react";
 import { Bike, Loader2 } from "lucide-react";
 
 export default function LoadingScreen() {

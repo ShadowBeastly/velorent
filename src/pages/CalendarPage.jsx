@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Search, Filter, User, Clock, MoreHorizontal, Settings, ChevronDown } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight, Plus, Search, MoreHorizontal, Settings } from "lucide-react";
 import { DndContext, useSensor, useSensors, MouseSensor, TouchSensor, useDraggable, useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import BookingModal from "../components/bookings/BookingModal";
-import { addDays, fmtISO, daysDiff, parseDate } from "../utils/dateUtils";
-import { STATUS } from "../utils/constants";
+import { fmtISO, daysDiff } from "../utils/dateUtils";
+
 
 // --- DND Components ---
 
@@ -55,7 +55,7 @@ export default function CalendarPage({ bikes, bookings, customers, darkMode }) {
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedBikeId, setSelectedBikeId] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [categoryFilter, setCategoryFilter] = useState("all");
+    const [categoryFilter] = useState("all");
     const [viewMode, setViewMode] = useState("month"); // day, week, month
     const scrollContainerRef = useRef(null);
 
@@ -87,7 +87,7 @@ export default function CalendarPage({ bikes, bookings, customers, darkMode }) {
     const viewStart = daysInView[0];
     const viewEnd = daysInView[daysInView.length - 1];
     const viewStartStr = fmtISO(viewStart);
-    const viewEndStr = fmtISO(viewEnd);
+
 
     const filteredBikes = useMemo(() => {
         return bikes.bikes.filter(bike => {
@@ -285,7 +285,7 @@ export default function CalendarPage({ bikes, bookings, customers, darkMode }) {
                     {/* Scrollable Body */}
                     <div className="flex-1 overflow-y-auto overflow-x-auto custom-scrollbar bg-slate-50/30 dark:bg-slate-900/30" onScroll={(e) => { if (scrollContainerRef.current) scrollContainerRef.current.scrollLeft = e.target.scrollLeft; }}>
                         <div className="min-w-fit pb-10">
-                            {filteredBikes.map((bike, index) => {
+                            {filteredBikes.map((bike) => {
                                 const bikeBookings = bookings.bookings.filter(b =>
                                     b.bike_id === bike.id &&
                                     b.status !== "cancelled" &&
