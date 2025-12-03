@@ -8,6 +8,9 @@ import {
   Home, Menu, LogOut, User, Building, ChevronDown, RefreshCw, Shield,
   Globe, Key, UserPlus, Loader2, CheckCircle, XCircle, Copy, ExternalLink
 } from "lucide-react";
+import Button from "./components/ui/Button";
+import Card from "./components/ui/Card";
+import Input from "./components/ui/Input";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell
@@ -113,10 +116,10 @@ function useOrganization(userId) {
       `)
       .eq("user_id", userId)
       .eq("status", "active");
-    
+
     const orgs = data?.map(d => ({ ...d.organization, userRole: d.role })) || [];
     setOrganizations(orgs);
-    
+
     // Auto-select first org or from localStorage
     const savedOrgId = localStorage.getItem("currentOrgId");
     const savedOrg = orgs.find(o => o.id === savedOrgId);
@@ -138,7 +141,7 @@ function useOrganization(userId) {
       .insert({ name, slug })
       .select()
       .single();
-    
+
     if (error) return { error };
 
     // Add creator as owner
@@ -305,7 +308,7 @@ function useCustomers(orgId) {
 // ============ MAIN APP ============
 export default function VeloRentSaaS() {
   const auth = useAuth();
-  
+
   if (auth.loading) {
     return <LoadingScreen />;
   }
@@ -421,26 +424,24 @@ function AuthPage({ auth }) {
                 />
               </div>
             )}
-            
+
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">E-Mail</label>
-              <input
+              <Input
+                label="E-Mail"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
                 placeholder="max@example.com"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Passwort</label>
-              <input
+              <Input
+                label="Passwort"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
                 placeholder="••••••••"
                 required
                 minLength={6}
@@ -461,14 +462,14 @@ function AuthPage({ auth }) {
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full"
+              isLoading={loading}
             >
-              {loading && <Loader2 className="w-5 h-5 animate-spin" />}
               {mode === "login" ? "Anmelden" : "Registrieren"}
-            </button>
+            </Button>
           </form>
 
           <div className="mt-6 text-center">
@@ -675,13 +676,12 @@ function MainApp() {
               <button
                 key={item.id}
                 onClick={() => setCurrentPage(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                  currentPage === item.id
-                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25"
-                    : darkMode
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${currentPage === item.id
+                  ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25"
+                  : darkMode
                     ? "text-slate-400 hover:text-white hover:bg-slate-800"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                }`}
+                  }`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
                 {sidebarOpen && <span className="font-medium">{item.label}</span>}
@@ -746,11 +746,10 @@ function MainApp() {
                   placeholder="Suchen..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-64 pl-10 pr-4 py-2 rounded-lg border outline-none transition-colors ${
-                    darkMode
-                      ? "bg-slate-800 border-slate-700 text-white focus:border-orange-500"
-                      : "bg-slate-50 border-slate-200 focus:border-orange-500"
-                  }`}
+                  className={`w-64 pl-10 pr-4 py-2 rounded-lg border outline-none transition-colors ${darkMode
+                    ? "bg-slate-800 border-slate-700 text-white focus:border-orange-500"
+                    : "bg-slate-50 border-slate-200 focus:border-orange-500"
+                    }`}
                 />
               </div>
 
@@ -843,7 +842,7 @@ function MainApp() {
 // ============ DASHBOARD PAGE ============
 function DashboardPage({ bikes, bookings, customers, darkMode, setCurrentPage }) {
   const todayStr = fmtISO(new Date());
-  
+
   const stats = useMemo(() => {
     const active = bookings.bookings.filter(b => ["reserved", "confirmed", "picked_up"].includes(b.status));
     const out = bookings.bookings.filter(b => b.status === "picked_up").length;
@@ -854,7 +853,7 @@ function DashboardPage({ bikes, bookings, customers, darkMode, setCurrentPage })
       .reduce((s, b) => s + (b.total_price || 0), 0);
     const todayPickups = bookings.bookings.filter(b => b.start_date === todayStr && ["reserved", "confirmed"].includes(b.status)).length;
     const todayReturns = bookings.bookings.filter(b => b.end_date === todayStr && b.status === "picked_up").length;
-    
+
     return { active: active.length, out, available, monthRev, todayPickups, todayReturns };
   }, [bikes.bikes, bookings.bookings, todayStr]);
 
@@ -939,11 +938,10 @@ function DashboardPage({ bikes, bookings, customers, darkMode, setCurrentPage })
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{bike.name}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    isOut ? "bg-blue-100 text-blue-700" :
+                  <span className={`text-xs px-2 py-1 rounded-full ${isOut ? "bg-blue-100 text-blue-700" :
                     bike.status === "maintenance" ? "bg-amber-100 text-amber-700" :
-                    "bg-emerald-100 text-emerald-700"
-                  }`}>
+                      "bg-emerald-100 text-emerald-700"
+                    }`}>
                     {isOut ? "Unterwegs" : bike.status === "maintenance" ? "Wartung" : "Frei"}
                   </span>
                 </div>
@@ -1017,9 +1015,9 @@ function StatCard({ title, value, subtitle, icon: Icon, color, darkMode }) {
     emerald: "from-emerald-500 to-teal-500 shadow-emerald-500/25",
     violet: "from-violet-500 to-purple-500 shadow-violet-500/25"
   };
-  
+
   return (
-    <div className={`rounded-2xl border p-5 ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}>
+    <Card className="p-5" hover>
       <div className="flex items-start justify-between">
         <div>
           <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{title}</p>
@@ -1030,7 +1028,7 @@ function StatCard({ title, value, subtitle, icon: Icon, color, darkMode }) {
           <Icon className="w-5 h-5 text-white" />
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -1251,9 +1249,8 @@ function BookingModal({ booking, initialDate, bikes, customers, existingBookings
   };
 
   const modalBg = darkMode ? "bg-slate-900" : "bg-white";
-  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${
-    darkMode ? "bg-slate-800 border-slate-700 focus:border-orange-500 text-white" : "bg-white border-slate-300 focus:border-orange-500"
-  }`;
+  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${darkMode ? "bg-slate-800 border-slate-700 focus:border-orange-500 text-white" : "bg-white border-slate-300 focus:border-orange-500"
+    }`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -1338,11 +1335,10 @@ function BookingModal({ booking, initialDate, bikes, customers, existingBookings
                   key={key}
                   type="button"
                   onClick={() => setForm(f => ({ ...f, status: key }))}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                    form.status === key
-                      ? `${color} ring-2 ring-orange-500 ring-offset-2 ${darkMode ? "ring-offset-slate-900" : "ring-offset-white"}`
-                      : darkMode ? "bg-slate-800 border-slate-700 text-slate-400" : "bg-slate-100 border-slate-200"
-                  }`}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${form.status === key
+                    ? `${color} ring-2 ring-orange-500 ring-offset-2 ${darkMode ? "ring-offset-slate-900" : "ring-offset-white"}`
+                    : darkMode ? "bg-slate-800 border-slate-700 text-slate-400" : "bg-slate-100 border-slate-200"
+                    }`}
                 >
                   {label}
                 </button>
@@ -1412,11 +1408,10 @@ function BookingsPage({ bikes, bookings, customers, darkMode, searchQuery }) {
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  statusFilter === s
-                    ? "bg-orange-500 text-white"
-                    : darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${statusFilter === s
+                  ? "bg-orange-500 text-white"
+                  : darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"
+                  }`}
               >
                 {s === "all" ? "Alle" : STATUS[s]?.label}
               </button>
@@ -1565,7 +1560,7 @@ function FleetPage({ bikes, bookings, darkMode, searchQuery }) {
           {filtered.map((bike, idx) => {
             const globalIdx = bikes.bikes.findIndex(b => b.id === bike.id);
             const isOut = bookings.bookings.some(b => b.bike_id === bike.id && b.status === "picked_up");
-            
+
             return (
               <div key={bike.id} className={`rounded-2xl border overflow-hidden ${cardStyle}`}>
                 <div className={`h-2 ${BIKE_COLORS[globalIdx % BIKE_COLORS.length]}`} />
@@ -1580,15 +1575,14 @@ function FleetPage({ bikes, bookings, darkMode, searchQuery }) {
                         <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{bike.category}</p>
                       </div>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      isOut ? "bg-blue-100 text-blue-700" :
+                    <span className={`text-xs px-2 py-1 rounded-full ${isOut ? "bg-blue-100 text-blue-700" :
                       bike.status === "maintenance" ? "bg-amber-100 text-amber-700" :
-                      "bg-emerald-100 text-emerald-700"
-                    }`}>
+                        "bg-emerald-100 text-emerald-700"
+                      }`}>
                       {isOut ? "Unterwegs" : bike.status === "maintenance" ? "Wartung" : "Verfügbar"}
                     </span>
                   </div>
-                  
+
                   <div className={`space-y-2 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
                     <div className="flex justify-between">
                       <span>Größe</span>
@@ -1618,11 +1612,10 @@ function FleetPage({ bikes, bookings, darkMode, searchQuery }) {
                         const newStatus = bike.status === "maintenance" ? "available" : "maintenance";
                         await bikes.update(bike.id, { status: newStatus });
                       }}
-                      className={`px-3 py-2 rounded-lg text-sm ${
-                        bike.status === "maintenance"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-amber-100 text-amber-700"
-                      }`}
+                      className={`px-3 py-2 rounded-lg text-sm ${bike.status === "maintenance"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-amber-100 text-amber-700"
+                        }`}
                     >
                       {bike.status === "maintenance" ? <Check className="w-4 h-4" /> : <RefreshCw className="w-4 h-4" />}
                     </button>
