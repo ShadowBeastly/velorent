@@ -167,7 +167,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-heading font-bold text-slate-900 dark:text-white leading-none">VeloRent</span>
-                <span className="text-[10px] font-bold tracking-wider text-brand-600 uppercase">SaaS Platform</span>
+                <span className="text-[10px] font-bold tracking-wider text-brand-600 uppercase">v2.0 Cosmic</span>
               </div>
             </div>
 
@@ -435,8 +435,8 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               <button
                 onClick={() => setBillingCycle("monthly")}
                 className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${billingCycle === "monthly"
-                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 Monatlich
@@ -444,8 +444,8 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               <button
                 onClick={() => setBillingCycle("yearly")}
                 className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${billingCycle === "yearly"
-                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 Jährlich
@@ -461,8 +461,8 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               <Card
                 key={i}
                 className={`p-8 relative flex flex-col ${plan.highlighted
-                    ? "border-brand-500 ring-4 ring-brand-500/10 shadow-2xl scale-105 z-10"
-                    : "hover:border-brand-200 dark:hover:border-brand-800"
+                  ? "border-brand-500 ring-4 ring-brand-500/10 shadow-2xl scale-105 z-10"
+                  : "hover:border-brand-200 dark:hover:border-brand-800"
                   }`}
               >
                 {plan.highlighted && (
