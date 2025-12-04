@@ -135,9 +135,10 @@ supabase functions deploy send-email
 
 1. [stripe.com](https://stripe.com) → Account erstellen
 2. **Produkte** anlegen:
-   - Basic: 39€/Monat (Price ID kopieren)
-   - Pro: 89€/Monat (Price ID kopieren)
-   - Unlimited: 149€/Monat (Price ID kopieren)
+   - Starter: 19€/Monat (Price ID kopieren)
+   - Growth: 49€/Monat (Price ID kopieren)
+   - Pro: 99€/Monat (Price ID kopieren)
+   - Enterprise: 199€/Monat (Price ID kopieren)
 3. **Webhooks** einrichten:
    - Endpoint: `https://DEIN_PROJEKT.supabase.co/functions/v1/stripe-webhook`
    - Events: `checkout.session.completed`, `customer.subscription.*`
@@ -145,9 +146,10 @@ supabase functions deploy send-email
 ```bash
 supabase secrets set STRIPE_SECRET_KEY=sk_live_xxx
 supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_xxx
-supabase secrets set STRIPE_BASIC_MONTHLY_PRICE_ID=price_xxx
+supabase secrets set STRIPE_STARTER_MONTHLY_PRICE_ID=price_xxx
+supabase secrets set STRIPE_GROWTH_MONTHLY_PRICE_ID=price_xxx
 supabase secrets set STRIPE_PRO_MONTHLY_PRICE_ID=price_xxx
-supabase secrets set STRIPE_UNLIMITED_MONTHLY_PRICE_ID=price_xxx
+supabase secrets set STRIPE_ENTERPRISE_MONTHLY_PRICE_ID=price_xxx
 ```
 5. Functions deployen:
 ```bash
@@ -268,15 +270,15 @@ Erste 50 Kunden: 50% Rabatt lebenslang 🎁
 
 | Plan | Preis | Für wen |
 |------|-------|---------|
-| Free | 0€ | Lead Gen, 3 Räder |
-| Basic | 39€/Monat | Kleine Verleiher |
-| Pro | 89€/Monat | Hotels (White-Label) |
-| Unlimited | 149€/Monat | Große Ketten |
+| Starter | 19€/Monat | Kleine Verleiher |
+| Growth | 49€/Monat | Wachsende Verleiher |
+| Pro | 99€/Monat | Hotels (White-Label) |
+| Enterprise | 199€/Monat | Große Ketten |
 
 ### Sales-Taktik:
 
 1. **Erste 10 Kunden**: 50% Rabatt LEBENSLANG
-   - "Wenn Sie heute starten: 19,50€ statt 39€ – für immer"
+   - "Wenn Sie heute starten: 9,50€ statt 19€ – für immer"
 2. **Demo anbieten**: Immer kostenlos zeigen
 3. **Trial**: 14 Tage kostenlos, keine Kreditkarte
 4. **Urgency**: "Nur noch 3 Plätze mit Rabatt"

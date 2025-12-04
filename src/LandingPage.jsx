@@ -48,7 +48,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
   const pricing = [
     {
       name: "Starter",
-      price: { monthly: 0, yearly: 0 },
+      price: { monthly: 19, yearly: 228 },
       description: "Perfekt für den Einstieg",
       features: [
         "Bis zu 5 Fahrräder",
@@ -57,13 +57,13 @@ export default function LandingPage({ onGetStarted, onLogin }) {
         "Kundenverwaltung",
         "Community Support"
       ],
-      cta: "Kostenlos starten",
+      cta: "14 Tage testen",
       variant: "outline",
       highlighted: false
     },
     {
       name: "Growth",
-      price: { monthly: 49, yearly: 470 },
+      price: { monthly: 49, yearly: 588 },
       description: "Für wachsende Verleihe",
       features: [
         "Bis zu 25 Fahrräder",
@@ -80,7 +80,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
     },
     {
       name: "Pro",
-      price: { monthly: 99, yearly: 990 },
+      price: { monthly: 99, yearly: 1188 },
       description: "Für professionelle Anbieter",
       features: [
         "Unbegrenzte Fahrräder",
@@ -96,7 +96,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
     },
     {
       name: "Enterprise",
-      price: { monthly: 199, yearly: 1990 },
+      price: { monthly: 199, yearly: 2388 },
       description: "Für große Flotten & Ketten",
       features: [
         "Alles aus Pro",
@@ -135,8 +135,8 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
   const faqs = [
     {
-      q: "Ist VeloRent wirklich kostenlos?",
-      a: "Ja, der Starter-Plan ist dauerhaft kostenlos für bis zu 5 Räder. Perfekt, um das System kennenzulernen."
+      q: "Gibt es eine kostenlose Testphase?",
+      a: "Ja, Sie können alle Pläne 14 Tage lang kostenlos testen. Keine Kreditkarte erforderlich."
     },
     {
       q: "Kann ich das Widget an mein Design anpassen?",
@@ -148,7 +148,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
     },
     {
       q: "Gibt es eine Mindestvertragslaufzeit?",
-      a: "Nein. Sie können monatlich kündigen oder upgraden/downgraden. Bei jährlicher Zahlung sparen Sie ca. 20%."
+      a: "Nein. Sie können monatlich kündigen oder upgraden/downgraden."
     }
   ];
 
@@ -183,7 +183,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 Anmelden
               </Button>
               <Button variant="primary" onClick={onGetStarted} className="shadow-glow">
-                Kostenlos starten
+                Jetzt starten
               </Button>
             </div>
 
@@ -207,7 +207,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               <a href="#faq" className="text-slate-600 dark:text-slate-300 font-medium py-2">FAQ</a>
               <hr className="border-slate-200 dark:border-slate-700" />
               <Button variant="ghost" onClick={onLogin} className="w-full justify-start">Anmelden</Button>
-              <Button variant="primary" onClick={onGetStarted} className="w-full">Kostenlos starten</Button>
+              <Button variant="primary" onClick={onGetStarted} className="w-full">Jetzt starten</Button>
             </div>
           </div>
         )}
@@ -240,7 +240,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
               <Button size="xl" onClick={onGetStarted} className="w-full sm:w-auto shadow-glow">
-                Jetzt kostenlos starten
+                Jetzt starten
                 <ArrowRight className="w-5 h-5" />
               </Button>
               <Button size="xl" variant="outline" className="w-full sm:w-auto">
@@ -447,9 +447,6 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                   }`}
               >
                 Jährlich
-                <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-wide">
-                  -20%
-                </span>
               </button>
             </div>
           </div>
@@ -579,7 +576,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="xl" className="bg-white text-brand-600 hover:bg-brand-50 shadow-xl border-none" onClick={onGetStarted}>
-              Kostenlos starten
+              Jetzt starten
             </Button>
             <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/10">
               Kontakt aufnehmen
