@@ -1,19 +1,21 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Plus, Loader2, Edit, FileText, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { Plus, Loader2, Edit, FileText, ArrowUpRight, ArrowDownLeft, Download, Users } from "lucide-react";
 import BookingModal from "../components/bookings/BookingModal";
 import HandoverModal from "../components/dashboard/HandoverModal";
 import { STATUS, BIKE_COLORS } from "../utils/constants";
 import { fmtCurrency, fmtDate } from "../utils/formatters";
+import { calculateLateFee } from "../utils/calculateLateFee";
 import { generateInvoice } from "../utils/InvoiceGenerator";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
 import { useOrganization } from "../context/OrgContext";
 import { useToast } from "../components/ui/Toast";
+import { exportToCSV } from "../utils/exportCSV";
 
 export default function BookingsPage() {
     const { darkMode, searchQuery } = useApp();
-    const { bikes, bookings, customers, invoices } = useData();
+    const { bikes, bookings, customers, invoices, pricingRules } = useData();
     const org = useOrganization();
     const currentOrg = org.currentOrg;
     const { addToast } = useToast();
@@ -199,6 +201,22 @@ export default function BookingsPage() {
                         ))}
                     </div>
                     <button
+                        onClick={() => exportToCSV(filtered, [
+                            { key: 'booking_number', label: 'Buchungsnr' },
+                            { key: 'customer_name', label: 'Kunde' },
+                            { key: row => row.bike?.name || '', label: 'Fahrrad' },
+                            { key: 'start_date', label: 'Start' },
+                            { key: 'end_date', label: 'Ende' },
+                            { key: 'total_days', label: 'Tage' },
+                            { key: 'status', label: 'Status' },
+                            { key: 'total_price', label: 'Preis' },
+                        ], 'buchungen')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium border transition-colors ${darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-600 hover:bg-slate-100"}`}
+                    >
+                        <Download className="w-4 h-4" />
+                        Exportieren
+                    </button>
+                    <button
                         onClick={() => { setEditBooking(null); setShowModal(true); }}
                         className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25"
                     >
@@ -232,8 +250,9 @@ export default function BookingsPage() {
                             <tbody className={`divide-y ${darkMode ? "divide-slate-800" : "divide-slate-100"}`}>
                                 {filtered.map(b => {
                                     const bikeIdx = bikes.bikes.findIndex(x => x.id === b.bike_id);
+                                    const lateFee = calculateLateFee(b, currentOrg);
                                     return (
-                                        <tr key={b.id} className={darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"}>
+                                        <tr key={b.id} className={`${darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"} ${lateFee.isLate ? darkMode ? "bg-red-500/5" : "bg-red-50/60" : ""}`}>
                                             <td className="px-4 py-3 font-mono text-sm">{b.booking_number}</td>
                                             <td className="px-4 py-3">
                                                 <div className="font-medium">{b.customer_name}</div>
@@ -244,7 +263,17 @@ export default function BookingsPage() {
                                                     <div className={`w-6 h-6 rounded ${BIKE_COLORS[bikeIdx % BIKE_COLORS.length]} flex items-center justify-center text-white text-xs font-bold`}>
                                                         {bikeIdx + 1}
                                                     </div>
-                                                    <span className="text-sm">{b.bike?.name || "—"}</span>
+                                                    <div>
+                                                        <span className="text-sm">{b.bike?.name || "—"}</span>
+                                                        {b.is_group_booking && (
+                                                            <div className="flex items-center gap-1 mt-0.5">
+                                                                <span className="text-xs px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-500 border border-orange-500/20 flex items-center gap-1">
+                                                                    <Users className="w-3 h-3" />
+                                                                    Gruppe ({b.bike_count || "?"} Räder)
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3 text-sm">{fmtDate(b.start_date)} → {fmtDate(b.end_date)}</td>
@@ -260,9 +289,18 @@ export default function BookingsPage() {
                                                 ) : <span className="text-slate-400 text-sm">—</span>}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className={`text-xs px-2 py-1 rounded-full border ${STATUS[b.status]?.color}`}>
-                                                    {STATUS[b.status]?.label}
-                                                </span>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className={`text-xs px-2 py-1 rounded-full border self-start ${STATUS[b.status]?.color}`}>
+                                                        {STATUS[b.status]?.label}
+                                                    </span>
+                                                    {lateFee.isLate && (
+                                                        <span className="text-xs px-2 py-1 rounded-full border border-red-400 bg-red-500/10 text-red-600 dark:text-red-400 self-start whitespace-nowrap">
+                                                            {lateFee.fee > 0
+                                                                ? `+${fmtCurrency(lateFee.fee)} · ${lateFee.daysLate}T`
+                                                                : `${lateFee.daysLate}T überfällig`}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-1">
@@ -322,6 +360,7 @@ export default function BookingsPage() {
                     bikes={bikes.bikes}
                     customers={customers.customers}
                     existingBookings={bookings.bookings}
+                    pricingRules={pricingRules?.rules || []}
                     onSave={handleSave}
                     onDelete={async (id) => {
                         const { error } = await bookings.remove(id);

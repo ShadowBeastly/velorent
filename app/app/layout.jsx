@@ -15,7 +15,7 @@ function AppShell({ children }) {
     const router = useRouter();
     const org = useOrganization();
     const auth = useAuth();
-    const { darkMode, sidebarOpen, setSearchQuery } = useApp();
+    const { darkMode, sidebarOpen, setSidebarOpen, setSearchQuery } = useApp();
     const { bikes, bookings, notifications } = useData();
 
     if (org.loading) return <LoadingScreen />;
@@ -23,8 +23,23 @@ function AppShell({ children }) {
 
     return (
         <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
-            <Sidebar org={org} auth={auth} sidebarOpen={sidebarOpen} darkMode={darkMode} />
-            <main className={`transition-all duration-300 ${sidebarOpen ? "ml-64" : "ml-20"}`}>
+            {/* Skip to main content — visible on focus for keyboard users */}
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white focus:rounded-lg"
+            >
+                Zum Hauptinhalt springen
+            </a>
+            {/* Mobile backdrop — shown only on small screens when sidebar is open */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-30 md:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                    aria-hidden="true"
+                />
+            )}
+            <Sidebar org={org} auth={auth} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} darkMode={darkMode} />
+            <main id="main-content" className={`transition-all duration-300 ${sidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
                 <Header notifications={notifications} />
                 <div className="p-6">
                     {children}

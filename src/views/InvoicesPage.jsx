@@ -1,16 +1,20 @@
 "use client";
 import { useState } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Download } from 'lucide-react';
 import InvoiceList from '../components/invoices/InvoiceList';
 import InvoiceModal from '../components/invoices/InvoiceModal';
 import { useApp } from '../context/AppContext';
 import { useData } from '../context/DataContext';
 import { useOrganization } from '../context/OrgContext';
+import { useToast } from '../components/ui/Toast';
+import { exportToCSV } from '../utils/exportCSV';
+import { supabase } from '../utils/supabase';
 
 export default function InvoicesPage() {
     const { darkMode } = useApp();
     const { invoices: invoicesData, customers: customersData, bookings: bookingsData } = useData();
     const org = useOrganization();
+    const { addToast } = useToast();
     const { invoices, loading } = invoicesData || { invoices: [], loading: false };
     const { customers } = customersData || { customers: [] };
     const { bookings } = bookingsData || { bookings: [] };
@@ -20,8 +24,16 @@ export default function InvoicesPage() {
     const [showModal, setShowModal] = useState(false);
     const [editInvoice, setEditInvoice] = useState(null);
 
+    const today = new Date().toISOString().split('T')[0];
+
     const filteredInvoices = (invoices || []).filter(invoice => {
-        const matchesFilter = filter === 'all' || invoice.status === filter;
+        const isOverdue =
+            invoice.status !== 'paid' &&
+            invoice.status !== 'cancelled' &&
+            invoice.due_date &&
+            invoice.due_date < today;
+        const effectiveStatus = isOverdue ? 'overdue' : invoice.status;
+        const matchesFilter = filter === 'all' || effectiveStatus === filter;
         const searchLower = searchTerm.toLowerCase();
         const matchesSearch =
             invoice.invoice_number?.toLowerCase().includes(searchLower) ||
@@ -33,13 +45,80 @@ export default function InvoicesPage() {
     });
 
     const handleSaveInvoice = async (invoiceData) => {
-        if (invoicesData && invoicesData.create) {
+        if (!invoicesData) return;
+        if (editInvoice) {
+            const { error } = await invoicesData.update(editInvoice.id, invoiceData);
+            if (error) {
+                addToast("Fehler beim Speichern der Rechnung: " + error.message, "error");
+            } else {
+                addToast("Rechnung gespeichert.", "success");
+                setShowModal(false);
+                setEditInvoice(null);
+            }
+        } else {
             const { error } = await invoicesData.create(invoiceData);
             if (error) {
-                alert("Fehler beim Erstellen der Rechnung: " + error.message);
+                addToast("Fehler beim Erstellen der Rechnung: " + error.message, "error");
             } else {
+                addToast("Rechnung erstellt.", "success");
                 setShowModal(false);
             }
+        }
+    };
+
+    const handleStatusChange = async (invoice, newStatus) => {
+        if (!invoicesData?.update) return;
+        const updates = { status: newStatus };
+        if (newStatus === 'paid') {
+            updates.paid_at = new Date().toISOString();
+        }
+        const { error } = await invoicesData.update(invoice.id, updates);
+        if (error) {
+            addToast("Fehler beim Aktualisieren des Status: " + error.message, "error");
+        } else {
+            const labels = {
+                paid: 'Als bezahlt markiert.',
+                sent: 'Als gesendet markiert.',
+                cancelled: 'Rechnung storniert.',
+                draft: 'Als Entwurf reaktiviert.',
+            };
+            addToast(labels[newStatus] || 'Status aktualisiert.', 'success');
+        }
+    };
+
+    const handleSendEmail = async (invoice) => {
+        const customerEmail = invoice.customer?.email;
+        const customerName = `${invoice.customer?.first_name || ''} ${invoice.customer?.last_name || ''}`.trim();
+        if (!customerEmail) {
+            addToast("Kein Kunde oder keine E-Mail-Adresse hinterlegt.", "error");
+            return;
+        }
+
+        try {
+            const { error: fnError } = await supabase.functions.invoke('send-email', {
+                body: {
+                    type: 'invoice',
+                    to: customerEmail,
+                    data: {
+                        invoice_number: invoice.invoice_number,
+                        total: invoice.total,
+                        due_date: invoice.due_date,
+                        customer_name: customerName,
+                        org_name: org.currentOrg?.name || 'VeloRent Pro',
+                    },
+                },
+            });
+
+            if (fnError) throw fnError;
+
+            // Mark as sent after successful email dispatch (only if still draft)
+            if (invoice.status === 'draft') {
+                await handleStatusChange(invoice, 'sent');
+            } else {
+                addToast(`Rechnung ${invoice.invoice_number} erfolgreich an ${customerEmail} gesendet.`, "success");
+            }
+        } catch (err) {
+            addToast("Fehler beim Senden der E-Mail: " + (err.message || 'Unbekannter Fehler'), "error");
         }
     };
 
@@ -50,13 +129,29 @@ export default function InvoicesPage() {
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Rechnungen</h1>
                     <p className="text-slate-500 dark:text-slate-400">Verwalte deine Rechnungen und Zahlungseingänge.</p>
                 </div>
-                <button
-                    onClick={() => { setEditInvoice(null); setShowModal(true); }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
-                >
-                    <Plus className="w-4 h-4" />
-                    Rechnung erstellen
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => exportToCSV(filteredInvoices, [
+                            { key: 'invoice_number', label: 'Rechnungsnr' },
+                            { key: row => row.customer ? `${row.customer.first_name || ''} ${row.customer.last_name || ''}`.trim() : '', label: 'Kunde' },
+                            { key: 'total', label: 'Betrag' },
+                            { key: 'status', label: 'Status' },
+                            { key: 'created_at', label: 'Datum' },
+                            { key: 'due_date', label: 'Fällig am' },
+                        ], 'rechnungen')}
+                        className="border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                    >
+                        <Download className="w-4 h-4" />
+                        Exportieren
+                    </button>
+                    <button
+                        onClick={() => { setEditInvoice(null); setShowModal(true); }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Rechnung erstellen
+                    </button>
+                </div>
             </div>
 
             {/* Filters & Search */}
@@ -72,16 +167,23 @@ export default function InvoicesPage() {
                     />
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-                    {['all', 'draft', 'sent', 'paid', 'overdue', 'cancelled'].map((status) => (
+                    {[
+                        { key: 'all', label: 'Alle' },
+                        { key: 'draft', label: 'Entwurf' },
+                        { key: 'sent', label: 'Versendet' },
+                        { key: 'paid', label: 'Bezahlt' },
+                        { key: 'overdue', label: 'Überfällig' },
+                        { key: 'cancelled', label: 'Storniert' },
+                    ].map(({ key, label }) => (
                         <button
-                            key={status}
-                            onClick={() => setFilter(status)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize whitespace-nowrap transition-colors ${filter === status
+                            key={key}
+                            onClick={() => setFilter(key)}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${filter === key
                                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
                                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                         >
-                            {status === 'all' ? 'Alle' : status}
+                            {label}
                         </button>
                     ))}
                 </div>
@@ -98,6 +200,8 @@ export default function InvoicesPage() {
                         invoices={filteredInvoices}
                         onViewInvoice={(inv) => { setEditInvoice(inv); setShowModal(true); }}
                         onDownloadInvoice={(inv) => { import('../utils/InvoiceGenerator').then(m => m.generateInvoicePDF(inv, org.currentOrg)); }}
+                        onStatusChange={handleStatusChange}
+                        onSendEmail={handleSendEmail}
                     />
                 )}
             </div>

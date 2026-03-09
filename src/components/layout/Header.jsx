@@ -19,6 +19,8 @@ export default function Header() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
+                        aria-label={sidebarOpen ? "Seitenleiste schließen" : "Seitenleiste öffnen"}
+                        aria-expanded={sidebarOpen}
                         className={`p-2 rounded-lg transition-colors ${darkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-500 hover:text-slate-900"}`}
                     >
                         <Menu className="w-5 h-5" />
@@ -34,6 +36,7 @@ export default function Header() {
                         <input
                             type="text"
                             placeholder="Suchen..."
+                            aria-label="Suchen"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className={`w-64 pl-10 pr-4 py-2 rounded-lg border outline-none transition-all duration-200 text-sm ${darkMode
@@ -47,6 +50,9 @@ export default function Header() {
                     <div className="relative">
                         <button
                             onClick={() => setShowNotifications(prev => !prev)}
+                            aria-label="Benachrichtigungen"
+                            aria-expanded={showNotifications}
+                            aria-haspopup="true"
                             className={`relative p-2 rounded-lg transition-colors ${darkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-500 hover:text-slate-900"}`}
                         >
                             <Bell className="w-5 h-5" />
@@ -73,6 +79,7 @@ export default function Header() {
                     {/* Dark Mode */}
                     <button
                         onClick={() => setDarkMode(!darkMode)}
+                        aria-label={darkMode ? "Helles Design aktivieren" : "Dunkles Design aktivieren"}
                         className={`p-2 rounded-lg transition-colors ${darkMode ? "hover:bg-slate-800 text-amber-400" : "hover:bg-slate-100 text-slate-500 hover:text-slate-900"}`}
                     >
                         {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}

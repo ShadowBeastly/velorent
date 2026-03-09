@@ -1,14 +1,17 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Plus, Loader2, Edit, Mail, Phone, List, LayoutGrid, MoreHorizontal, MapPin } from "lucide-react";
+import { Plus, Loader2, Edit, Mail, Phone, List, LayoutGrid, MoreHorizontal, MapPin, Download } from "lucide-react";
 import { fmtCurrency } from "../utils/formatters";
 import CustomerModal from "../components/customers/CustomerModal";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
+import { useToast } from "../components/ui/Toast";
+import { exportToCSV } from "../utils/exportCSV";
 
 export default function CustomersPage() {
     const { darkMode, searchQuery } = useApp();
     const { customers } = useData();
+    const { addToast } = useToast();
     const [showModal, setShowModal] = useState(false);
     const [editCustomer, setEditCustomer] = useState(null);
     const [viewMode, setViewMode] = useState("table");
@@ -34,7 +37,7 @@ export default function CustomersPage() {
             setShowModal(false);
         } catch (error) {
             console.error("Error saving customer:", error);
-            alert("Fehler beim Speichern des Kunden.");
+            addToast("Fehler beim Speichern des Kunden.", "error");
         }
     };
 
@@ -63,6 +66,19 @@ export default function CustomersPage() {
                     <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                         {filtered.length} Kunden
                     </span>
+                    <button
+                        onClick={() => exportToCSV(filtered, [
+                            { key: 'first_name', label: 'Vorname' },
+                            { key: 'last_name', label: 'Nachname' },
+                            { key: 'email', label: 'E-Mail' },
+                            { key: 'phone', label: 'Telefon' },
+                            { key: 'created_at', label: 'Erstellt am' },
+                        ], 'kunden')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium border transition-colors whitespace-nowrap ${darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-600 hover:bg-slate-100"}`}
+                    >
+                        <Download className="w-4 h-4" />
+                        <span className="hidden sm:inline">Exportieren</span>
+                    </button>
                     <button
                         onClick={() => { setEditCustomer(null); setShowModal(true); }}
                         className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 whitespace-nowrap"

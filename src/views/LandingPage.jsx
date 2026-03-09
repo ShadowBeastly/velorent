@@ -243,7 +243,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 Jetzt starten
                 <ArrowRight className="w-5 h-5" />
               </Button>
-              <Button size="xl" variant="outline" className="w-full sm:w-auto">
+              <Button size="xl" variant="outline" className="w-full sm:w-auto" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
                 <Play className="w-5 h-5 mr-2" />
                 Demo ansehen
               </Button>
@@ -487,7 +487,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 <Button
                   variant={plan.highlighted ? "primary" : "outline"}
                   className="w-full"
-                  onClick={onGetStarted}
+                  onClick={plan.cta === "Kontakt aufnehmen" ? () => { window.location.href = "mailto:info@velorent.de?subject=Anfrage"; } : onGetStarted}
                 >
                   {plan.cta}
                 </Button>
@@ -564,7 +564,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             <Button size="xl" className="bg-white text-brand-600 hover:bg-brand-50 shadow-xl border-none" onClick={onGetStarted}>
               Jetzt starten
             </Button>
-            <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/10">
+            <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/10" onClick={() => { window.location.href = "mailto:info@velorent.de?subject=Anfrage"; }}>
               Kontakt aufnehmen
             </Button>
           </div>

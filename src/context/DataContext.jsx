@@ -9,7 +9,9 @@ import { useBikeCategories } from "../hooks/useBikeCategories";
 import { useAddOns } from "../hooks/useAddOns";
 import { useMaintenanceBlocks } from "../hooks/useMaintenanceBlocks";
 import { useVouchers } from "../hooks/useVouchers";
-import { fmtISO } from "../utils/formatters";
+import { usePricingRules } from "../hooks/usePricingRules";
+import { fmtISO, fmtCurrency } from "../utils/formatters";
+import { calculateLateFee } from "../utils/calculateLateFee";
 
 const DataContext = createContext(null);
 
@@ -25,20 +27,29 @@ export function DataProvider({ children }) {
     const addOns = useAddOns(orgId);
     const maintenanceBlocks = useMaintenanceBlocks(orgId);
     const vouchers = useVouchers(orgId);
+    const pricingRules = usePricingRules(orgId);
 
     const todayStr = fmtISO(new Date());
     const notifications = useMemo(() => {
         const n = [];
+        const orgSettings = org.currentOrg;
         bookings.bookings.forEach(b => {
+            const customerName = b.customer
+                ? `${b.customer.first_name} ${b.customer.last_name}`.trim()
+                : (b.customer_name || "Unbekannt");
             if (b.status === "picked_up" && b.end_date < todayStr) {
-                n.push({ type: "warning", msg: `Überfällig: ${b.customer_name}`, id: b.id });
+                const { isLate, fee, daysLate } = calculateLateFee(b, orgSettings);
+                const feeInfo = isLate && fee > 0
+                    ? ` · ${fmtCurrency(fee)} (${daysLate} ${daysLate === 1 ? "Tag" : "Tage"})`
+                    : "";
+                n.push({ type: "warning", msg: `Überfällig: ${customerName}${feeInfo}`, id: b.id });
             }
             if (b.start_date === todayStr && ["reserved", "confirmed"].includes(b.status)) {
-                n.push({ type: "info", msg: `Heute Abholung: ${b.customer_name}`, id: b.id });
+                n.push({ type: "info", msg: `Heute Abholung: ${customerName}`, id: b.id });
             }
         });
         return n;
-    }, [bookings.bookings, todayStr]);
+    }, [bookings.bookings, todayStr, org.currentOrg]);
 
     return (
         <DataContext.Provider value={{
@@ -50,6 +61,7 @@ export function DataProvider({ children }) {
             addOns,
             maintenanceBlocks,
             vouchers,
+            pricingRules,
             notifications
         }}>
             {children}

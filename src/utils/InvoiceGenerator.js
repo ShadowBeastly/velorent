@@ -6,7 +6,14 @@ export const generateInvoice = (invoice, organization) => {
     const pageWidth = doc.internal.pageSize.width;
 
     // --- Fonts & Colors ---
-    const primaryColor = organization?.settings?.primary_color || '#f97316'; // Orange default
+    const primaryColorHex = organization?.settings?.primary_color || '#f97316'; // Orange default
+    const primaryColor = primaryColorHex;
+    // Convert hex to RGB array for jspdf-autotable
+    const hexToRgb = (hex) => {
+        const h = hex.replace('#', '');
+        return [parseInt(h.substring(0,2),16), parseInt(h.substring(2,4),16), parseInt(h.substring(4,6),16)];
+    };
+    const primaryColorRgb = hexToRgb(primaryColorHex);
     const grayColor = '#64748b';
     const blackColor = '#0f172a';
 
@@ -72,7 +79,7 @@ export const generateInvoice = (invoice, organization) => {
     }
 
     // --- ITEMS TABLE ---
-    const items = invoice.items || [];
+    const items = [...(invoice.items || [])];
     // Fallback if items are empty but we have booking totals
     if (items.length === 0 && invoice.booking) {
         // Create detailed items from booking
@@ -101,7 +108,7 @@ export const generateInvoice = (invoice, organization) => {
         head: [['Beschreibung', 'Menge / Zeitraum', 'Einzelpreis', 'Gesamt']],
         body: tableBody,
         theme: 'grid',
-        headStyles: { fillColor: primaryColor, textColor: 255 },
+        headStyles: { fillColor: primaryColorRgb, textColor: 255 },
         styles: { fontSize: 9, cellPadding: 5 },
         columnStyles: {
             0: { cellWidth: 'auto' }, // Description

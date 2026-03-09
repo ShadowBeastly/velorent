@@ -44,7 +44,7 @@ export function useInvoices(organizationId) {
                 .single();
 
             if (error) throw error;
-            setInvoices([data, ...invoices]);
+            setInvoices(prev => [data, ...prev]);
             return { data, error: null };
         } catch (err) {
             return { data: null, error: err };
@@ -62,7 +62,7 @@ export function useInvoices(organizationId) {
                 .single();
 
             if (error) throw error;
-            setInvoices(invoices.map(i => i.id === id ? { ...i, ...data } : i));
+            setInvoices(prev => prev.map(i => i.id === id ? { ...i, ...data } : i));
             return { data, error: null };
         } catch (err) {
             return { data: null, error: err };
@@ -78,7 +78,7 @@ export function useInvoices(organizationId) {
                 .eq("organization_id", organizationId);
 
             if (error) throw error;
-            setInvoices(invoices.filter(i => i.id !== id));
+            setInvoices(prev => prev.filter(i => i.id !== id));
             return { error: null };
         } catch (err) {
             return { error: err };

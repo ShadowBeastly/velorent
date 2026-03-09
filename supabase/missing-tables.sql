@@ -6,6 +6,18 @@
 -- Safe to run multiple times (IF NOT EXISTS).
 -- =====================================================
 
+-- =====================================================
+-- get_user_org_ids helper (required by all RLS policies below)
+-- =====================================================
+CREATE OR REPLACE FUNCTION get_user_org_ids()
+RETURNS SETOF UUID AS $$
+BEGIN
+    RETURN QUERY
+    SELECT organization_id FROM organization_members
+    WHERE user_id = auth.uid() AND status = 'active';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Add IBAN / BIC columns to organizations (if not exists)
 ALTER TABLE organizations ADD COLUMN IF NOT EXISTS iban TEXT;
 ALTER TABLE organizations ADD COLUMN IF NOT EXISTS bic TEXT;
@@ -147,9 +159,27 @@ CREATE POLICY "Members can manage vouchers" ON vouchers
     FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
 -- =====================================================
--- booking_history INSERT policy (fix missing write policy)
+-- booking_history (create if missing + RLS policies)
 -- =====================================================
+CREATE TABLE IF NOT EXISTS booking_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE NOT NULL,
+    action TEXT NOT NULL,
+    changed_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    changes JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_booking_history_booking ON booking_history(booking_id);
+ALTER TABLE booking_history ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Members can view booking history" ON booking_history;
 DROP POLICY IF EXISTS "Members can insert booking history" ON booking_history;
+CREATE POLICY "Members can view booking history" ON booking_history
+    FOR SELECT USING (
+        booking_id IN (
+            SELECT id FROM bookings
+            WHERE organization_id IN (SELECT get_user_org_ids())
+        )
+    );
 CREATE POLICY "Members can insert booking history" ON booking_history
     FOR INSERT WITH CHECK (
         booking_id IN (
@@ -162,10 +192,9 @@ CREATE POLICY "Members can insert booking history" ON booking_history
 -- profiles: backfill missing profiles for existing users
 -- (fixes 406 error on loadProfile if trigger was missing)
 -- =====================================================
-INSERT INTO profiles (id, email, full_name)
+INSERT INTO profiles (id, full_name)
 SELECT
     id,
-    email,
     COALESCE(raw_user_meta_data->>'full_name', split_part(email, '@', 1))
 FROM auth.users
 WHERE id NOT IN (SELECT id FROM profiles)
@@ -177,10 +206,9 @@ ON CONFLICT (id) DO NOTHING;
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO profiles (id, email, full_name)
+    INSERT INTO profiles (id, full_name)
     VALUES (
         NEW.id,
-        NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1))
     )
     ON CONFLICT (id) DO NOTHING;

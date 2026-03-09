@@ -1,15 +1,18 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Plus, Loader2, Check, RefreshCw, LayoutGrid, List, MoreHorizontal, Battery, Gauge, Layers } from "lucide-react";
+import { Plus, Loader2, Check, RefreshCw, LayoutGrid, List, MoreHorizontal, Battery, Gauge, Layers, Download } from "lucide-react";
 import { BIKE_COLORS } from "../utils/constants";
 import { fmtCurrency } from "../utils/formatters";
 import BikeModal from "../components/fleet/BikeModal";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
+import { useToast } from "../components/ui/Toast";
+import { exportToCSV } from "../utils/exportCSV";
 
 export default function FleetPage() {
     const { darkMode, searchQuery } = useApp();
     const { bikes, bookings, bikeCategories } = useData();
+    const { addToast } = useToast();
     const [showModal, setShowModal] = useState(false);
     const [editBike, setEditBike] = useState(null);
     const [viewMode, setViewMode] = useState("table");
@@ -47,7 +50,7 @@ export default function FleetPage() {
             setShowModal(false);
         } catch (error) {
             console.error("Error saving bike:", error);
-            alert("Fehler beim Speichern des Rades.");
+            addToast("Fehler beim Speichern des Rades.", "error");
         }
     };
 
@@ -57,7 +60,7 @@ export default function FleetPage() {
             await bikes.update(bike.id, { status: newStatus });
         } catch (error) {
             console.error("Error updating status:", error);
-            alert("Fehler beim Ändern des Status.");
+            addToast("Fehler beim Ändern des Status.", "error");
         }
     };
 
@@ -121,6 +124,19 @@ export default function FleetPage() {
                     <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                         {filtered.length} Räder
                     </span>
+                    <button
+                        onClick={() => exportToCSV(filtered, [
+                            { key: 'name', label: 'Name' },
+                            { key: 'category', label: 'Kategorie' },
+                            { key: 'size', label: 'Größe' },
+                            { key: 'price_per_day', label: 'Preis/Tag' },
+                            { key: 'status', label: 'Status' },
+                        ], 'flotte')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium border transition-colors whitespace-nowrap ${darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-600 hover:bg-slate-100"}`}
+                    >
+                        <Download className="w-4 h-4" />
+                        <span className="hidden sm:inline">Exportieren</span>
+                    </button>
                     <button
                         onClick={() => { setEditBike(null); setShowModal(true); }}
                         className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 whitespace-nowrap"

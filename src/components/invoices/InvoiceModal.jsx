@@ -29,6 +29,15 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
         }
     });
 
+    // Escape key closes the modal
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") onClose();
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
     useEffect(() => {
         if (invoice) return; // editing existing invoice, keep its number
         const fetchNextNumber = async () => {
@@ -103,6 +112,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
 
     const printRef = useRef();
     const handlePrint = () => {
+        if (!printRef.current) return;
         const content = printRef.current.innerHTML;
         const printWindow = window.open("", "", "height=800,width=800");
         printWindow.document.write("<html><head><title>Rechnung " + formData.invoice_number + "</title>");
@@ -119,10 +129,15 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className={`w-full max-w-5xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}>
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="invoice-modal-title"
+                className={`w-full max-w-5xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}
+            >
 
                 <div className={`p-4 border-b flex items-center justify-between ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
-                    <h2 className={`font-semibold text-lg ${darkMode ? "text-white" : "text-slate-900"}`}>
+                    <h2 id="invoice-modal-title" className={`font-semibold text-lg ${darkMode ? "text-white" : "text-slate-900"}`}>
                         {invoice ? "Rechnung bearbeiten" : "Neue Rechnung"}
                     </h2>
                     <div className="flex gap-2">
@@ -132,7 +147,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                         <button onClick={handlePrint} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center gap-2">
                             <Printer className="w-4 h-4" /> Vorschau
                         </button>
-                        <button onClick={onClose} className={`p-2 rounded-full ${darkMode ? "hover:bg-slate-800 text-white" : "hover:bg-slate-100 text-slate-900"}`}>
+                        <button onClick={onClose} aria-label="Schließen" className={`p-2 rounded-full ${darkMode ? "hover:bg-slate-800 text-white" : "hover:bg-slate-100 text-slate-900"}`}>
                             <X className="w-5 h-5" />
                         </button>
                     </div>
@@ -154,7 +169,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Datum</label>
+                                    <label className="block text-sm font-medium mb-1">Fällig am</label>
                                     <input
                                         type="date"
                                         value={formData.due_date}
@@ -163,6 +178,20 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                         required
                                     />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Status</label>
+                                <select
+                                    value={formData.status}
+                                    onChange={e => setFormData({ ...formData, status: e.target.value })}
+                                    className={`w-full p-2 rounded border ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200"}`}
+                                >
+                                    <option value="draft">Entwurf</option>
+                                    <option value="sent">Versendet</option>
+                                    <option value="paid">Bezahlt</option>
+                                    <option value="cancelled">Storniert</option>
+                                </select>
                             </div>
 
                             <div>
@@ -219,7 +248,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                             onChange={e => handleItemChange(idx, "unit_price", Number(e.target.value))}
                                             className={`w-24 p-2 rounded border ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200"}`}
                                         />
-                                        <button type="button" onClick={() => removeItem(idx)} className="p-2 text-red-500 hover:bg-red-50 rounded">
+                                        <button type="button" onClick={() => removeItem(idx)} aria-label="Position löschen" className="p-2 text-red-500 hover:bg-red-50 rounded">
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>

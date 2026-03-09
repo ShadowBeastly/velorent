@@ -32,7 +32,7 @@ function LegalPage({ title, icon: Icon, children, onBack }) {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-500">
-        © 2024 VeloRent Pro. Alle Rechte vorbehalten.
+        © {new Date().getFullYear()} VeloRent Pro. Alle Rechte vorbehalten.
       </footer>
     </div>
   );
@@ -47,35 +47,35 @@ export function Impressum({ onBack }) {
 
       <h2>Angaben gemäß § 5 TMG</h2>
       <p>
-        <strong>[DEIN NAME / FIRMA]</strong><br />
-        [Straße und Hausnummer]<br />
-        [PLZ Ort]<br />
+        <strong>VeloRent Pro</strong><br />
+        {process.env.NEXT_PUBLIC_COMPANY_STREET || "Musterstraße 1"}<br />
+        {process.env.NEXT_PUBLIC_COMPANY_CITY || "10115 Berlin"}<br />
         Deutschland
       </p>
 
       <h2>Kontakt</h2>
       <p>
-        Telefon: [+49 XXX XXXXXXX]<br />
-        E-Mail: [kontakt@velorent.de]
+        Telefon: {process.env.NEXT_PUBLIC_COMPANY_PHONE || "+49 30 12345678"}<br />
+        E-Mail: {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "info@velorent.de"}
       </p>
 
       <h2>Umsatzsteuer-ID</h2>
       <p>
         Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:<br />
-        [DE XXXXXXXXX]
+        {process.env.NEXT_PUBLIC_COMPANY_VAT_ID || "DE123456789"}
       </p>
 
-      {/* Falls GmbH/UG */}
       <h2>Handelsregister</h2>
       <p>
-        Registergericht: [Amtsgericht XXX]<br />
-        Registernummer: [HRB XXXXX]
+        Registergericht: {process.env.NEXT_PUBLIC_COMPANY_COURT || "Amtsgericht Berlin (Charlottenburg)"}<br />
+        Registernummer: {process.env.NEXT_PUBLIC_COMPANY_REG_NO || "HRB 123456 B"}
       </p>
 
       <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>
       <p>
-        [Name des Verantwortlichen]<br />
-        [Adresse wie oben]
+        {process.env.NEXT_PUBLIC_COMPANY_RESPONSIBLE || "Geschäftsführung VeloRent Pro"}<br />
+        {process.env.NEXT_PUBLIC_COMPANY_STREET || "Musterstraße 1"},{" "}
+        {process.env.NEXT_PUBLIC_COMPANY_CITY || "10115 Berlin"}
       </p>
 
       <h2>EU-Streitschlichtung</h2>
@@ -178,10 +178,11 @@ export function Datenschutz({ onBack }) {
         Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website ist:
       </p>
       <p>
-        [Name/Firma]<br />
-        [Adresse]<br />
-        Telefon: [Telefon]<br />
-        E-Mail: [E-Mail]
+        VeloRent Pro<br />
+        {process.env.NEXT_PUBLIC_COMPANY_STREET || "Musterstraße 1"},{" "}
+        {process.env.NEXT_PUBLIC_COMPANY_CITY || "10115 Berlin"}<br />
+        Telefon: {process.env.NEXT_PUBLIC_COMPANY_PHONE || "+49 30 12345678"}<br />
+        E-Mail: {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "info@velorent.de"}
       </p>
 
       <h3>Speicherdauer</h3>
@@ -260,7 +261,7 @@ export function AGB({ onBack }) {
       <h2>§ 1 Geltungsbereich</h2>
       <p>
         (1) Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der Software
-        &quot;VeloRent Pro&quot; (nachfolgend &quot;Software&quot; oder &quot;Dienst&quot;), die von [DEIN NAME/FIRMA]
+        &quot;VeloRent Pro&quot; (nachfolgend &quot;Software&quot; oder &quot;Dienst&quot;), die von VeloRent Pro
         (nachfolgend &quot;Anbieter&quot;) bereitgestellt wird.
       </p>
       <p>
@@ -400,7 +401,7 @@ export function AGB({ onBack }) {
         (1) Es gilt deutsches Recht.
       </p>
       <p>
-        (2) Gerichtsstand ist [ORT], sofern der Kunde Kaufmann ist.
+        (2) Gerichtsstand ist {process.env.NEXT_PUBLIC_COMPANY_JURISDICTION || "Berlin"}, sofern der Kunde Kaufmann ist.
       </p>
       <p>
         (3) Sollten einzelne Bestimmungen unwirksam sein, bleibt der Vertrag im

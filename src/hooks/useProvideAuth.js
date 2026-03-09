@@ -69,13 +69,13 @@ export function useProvideAuth() {
         return data;
     };
 
-    const signUp = async (email, password, firstName, lastName) => {
+    const signUp = async (email, password, fullName) => {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
                 data: {
-                    full_name: `${firstName} ${lastName}`.trim()
+                    full_name: (fullName || "").trim()
                 }
             }
         });
@@ -84,12 +84,22 @@ export function useProvideAuth() {
     };
 
     const signOut = async () => {
-        const { error } = await supabase.auth.signOut();
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+        } finally {
+            localStorage.removeItem("currentOrgId");
+            setUser(null);
+            setSession(null);
+            setProfile(null);
+        }
+    };
+
+    const resetPassword = async (email) => {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/login?mode=update-password`
+        });
         if (error) throw error;
-        localStorage.removeItem("currentOrgId");
-        setUser(null);
-        setSession(null);
-        setProfile(null);
     };
 
     return {
@@ -99,6 +109,7 @@ export function useProvideAuth() {
         loading,
         signIn,
         signUp,
-        signOut
+        signOut,
+        resetPassword
     };
 }

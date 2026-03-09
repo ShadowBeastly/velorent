@@ -13,6 +13,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [confirmRegenerate, setConfirmRegenerate] = useState(false);
 
   const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
   const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${darkMode ? "bg-slate-800 border-slate-700 text-white focus:border-orange-500" : "bg-white border-slate-300 focus:border-orange-500"
@@ -23,6 +24,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
     let mounted = true;
 
     const loadSettings = async () => {
+      if (!orgId) { setLoading(false); return; }
       // Try to get existing settings
       let { data, error } = await supabase
         .from("public_booking_settings")
@@ -84,10 +86,6 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
   };
 
   const regenerateApiKey = async () => {
-    if (!confirm("Achtung: Der alte API-Key wird ungültig. Alle eingebetteten Widgets müssen aktualisiert werden. Fortfahren?")) {
-      return;
-    }
-
     const bytes = new Uint8Array(32);
     window.crypto.getRandomValues(bytes);
     const newKey = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -97,7 +95,8 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
       .update({ public_api_key: newKey })
       .eq("id", settings.id);
 
-    setSettings({ ...settings, public_api_key: newKey });
+    setSettings(prev => ({ ...prev, public_api_key: newKey }));
+    setConfirmRegenerate(false);
   };
 
   const copyToClipboard = (text) => {
@@ -152,7 +151,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
 
           {/* Toggle */}
           <button
-            onClick={() => setSettings({ ...settings, is_enabled: !settings.is_enabled })}
+            onClick={() => setSettings(prev => ({ ...prev, is_enabled: !prev.is_enabled }))}
             className={`relative w-14 h-7 rounded-full transition-colors ${settings.is_enabled ? "bg-emerald-500" : darkMode ? "bg-slate-700" : "bg-slate-300"
               }`}
           >
@@ -213,12 +212,21 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
           >
             {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
           </button>
-          <button
-            onClick={regenerateApiKey}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 text-amber-500 ${darkMode ? "bg-amber-500/10 hover:bg-amber-500/20" : "bg-amber-50 hover:bg-amber-100"}`}
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+          {confirmRegenerate ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-amber-600 font-medium">Alter Key wird ungültig!</span>
+              <button onClick={regenerateApiKey} className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-medium hover:bg-amber-600">Ja</button>
+              <button onClick={() => setConfirmRegenerate(false)} className={`px-3 py-1.5 rounded-lg text-xs ${darkMode ? "bg-slate-700 text-slate-300" : "bg-slate-200 text-slate-600"}`}>Nein</button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmRegenerate(true)}
+              className={`px-4 py-2 rounded-lg flex items-center gap-2 text-amber-500 ${darkMode ? "bg-amber-500/10 hover:bg-amber-500/20" : "bg-amber-50 hover:bg-amber-100"}`}
+              title="API-Key neu generieren"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -268,13 +276,13 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
               <input
                 type="color"
                 value={settings.primary_color || "#f97316"}
-                onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
+                onChange={(e) => setSettings(prev => ({ ...prev, primary_color: e.target.value }))}
                 className="w-12 h-10 rounded-lg border-0 cursor-pointer"
               />
               <input
                 type="text"
                 value={settings.primary_color || "#f97316"}
-                onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
+                onChange={(e) => setSettings(prev => ({ ...prev, primary_color: e.target.value }))}
                 className={`${inputStyle} flex-1`}
               />
             </div>
@@ -288,13 +296,13 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
               <input
                 type="color"
                 value={settings.secondary_color || "#fbbf24"}
-                onChange={(e) => setSettings({ ...settings, secondary_color: e.target.value })}
+                onChange={(e) => setSettings(prev => ({ ...prev, secondary_color: e.target.value }))}
                 className="w-12 h-10 rounded-lg border-0 cursor-pointer"
               />
               <input
                 type="text"
                 value={settings.secondary_color || "#fbbf24"}
-                onChange={(e) => setSettings({ ...settings, secondary_color: e.target.value })}
+                onChange={(e) => setSettings(prev => ({ ...prev, secondary_color: e.target.value }))}
                 className={`${inputStyle} flex-1`}
               />
             </div>
@@ -310,7 +318,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
                 min="0"
                 max="24"
                 value={settings.border_radius || 12}
-                onChange={(e) => setSettings({ ...settings, border_radius: parseInt(e.target.value) })}
+                onChange={(e) => setSettings(prev => ({ ...prev, border_radius: parseInt(e.target.value) }))}
                 className="flex-1"
               />
               <span className={`text-sm w-8 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
@@ -352,7 +360,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
               type="number"
               min="1"
               value={settings.min_days || 1}
-              onChange={(e) => setSettings({ ...settings, min_days: parseInt(e.target.value) })}
+              onChange={(e) => setSettings(prev => ({ ...prev, min_days: parseInt(e.target.value) }))}
               className={inputStyle}
             />
           </div>
@@ -364,7 +372,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
               type="number"
               min="1"
               value={settings.max_days || 30}
-              onChange={(e) => setSettings({ ...settings, max_days: parseInt(e.target.value) })}
+              onChange={(e) => setSettings(prev => ({ ...prev, max_days: parseInt(e.target.value) }))}
               className={inputStyle}
             />
           </div>
@@ -376,7 +384,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
               type="number"
               min="1"
               value={settings.max_advance_days || 90}
-              onChange={(e) => setSettings({ ...settings, max_advance_days: parseInt(e.target.value) })}
+              onChange={(e) => setSettings(prev => ({ ...prev, max_advance_days: parseInt(e.target.value) }))}
               className={inputStyle}
             />
           </div>
@@ -393,7 +401,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
               <input
                 type="checkbox"
                 checked={settings[key] || false}
-                onChange={(e) => setSettings({ ...settings, [key]: e.target.checked })}
+                onChange={(e) => setSettings(prev => ({ ...prev, [key]: e.target.checked }))}
                 className="w-5 h-5 rounded accent-orange-500"
               />
               <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{label}</span>
@@ -414,7 +422,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
             <input
               type="text"
               value={settings.welcome_text || ""}
-              onChange={(e) => setSettings({ ...settings, welcome_text: e.target.value })}
+              onChange={(e) => setSettings(prev => ({ ...prev, welcome_text: e.target.value }))}
               className={inputStyle}
               placeholder="Buchen Sie Ihr Fahrrad in wenigen Schritten"
             />
@@ -427,7 +435,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
             <input
               type="text"
               value={settings.success_text || ""}
-              onChange={(e) => setSettings({ ...settings, success_text: e.target.value })}
+              onChange={(e) => setSettings(prev => ({ ...prev, success_text: e.target.value }))}
               className={inputStyle}
               placeholder="Vielen Dank! Ihre Buchung wurde erfolgreich erstellt."
             />
@@ -441,7 +449,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
               <input
                 type="url"
                 value={settings.terms_url || ""}
-                onChange={(e) => setSettings({ ...settings, terms_url: e.target.value })}
+                onChange={(e) => setSettings(prev => ({ ...prev, terms_url: e.target.value }))}
                 className={inputStyle}
                 placeholder="https://..."
               />
@@ -453,7 +461,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
               <input
                 type="url"
                 value={settings.privacy_url || ""}
-                onChange={(e) => setSettings({ ...settings, privacy_url: e.target.value })}
+                onChange={(e) => setSettings(prev => ({ ...prev, privacy_url: e.target.value }))}
                 className={inputStyle}
                 placeholder="https://..."
               />

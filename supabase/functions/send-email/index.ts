@@ -21,6 +21,29 @@ const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
 const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "noreply@velorent.pro";
 const FROM_NAME = Deno.env.get("FROM_NAME") || "VeloRent Pro";
 
+// The Supabase project URL is used to validate allowed CORS origins.
+// Example: https://fqycoldheyxzxbxqmayf.supabase.co
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
+
+/**
+ * Determine whether the incoming `Origin` header is permitted.
+ * Allowed origins:
+ *   - The Supabase project URL itself (edge-to-edge calls)
+ *   - localhost:3000 for local development
+ * Server-side calls (no Origin header) are allowed through without
+ * CORS headers — they don't need them.
+ */
+function getAllowedOrigin(origin: string | null): string | null {
+  if (!origin) return null; // server-side call — no CORS headers needed
+  if (origin === "http://localhost:3000" || origin === "https://localhost:3000") {
+    return origin;
+  }
+  if (SUPABASE_URL && origin === SUPABASE_URL) {
+    return origin;
+  }
+  return null; // origin not in allowlist — deny CORS but still process
+}
+
 const templates = {
   booking_confirmation: (data) => ({
     subject: `Buchungsbestätigung #${data.booking_number}`,
@@ -144,14 +167,21 @@ const templates = {
 };
 
 serve(async (req) => {
+  const origin = req.headers.get("Origin");
+  const allowedOrigin = getAllowedOrigin(origin);
+
+  // Build CORS headers — only include Allow-Origin when the origin is permitted.
+  const corsHeaders: Record<string, string> = {
+    "Access-Control-Allow-Methods": "POST",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization"
+  };
+  if (allowedOrigin) {
+    corsHeaders["Access-Control-Allow-Origin"] = allowedOrigin;
+    corsHeaders["Vary"] = "Origin";
+  }
+
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
-    });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -179,12 +209,12 @@ serve(async (req) => {
     if (!response.ok) throw new Error(result.message || JSON.stringify(result));
 
     return new Response(JSON.stringify({ success: true, messageId: result.messageId }), {
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   }
 });

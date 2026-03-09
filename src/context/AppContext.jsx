@@ -10,7 +10,11 @@ export function AppProvider({ children }) {
         return stored === null ? true : stored === "true";
     });
     const [searchQuery, setSearchQuery] = useState("");
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(() => {
+        if (typeof window === "undefined") return true;
+        // Default closed on mobile, open on desktop
+        return window.innerWidth >= 768;
+    });
 
     useEffect(() => {
         localStorage.setItem("darkMode", String(darkMode));

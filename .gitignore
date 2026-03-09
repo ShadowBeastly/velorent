@@ -10,6 +10,9 @@ dist
 # Claude Code
 .claude/
 
+# Vercel
+.vercel/
+
 # Logs
 *.log
 dev_start.log

@@ -1,9 +1,10 @@
 "use client";
-import { useState, useMemo } from "react";
-import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users } from "lucide-react";
 import { fmtISO, addDays, daysDiff, fmtCurrency } from "../../utils/formatters";
 import { STATUS } from "../../utils/constants";
 import ContractModal from "./ContractModal";
+import { calculateDynamicPrice } from "../../utils/calculatePrice";
 
 const STEPS = [
     { id: 1, label: "Zeitraum & Rad", icon: Calendar },
@@ -12,12 +13,16 @@ const STEPS = [
     { id: 4, label: "Abschluss", icon: CheckCircle }
 ];
 
-export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, onSave, onDelete, onClose, darkMode }) {
+export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, pricingRules, onSave, onDelete, onClose, darkMode }) {
     const [step, setStep] = useState(1);
     const [saving, setSaving] = useState(false);
+    const [stepError, setStepError] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(false);
     const [customerSearch, setCustomerSearch] = useState("");
     const [isNewCustomer, setIsNewCustomer] = useState(false);
     const [showContract, setShowContract] = useState(false);
+
+    const [isGroupBooking, setIsGroupBooking] = useState(false);
 
     const [form, setForm] = useState(() => {
         if (booking) return {
@@ -33,7 +38,8 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             status: booking.status,
             notes: booking.notes || "",
             pickup_location: booking.pickup_location || "Laden",
-            return_location: booking.return_location || "Laden"
+            return_location: booking.return_location || "Laden",
+            selectedBikes: [],
         };
         return {
             bike_id: initialBikeId || bikes[0]?.id || "",
@@ -48,7 +54,10 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             status: "reserved",
             notes: "",
             pickup_location: "Laden",
-            return_location: "Laden"
+            return_location: "Laden",
+            id_number: "",
+            customer_address: "",
+            selectedBikes: [],
         };
     });
 
@@ -56,32 +65,68 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const selectedBike = bikes.find(b => b.id === form.bike_id);
     const days = form.start_date && form.end_date ? Math.max(1, daysDiff(form.start_date, form.end_date)) : 1;
 
-    // Auto-calc price
-    // Helper to calc price
-    const calculatePrice = (bikeId, start, end) => {
+    // Dynamic pricing result for the current selection (used in UI hints — single bike only)
+    const pricingResult = useMemo(() => {
+        if (isGroupBooking || !selectedBike || !form.start_date || !form.end_date) return null;
+        return calculateDynamicPrice(selectedBike, form.start_date, form.end_date, pricingRules || []);
+    }, [isGroupBooking, selectedBike, form.start_date, form.end_date, pricingRules]);
+
+    // Auto-calc price using dynamic pricing rules (single bike)
+    const calcPrice = (bikeId, start, end) => {
         if (!bikeId || !start || !end) return 0;
         const bike = bikes.find(b => b.id === bikeId);
         if (!bike) return 0;
-        const days = Math.max(1, daysDiff(start, end));
-        return bike.price_per_day * days;
+        return calculateDynamicPrice(bike, start, end, pricingRules || []).totalPrice;
+    };
+
+    // Calc total price for all selected bikes in group mode
+    const calcGroupTotal = (selectedBikesList, start, end) => {
+        return selectedBikesList.reduce((sum, bike) => {
+            return sum + calculateDynamicPrice(bike, start, end, pricingRules || []).totalPrice;
+        }, 0);
     };
 
     const updateFormWithPrice = (updates) => {
         setForm(prev => {
             const next = { ...prev, ...updates };
-            // Auto-calc price if dates or bike changed
-            if (updates.bike_id !== undefined || updates.start_date !== undefined || updates.end_date !== undefined) {
-                const price = calculatePrice(
-                    next.bike_id,
-                    next.start_date,
-                    next.end_date
-                );
-                if (price > 0) next.total_price = price;
+            if (isGroupBooking) {
+                // In group mode, recalc total across all selected bikes when dates change
+                if ((updates.start_date !== undefined || updates.end_date !== undefined) && next.selectedBikes.length > 0) {
+                    const total = calcGroupTotal(next.selectedBikes, next.start_date, next.end_date);
+                    if (total > 0) next.total_price = total;
+                }
+            } else {
+                // Single-bike mode: auto-calc price if dates or bike changed
+                if (updates.bike_id !== undefined || updates.start_date !== undefined || updates.end_date !== undefined) {
+                    const price = calcPrice(next.bike_id, next.start_date, next.end_date);
+                    if (price > 0) next.total_price = price;
+                }
             }
             return next;
         });
     };
 
+    // Toggle a bike in/out of the group selection
+    const toggleGroupBike = (bike) => {
+        setForm(prev => {
+            const alreadySelected = prev.selectedBikes.some(b => b.id === bike.id);
+            let nextSelected;
+            if (alreadySelected) {
+                nextSelected = prev.selectedBikes.filter(b => b.id !== bike.id);
+            } else {
+                const subtotal = calculateDynamicPrice(bike, prev.start_date, prev.end_date, pricingRules || []).totalPrice;
+                nextSelected = [...prev.selectedBikes, { ...bike, subtotal }];
+            }
+            const firstBike = nextSelected[0] || null;
+            const total = calcGroupTotal(nextSelected, prev.start_date, prev.end_date);
+            return {
+                ...prev,
+                selectedBikes: nextSelected,
+                bike_id: firstBike?.id || "",
+                total_price: total > 0 ? total : prev.total_price,
+            };
+        });
+    };
 
     // Filtered Customers
     const filteredCustomers = useMemo(() => {
@@ -91,8 +136,9 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         );
     }, [customers, customerSearch]);
 
-    // Availability Check
+    // Availability Check (single bike)
     const conflictingBooking = useMemo(() => {
+        if (isGroupBooking) return null; // handled separately for group
         if (!form.bike_id || !form.start_date || !form.end_date) return null;
         return existingBookings.find(b =>
             b.id !== booking?.id &&
@@ -101,17 +147,37 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             new Date(b.start_date) <= new Date(form.end_date) &&
             new Date(b.end_date) >= new Date(form.start_date)
         );
-    }, [form.bike_id, form.start_date, form.end_date, existingBookings, booking]);
+    }, [isGroupBooking, form.bike_id, form.start_date, form.end_date, existingBookings, booking]);
+
+    // Availability check for ALL bikes in a group selection
+    const groupConflicts = useMemo(() => {
+        if (!isGroupBooking || form.selectedBikes.length === 0 || !form.start_date || !form.end_date) return [];
+        return form.selectedBikes.filter(bike =>
+            existingBookings.some(b =>
+                b.id !== booking?.id &&
+                b.bike_id === bike.id &&
+                !["cancelled", "returned", "deleted"].includes(b.status) &&
+                new Date(b.start_date) <= new Date(form.end_date) &&
+                new Date(b.end_date) >= new Date(form.start_date)
+            )
+        );
+    }, [isGroupBooking, form.selectedBikes, form.start_date, form.end_date, existingBookings, booking]);
 
     const isBikeAvailable = !conflictingBooking;
 
     const handleNext = () => {
+        setStepError(null);
         if (step === 1) {
-            if (!isBikeAvailable) return alert(`Das Rad ist nicht verfügbar. Konflikt mit Buchung ${conflictingBooking.booking_number} (${new Date(conflictingBooking.start_date).toLocaleDateString()} - ${new Date(conflictingBooking.end_date).toLocaleDateString()}).`);
-            if (!form.bike_id) return alert("Bitte ein Rad wählen.");
+            if (isGroupBooking) {
+                if (form.selectedBikes.length < 1) { setStepError("Bitte mindestens ein Rad für die Gruppenbuchung wählen."); return; }
+                if (groupConflicts.length > 0) { setStepError(`Verfügbarkeitskonflikt: ${groupConflicts.map(b => b.name).join(", ")} ist/sind im gewählten Zeitraum bereits vergeben.`); return; }
+            } else {
+                if (!form.bike_id) { setStepError("Bitte ein Rad wählen."); return; }
+                if (!isBikeAvailable) { setStepError(`Rad nicht verfügbar – Konflikt mit Buchung ${conflictingBooking.booking_number} (${new Date(conflictingBooking.start_date).toLocaleDateString()} – ${new Date(conflictingBooking.end_date).toLocaleDateString()}).`); return; }
+            }
         }
         if (step === 2) {
-            if (!form.customer_name) return alert("Bitte einen Kundennamen angeben.");
+            if (!form.customer_name) { setStepError("Bitte einen Kundennamen angeben."); return; }
         }
         setStep(s => s + 1);
     };
@@ -119,13 +185,26 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const handleBack = () => setStep(s => s - 1);
 
     const handleSave = async () => {
-        if (conflictingBooking) {
+        if (!isGroupBooking && conflictingBooking) {
             console.error("Speichern blockiert: Buchungskonflikt erkannt");
             return;
         }
+        if (isGroupBooking && groupConflicts.length > 0) {
+            console.error("Speichern blockiert: Gruppenkonflikt erkannt");
+            return;
+        }
         setSaving(true);
-        await onSave(form);
-        setSaving(false);
+        try {
+            // Pass selectedBikes for group bookings; hook handles booking_items insert
+            await onSave({
+                ...form,
+                selectedBikes: isGroupBooking ? form.selectedBikes : [],
+            });
+        } catch (err) {
+            console.error("Fehler beim Speichern:", err);
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleCustomerSelect = (c) => {
@@ -143,9 +222,23 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${darkMode ? "bg-slate-800 border-slate-700 focus:border-orange-500 text-white" : "bg-white border-slate-300 focus:border-orange-500"}`;
     const labelStyle = `block text-sm font-medium mb-1.5 ${darkMode ? "text-slate-300" : "text-slate-700"}`;
 
+    // Escape key closes the modal
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") onClose();
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className={`w-full max-w-2xl flex flex-col max-h-[90vh] rounded-2xl ${modalBg} shadow-2xl overflow-hidden`}>
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="booking-modal-title"
+                className={`w-full max-w-2xl flex flex-col max-h-[90vh] rounded-2xl ${modalBg} shadow-2xl overflow-hidden`}
+            >
 
                 {/* Header */}
                 <div className={`flex items-center justify-between p-4 border-b ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
@@ -154,8 +247,8 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                             <Calendar className="w-5 h-5 text-orange-500" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold">{booking ? "Buchung bearbeiten" : "Neue Buchung"}</h3>
-                            <p className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                            <h3 id="booking-modal-title" className="text-lg font-semibold">{booking ? "Buchung bearbeiten" : "Neue Buchung"}</h3>
+                            <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                                 Schritt {step} von 4
                             </p>
                         </div>
@@ -166,18 +259,19 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                 onClick={() => setShowContract(true)}
                                 className={`p-2 rounded-lg transition-colors ${darkMode ? "hover:bg-slate-800 text-slate-400" : "hover:bg-slate-100 text-slate-600"}`}
                                 title="Mietvertrag drucken"
+                                aria-label="Mietvertrag drucken"
                             >
                                 <FileText className="w-5 h-5" />
                             </button>
                         )}
-                        <button onClick={onClose} className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
+                        <button onClick={onClose} aria-label="Schließen" className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
                             <X className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
 
                 {/* Progress Steps */}
-                <div className={`flex items-center justify-between px-8 py-4 border-b ${darkMode ? "border-slate-800 bg-slate-800/30" : "border-slate-100 bg-slate-50"}`}>
+                <div className={`flex items-center justify-between px-8 py-4 border-b relative ${darkMode ? "border-slate-800 bg-slate-800/30" : "border-slate-100 bg-slate-50"}`}>
                     {STEPS.map((s) => {
                         const isActive = step === s.id;
                         const isDone = step > s.id;
@@ -195,7 +289,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                             </div>
                         );
                     })}
-                    {/* Progress Bar Background (simplified) */}
+                    {/* Progress Bar Background */}
                     <div className={`absolute left-0 right-0 top-[4.5rem] h-0.5 -z-0 mx-12 ${darkMode ? "bg-slate-800" : "bg-slate-200"}`} />
                 </div>
 
@@ -205,6 +299,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                     {/* STEP 1: DATE & BIKE */}
                     {step === 1 && (
                         <div className="space-y-6">
+                            {/* Date pickers */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className={labelStyle}>Startdatum</label>
@@ -220,34 +315,118 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                 </div>
                             </div>
 
-                            <div>
-                                <label className={labelStyle}>Fahrrad wählen</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2">
-                                    {bikes.map(bike => {
-                                        const isSelected = form.bike_id === bike.id;
-                                        return (
-                                            <div
-                                                key={bike.id}
-                                                onClick={() => updateFormWithPrice({ bike_id: bike.id })}
-                                                className={`p-3 rounded-xl border cursor-pointer transition-all ${isSelected
-                                                    ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500"
-                                                    : darkMode ? "border-slate-700 hover:border-slate-600 bg-slate-800" : "border-slate-200 hover:border-slate-300 bg-white"
-                                                    }`}
-                                            >
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <div className="font-medium text-sm">{bike.name}</div>
-                                                        <div className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{bike.category} • {bike.size}</div>
-                                                    </div>
-                                                    <div className="font-semibold text-sm text-orange-500">{fmtCurrency(bike.price_per_day)}</div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                            {/* Group booking toggle — only for new bookings */}
+                            {!booking && (
+                                <div
+                                    onClick={() => {
+                                        setIsGroupBooking(prev => {
+                                            const next = !prev;
+                                            setForm(f => ({
+                                                ...f,
+                                                selectedBikes: [],
+                                                bike_id: next ? "" : (initialBikeId || bikes[0]?.id || ""),
+                                                total_price: next ? 0 : calcPrice(initialBikeId || bikes[0]?.id || "", f.start_date, f.end_date),
+                                            }));
+                                            return next;
+                                        });
+                                    }}
+                                    className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all select-none ${isGroupBooking
+                                        ? "border-orange-500 bg-orange-500/10"
+                                        : darkMode ? "border-slate-700 bg-slate-800 hover:border-slate-600" : "border-slate-200 bg-white hover:border-slate-300"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Users className={`w-4 h-4 ${isGroupBooking ? "text-orange-500" : darkMode ? "text-slate-400" : "text-slate-500"}`} />
+                                        <span className={`text-sm font-medium ${isGroupBooking ? "text-orange-500" : ""}`}>Gruppenbuchung (mehrere Räder)</span>
+                                    </div>
+                                    {/* Toggle switch */}
+                                    <div className={`w-10 h-5 rounded-full transition-colors flex items-center px-0.5 ${isGroupBooking ? "bg-orange-500 justify-end" : darkMode ? "bg-slate-700 justify-start" : "bg-slate-200 justify-start"}`}>
+                                        <div className="w-4 h-4 rounded-full bg-white shadow" />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
-                            {conflictingBooking && (
+                            {/* Single-bike picker */}
+                            {!isGroupBooking && (
+                                <div>
+                                    <label className={labelStyle}>Fahrrad wählen</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2">
+                                        {bikes.map(bike => {
+                                            const isSelected = form.bike_id === bike.id;
+                                            return (
+                                                <div
+                                                    key={bike.id}
+                                                    onClick={() => updateFormWithPrice({ bike_id: bike.id })}
+                                                    className={`p-3 rounded-xl border cursor-pointer transition-all ${isSelected
+                                                        ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500"
+                                                        : darkMode ? "border-slate-700 hover:border-slate-600 bg-slate-800" : "border-slate-200 hover:border-slate-300 bg-white"
+                                                        }`}
+                                                >
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <div className="font-medium text-sm">{bike.name}</div>
+                                                            <div className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{bike.category} • {bike.size}</div>
+                                                        </div>
+                                                        <div className="font-semibold text-sm text-orange-500">{fmtCurrency(bike.price_per_day)}</div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Multi-bike picker for group bookings */}
+                            {isGroupBooking && (
+                                <div>
+                                    <label className={labelStyle}>
+                                        Räder wählen
+                                        {form.selectedBikes.length > 0 && (
+                                            <span className="ml-2 text-orange-500 font-normal">({form.selectedBikes.length} ausgewählt)</span>
+                                        )}
+                                    </label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2">
+                                        {bikes.map(bike => {
+                                            const isSelected = form.selectedBikes.some(b => b.id === bike.id);
+                                            const hasConflict = groupConflicts.some(b => b.id === bike.id);
+                                            return (
+                                                <div
+                                                    key={bike.id}
+                                                    onClick={() => toggleGroupBike(bike)}
+                                                    className={`p-3 rounded-xl border cursor-pointer transition-all ${hasConflict
+                                                        ? "border-rose-400 bg-rose-500/10"
+                                                        : isSelected
+                                                            ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500"
+                                                            : darkMode ? "border-slate-700 hover:border-slate-600 bg-slate-800" : "border-slate-200 hover:border-slate-300 bg-white"
+                                                        }`}
+                                                >
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex items-start gap-2">
+                                                            <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${isSelected ? "bg-orange-500 border-orange-500" : darkMode ? "border-slate-500" : "border-slate-300"}`}>
+                                                                {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-medium text-sm">{bike.name}</div>
+                                                                <div className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{bike.category} • {bike.size}</div>
+                                                                {hasConflict && <div className="text-xs text-rose-500 mt-0.5">Nicht verfügbar</div>}
+                                                            </div>
+                                                        </div>
+                                                        <div className="font-semibold text-sm text-orange-500">{fmtCurrency(bike.price_per_day)}</div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    {form.selectedBikes.length > 0 && (
+                                        <div className={`mt-3 p-2 rounded-lg text-sm font-medium text-right ${darkMode ? "bg-slate-800" : "bg-slate-50"}`}>
+                                            Gesamtpreis: <span className="text-orange-500">{fmtCurrency(calcGroupTotal(form.selectedBikes, form.start_date, form.end_date))}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Single-bike conflict warning */}
+                            {!isGroupBooking && conflictingBooking && (
                                 <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-500 text-sm flex items-center gap-2">
                                     <X className="w-4 h-4" />
                                     <span>
@@ -269,6 +448,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         <input
                                             type="text"
                                             placeholder="Kunden suchen..."
+                                            aria-label="Kunden suchen"
                                             value={customerSearch}
                                             onChange={(e) => setCustomerSearch(e.target.value)}
                                             className={`${inputStyle} pl-9`}
@@ -447,17 +627,52 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         <span className="text-slate-500">Kunde</span>
                                         <span className="font-medium">{form.customer_name}</span>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-500">Fahrrad</span>
-                                        <span className="font-medium">{selectedBike?.name}</span>
-                                    </div>
+
+                                    {/* Bike display — single vs group */}
+                                    {isGroupBooking ? (
+                                        <div>
+                                            <div className="flex justify-between mb-1">
+                                                <span className="text-slate-500 flex items-center gap-1">
+                                                    <Users className="w-3.5 h-3.5" />
+                                                    Gruppe ({form.selectedBikes.length} Räder)
+                                                </span>
+                                            </div>
+                                            <div className="space-y-1 pl-2">
+                                                {form.selectedBikes.map(bike => {
+                                                    const bikeTotal = calculateDynamicPrice(bike, form.start_date, form.end_date, pricingRules || []).totalPrice;
+                                                    return (
+                                                        <div key={bike.id} className="flex justify-between text-xs">
+                                                            <span className={darkMode ? "text-slate-400" : "text-slate-600"}>{bike.name}</span>
+                                                            <span className={darkMode ? "text-slate-300" : "text-slate-700"}>{fmtCurrency(bikeTotal)}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-500">Fahrrad</span>
+                                            <span className="font-medium">{selectedBike?.name}</span>
+                                        </div>
+                                    )}
+
                                     <div className="flex justify-between">
                                         <span className="text-slate-500">Zeitraum</span>
                                         <span className="font-medium">{new Date(form.start_date).toLocaleDateString()} - {new Date(form.end_date).toLocaleDateString()} ({days} Tage)</span>
                                     </div>
                                     <div className="border-t my-2 pt-2 flex justify-between text-base">
                                         <span className="font-medium">Gesamtbetrag</span>
-                                        <span className="font-bold text-orange-500">{fmtCurrency(form.total_price)}</span>
+                                        <div className="text-right">
+                                            <span className="font-bold text-orange-500">{fmtCurrency(form.total_price)}</span>
+                                            {!isGroupBooking && pricingResult && pricingResult.baseTotal !== pricingResult.totalPrice && (
+                                                <div className={`text-xs mt-0.5 ${pricingResult.totalPrice < pricingResult.baseTotal ? "text-emerald-500" : "text-amber-500"}`}>
+                                                    {pricingResult.totalPrice < pricingResult.baseTotal
+                                                        ? <span className="flex items-center gap-1 justify-end"><TrendingDown className="w-3 h-3" />Rabatt: statt {fmtCurrency(pricingResult.baseTotal)}</span>
+                                                        : <span className="flex items-center gap-1 justify-end"><TrendingUp className="w-3 h-3" />Aufschlag: statt {fmtCurrency(pricingResult.baseTotal)}</span>
+                                                    }
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -466,40 +681,54 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                 </div>
 
                 {/* Footer */}
-                <div className={`p-4 border-t flex justify-between items-center ${darkMode ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"}`}>
-                    <div className="flex gap-2">
-                        {booking && (
-                            <button
-                                onClick={() => {
-                                    if (booking.status === 'cancelled') return;
-                                    if (confirm("Buchung wirklich stornieren? Dies gibt den Zeitraum wieder frei.")) onDelete(booking.id);
-                                }}
-                                disabled={booking.status === 'cancelled'}
-                                className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${booking.status === 'cancelled'
-                                    ? "text-slate-400 cursor-not-allowed"
-                                    : "text-rose-500 hover:bg-rose-50 hover:text-rose-600"
-                                    }`}
-                            >
-                                <Trash2 className="w-4 h-4" />
-                                {booking.status === 'cancelled' ? "Storniert" : "Stornieren"}
-                            </button>
-                        )}
-                        {step > 1 && (
-                            <button onClick={handleBack} className={`px-4 py-2 rounded-lg text-sm font-medium ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
-                                Zurück
-                            </button>
-                        )}
-                    </div>
+                <div className={`p-4 border-t flex flex-col gap-3 ${darkMode ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"}`}>
+                    {stepError && (
+                        <div className="px-3 py-2 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-500 text-sm flex items-center gap-2">
+                            <X className="w-4 h-4 flex-shrink-0" />
+                            {stepError}
+                        </div>
+                    )}
+                    {confirmDelete && (
+                        <div className="px-3 py-2 bg-rose-500/10 border border-rose-500/20 rounded-lg text-sm flex items-center justify-between gap-3">
+                            <span className="text-rose-600 font-medium">Buchung wirklich stornieren?</span>
+                            <div className="flex gap-2">
+                                <button onClick={() => setConfirmDelete(false)} className="px-3 py-1 rounded-lg text-slate-500 hover:bg-slate-100 text-sm">Abbrechen</button>
+                                <button onClick={() => { setConfirmDelete(false); onDelete(booking.id); }} className="px-3 py-1 rounded-lg bg-rose-500 text-white text-sm hover:bg-rose-600">Ja, stornieren</button>
+                            </div>
+                        </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                        <div className="flex gap-2">
+                            {booking && (
+                                <button
+                                    onClick={() => { if (booking.status !== "cancelled") setConfirmDelete(true); }}
+                                    disabled={booking.status === "cancelled"}
+                                    className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${booking.status === "cancelled"
+                                        ? "text-slate-400 cursor-not-allowed"
+                                        : "text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                                        }`}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    {booking.status === "cancelled" ? "Storniert" : "Stornieren"}
+                                </button>
+                            )}
+                            {step > 1 && (
+                                <button onClick={handleBack} className={`px-4 py-2 rounded-lg text-sm font-medium ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
+                                    Zurück
+                                </button>
+                            )}
+                        </div>
 
-                    <button
-                        onClick={step === 4 ? handleSave : handleNext}
-                        disabled={saving}
-                        className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2 disabled:opacity-50"
-                    >
-                        {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                        {step === 4 ? "Buchung speichern" : "Weiter"}
-                        {step < 4 && <ChevronRight className="w-4 h-4" />}
-                    </button>
+                        <button
+                            onClick={step === 4 ? handleSave : handleNext}
+                            disabled={saving}
+                            className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                            {step === 4 ? "Buchung speichern" : "Weiter"}
+                            {step < 4 && <ChevronRight className="w-4 h-4" />}
+                        </button>
+                    </div>
                 </div>
             </div>
 

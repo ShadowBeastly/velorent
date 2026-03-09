@@ -3,14 +3,17 @@ import { useState } from "react";
 import { Plus, Loader2, Edit, Trash2, Tag, Copy, Check } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
+import { useToast } from "../components/ui/Toast";
 import { fmtCurrency, fmtDate } from "../utils/formatters";
 
 export default function VouchersPage() {
     const { darkMode } = useApp();
     const { vouchers } = useData();
+    const { addToast } = useToast();
     const [showForm, setShowForm] = useState(false);
     const [editVoucher, setEditVoucher] = useState(null);
     const [copiedId, setCopiedId] = useState(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [form, setForm] = useState({
         code: "", type: "percent", value: "", min_order: "",
         max_uses: "", valid_from: "", valid_until: "", is_active: true
@@ -61,18 +64,18 @@ export default function VouchersPage() {
         };
         if (editVoucher) {
             const { error } = await vouchers.update(editVoucher.id, payload);
-            if (error) { alert("Fehler: " + error.message); return; }
+            if (error) { addToast("Fehler: " + error.message, "error"); return; }
         } else {
             const { error } = await vouchers.create(payload);
-            if (error) { alert("Fehler: " + error.message); return; }
+            if (error) { addToast("Fehler: " + error.message, "error"); return; }
         }
         setShowForm(false);
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Gutschein wirklich löschen?")) return;
         const { error } = await vouchers.remove(id);
-        if (error) alert("Fehler: " + error.message);
+        if (error) addToast("Fehler: " + error.message, "error");
+        setConfirmDeleteId(null);
     };
 
     const toggleActive = async (v) => {
@@ -161,7 +164,7 @@ export default function VouchersPage() {
                                                     <button onClick={() => openEdit(v)} className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-200"}`}>
                                                         <Edit className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => handleDelete(v.id)} className={`p-2 rounded-lg text-red-500 ${darkMode ? "hover:bg-red-900/20" : "hover:bg-red-50"}`}>
+                                                    <button onClick={() => setConfirmDeleteId(v.id)} className={`p-2 rounded-lg text-red-500 ${darkMode ? "hover:bg-red-900/20" : "hover:bg-red-50"}`}>
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -180,6 +183,20 @@ export default function VouchersPage() {
                     </div>
                 )}
             </div>
+
+            {/* Confirm Delete Dialog */}
+            {confirmDeleteId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className={`w-full max-w-sm rounded-2xl border p-6 ${cardStyle} shadow-2xl`}>
+                        <p className="font-semibold text-lg mb-2">Gutschein löschen?</p>
+                        <p className={`text-sm mb-6 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Diese Aktion kann nicht rückgängig gemacht werden.</p>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => setConfirmDeleteId(null)} className={`px-4 py-2 rounded-xl text-sm font-medium ${darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"}`}>Abbrechen</button>
+                            <button onClick={() => handleDelete(confirmDeleteId)} className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-sm font-medium">Ja, löschen</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal */}
             {showForm && (

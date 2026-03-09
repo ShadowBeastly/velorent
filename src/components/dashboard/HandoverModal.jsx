@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Battery, AlertTriangle, CheckCircle } from "lucide-react";
 
 export default function HandoverModal({ booking, type, onConfirm, onClose, darkMode }) {
     const isPickup = type === "pickup";
     const [batteryLevel, setBatteryLevel] = useState(100);
-    const [notes, setNotes] = useState(booking.notes || "");
+    const [notes, setNotes] = useState("");
     const [damages, setDamages] = useState([]);
     const [newDamage, setNewDamage] = useState("");
 
@@ -35,16 +35,30 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
     const cardStyle = darkMode ? "bg-slate-900 border-slate-800 text-white" : "bg-white border-slate-200 text-slate-900";
     const inputStyle = darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900";
 
+    // Escape key closes the modal
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") onClose();
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className={`w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${cardStyle}`}>
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="handover-modal-title"
+                className={`w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${cardStyle}`}
+            >
 
                 {/* Header */}
                 <div className={`p-4 border-b flex items-center justify-between ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
-                    <h2 className="font-semibold text-lg flex items-center gap-2">
+                    <h2 id="handover-modal-title" className="font-semibold text-lg flex items-center gap-2">
                         {isPickup ? "Übergabe (Check-out)" : "Rücknahme (Check-in)"}
                     </h2>
-                    <button onClick={onClose} className={`p-2 rounded-full transition-colors ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
+                    <button onClick={onClose} aria-label="Schließen" className={`p-2 rounded-full transition-colors ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -95,6 +109,7 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
                             />
                             <button
                                 onClick={addDamage}
+                                aria-label="Schaden hinzufügen"
                                 className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg font-medium text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                             >
                                 +
@@ -104,7 +119,7 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
                             {damages.map((d, i) => (
                                 <span key={i} className={`text-xs px-2 py-1 rounded-md border flex items-center gap-2 ${darkMode ? "bg-rose-500/10 border-rose-500/20 text-rose-400" : "bg-rose-50 border-rose-100 text-rose-600"}`}>
                                     {d}
-                                    <button onClick={() => setDamages(damages.filter((_, idx) => idx !== i))} className="hover:text-rose-800">
+                                    <button onClick={() => setDamages(damages.filter((_, idx) => idx !== i))} aria-label={`Schaden entfernen: ${d}`} className="hover:text-rose-800">
                                         <X className="w-3 h-3" />
                                     </button>
                                 </span>

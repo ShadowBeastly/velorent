@@ -7,7 +7,7 @@ export function useBikeCategories(orgId) {
     const [loading, setLoading] = useState(true);
 
     const load = useCallback(async () => {
-        if (!orgId) return;
+        if (!orgId) { setLoading(false); return; }
         setLoading(true);
         const { data } = await supabase
             .from("bike_categories")

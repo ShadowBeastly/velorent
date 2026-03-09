@@ -30,14 +30,19 @@ export function ToastProvider({ children }) {
     return (
         <ToastContext.Provider value={{ addToast }}>
             {children}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none">
+            <div
+                role="region"
+                aria-live="polite"
+                aria-label="Benachrichtigungen"
+                className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none"
+            >
                 {toasts.map(t => {
                     const Icon = ICONS[t.type] || Info;
                     return (
-                        <div key={t.id} className={`flex items-start gap-3 p-4 rounded-xl border shadow-lg pointer-events-auto ${COLORS[t.type] || COLORS.info}`}>
-                            <Icon className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <div key={t.id} role="alert" className={`flex items-start gap-3 p-4 rounded-xl border shadow-lg pointer-events-auto ${COLORS[t.type] || COLORS.info}`}>
+                            <Icon className="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
                             <span className="flex-1 text-sm font-medium">{t.message}</span>
-                            <button onClick={() => dismiss(t.id)} className="opacity-60 hover:opacity-100 flex-shrink-0">
+                            <button onClick={() => dismiss(t.id)} aria-label="Benachrichtigung schließen" className="opacity-60 hover:opacity-100 flex-shrink-0">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>

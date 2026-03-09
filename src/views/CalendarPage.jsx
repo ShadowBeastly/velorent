@@ -53,7 +53,7 @@ function DroppableCell({ id, date, bikeId, children, onClick, className }) {
 
 export default function CalendarPage() {
     const { darkMode } = useApp();
-    const { bikes, bookings, customers, maintenanceBlocks } = useData();
+    const { bikes, bookings, customers, maintenanceBlocks, pricingRules } = useData();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [showModal, setShowModal] = useState(false);
     const [editBooking, setEditBooking] = useState(null);
@@ -584,6 +584,7 @@ export default function CalendarPage() {
                         bikes={bikes.bikes}
                         customers={customers.customers}
                         existingBookings={bookings.bookings}
+                        pricingRules={pricingRules?.rules || []}
                         onSave={handleSave}
                         onDelete={async (id) => {
                             const { error } = await bookings.remove(id);

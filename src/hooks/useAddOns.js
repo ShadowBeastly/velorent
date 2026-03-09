@@ -7,7 +7,7 @@ export function useAddOns(orgId) {
     const [loading, setLoading] = useState(true);
 
     const load = useCallback(async () => {
-        if (!orgId) return;
+        if (!orgId) { setLoading(false); return; }
         setLoading(true);
         const { data } = await supabase
             .from("add_ons")

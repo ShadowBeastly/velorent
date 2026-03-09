@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { Plus, Loader2, Edit, Trash2, Wrench, CheckCircle, Clock } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
+import { useToast } from "../components/ui/Toast";
 import { fmtDate, fmtCurrency } from "../utils/formatters";
 
 const TYPE_LABELS = {
@@ -21,9 +22,11 @@ const STATUS_LABELS = {
 export default function MaintenancePage() {
     const { darkMode } = useApp();
     const { maintenanceBlocks, bikes } = useData();
+    const { addToast } = useToast();
     const [statusFilter, setStatusFilter] = useState("all");
     const [showForm, setShowForm] = useState(false);
     const [editBlock, setEditBlock] = useState(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [form, setForm] = useState({
         bike_id: "", type: "service", description: "",
         cost: "", start_date: "", end_date: "", status: "scheduled", performed_by: ""
@@ -66,18 +69,18 @@ export default function MaintenancePage() {
         const payload = { ...form, cost: form.cost ? Number(form.cost) : null };
         if (editBlock) {
             const { error } = await maintenanceBlocks.update(editBlock.id, payload);
-            if (error) { alert("Fehler: " + error.message); return; }
+            if (error) { addToast("Fehler: " + error.message, "error"); return; }
         } else {
             const { error } = await maintenanceBlocks.create(payload);
-            if (error) { alert("Fehler: " + error.message); return; }
+            if (error) { addToast("Fehler: " + error.message, "error"); return; }
         }
         setShowForm(false);
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Wartungsblock wirklich löschen?")) return;
         const { error } = await maintenanceBlocks.remove(id);
-        if (error) alert("Fehler: " + error.message);
+        if (error) addToast("Fehler: " + error.message, "error");
+        setConfirmDeleteId(null);
     };
 
     return (
@@ -158,7 +161,7 @@ export default function MaintenancePage() {
                                                     <button onClick={() => openEdit(block)} className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-200"}`}>
                                                         <Edit className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => handleDelete(block.id)} className={`p-2 rounded-lg text-red-500 ${darkMode ? "hover:bg-red-900/20" : "hover:bg-red-50"}`}>
+                                                    <button onClick={() => setConfirmDeleteId(block.id)} className={`p-2 rounded-lg text-red-500 ${darkMode ? "hover:bg-red-900/20" : "hover:bg-red-50"}`}>
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -177,6 +180,20 @@ export default function MaintenancePage() {
                     </div>
                 )}
             </div>
+
+            {/* Confirm Delete Dialog */}
+            {confirmDeleteId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className={`w-full max-w-sm rounded-2xl border p-6 ${cardStyle} shadow-2xl`}>
+                        <p className="font-semibold text-lg mb-2">Wartungsblock löschen?</p>
+                        <p className={`text-sm mb-6 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Diese Aktion kann nicht rückgängig gemacht werden.</p>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => setConfirmDeleteId(null)} className={`px-4 py-2 rounded-xl text-sm font-medium ${darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"}`}>Abbrechen</button>
+                            <button onClick={() => handleDelete(confirmDeleteId)} className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-sm font-medium">Ja, löschen</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal */}
             {showForm && (

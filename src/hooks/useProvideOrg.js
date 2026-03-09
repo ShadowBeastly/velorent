@@ -31,16 +31,12 @@ export function useProvideOrganization(userId) {
 
     useEffect(() => {
         if (!userId) {
-            if (loading) {
-                // Prevent synchronous setState warning
-                const t = setTimeout(() => setLoading(false), 0);
-                return () => clearTimeout(t);
-            }
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setLoading(false);
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadOrganizations();
-    }, [userId, loadOrganizations, loading]);
+    }, [userId, loadOrganizations]);
 
     const switchOrg = (orgId) => {
         const org = organizations.find(o => o.id === orgId);
