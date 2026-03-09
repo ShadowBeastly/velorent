@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   Bike, Calendar, Users, BarChart3, Globe, Check,
   ChevronRight, Play, ArrowRight, Menu, X, Mail,
-  Smartphone, Building, TrendingUp, CheckCircle, Sparkles
+  Smartphone, Building, TrendingUp, CheckCircle
 } from "lucide-react";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -50,7 +50,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
   const pricing = [
     {
       name: "Starter",
-      price: { monthly: 19, yearly: 228 },
+      price: { monthly: 29, yearly: 290 },
       description: "Perfekt für den Einstieg",
       features: [
         "Bis zu 5 Fahrräder",
@@ -65,7 +65,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
     },
     {
       name: "Growth",
-      price: { monthly: 49, yearly: 588 },
+      price: { monthly: 69, yearly: 690 },
       description: "Für wachsende Verleihe",
       features: [
         "Bis zu 25 Fahrräder",
@@ -82,7 +82,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
     },
     {
       name: "Pro",
-      price: { monthly: 99, yearly: 1188 },
+      price: { monthly: 149, yearly: 1490 },
       description: "Für professionelle Anbieter",
       features: [
         "Unbegrenzte Fahrräder",
@@ -98,7 +98,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
     },
     {
       name: "Enterprise",
-      price: { monthly: 199, yearly: 2388 },
+      price: { monthly: 249, yearly: 2490 },
       description: "Für große Flotten & Ketten",
       features: [
         "Alles aus Pro",
@@ -165,7 +165,6 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-heading font-bold text-slate-900 dark:text-white leading-none">VeloRent</span>
-                <span className="text-[10px] font-bold tracking-wider text-brand-600 uppercase">v2.0 Cosmic</span>
               </div>
             </div>
 
@@ -173,7 +172,6 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-white transition-colors">Features</a>
               <a href="#pricing" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-white transition-colors">Preise</a>
-              <a href="#testimonials" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-white transition-colors">Zielgruppen</a>
               <a href="#faq" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-white transition-colors">FAQ</a>
             </div>
 
@@ -203,7 +201,6 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             <div className="flex flex-col gap-4">
               <a href="#features" className="text-slate-600 dark:text-slate-300 font-medium py-2">Features</a>
               <a href="#pricing" className="text-slate-600 dark:text-slate-300 font-medium py-2">Preise</a>
-              <a href="#testimonials" className="text-slate-600 dark:text-slate-300 font-medium py-2">Zielgruppen</a>
               <a href="#faq" className="text-slate-600 dark:text-slate-300 font-medium py-2">FAQ</a>
               <hr className="border-slate-200 dark:border-slate-700" />
               <Button variant="ghost" onClick={onLogin} className="w-full justify-start">Anmelden</Button>
@@ -223,19 +220,14 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-50 dark:bg-brand-900/30 border border-brand-100 dark:border-brand-500/20 text-brand-600 dark:text-brand-300 text-sm font-medium mb-8 animate-fade-in-up">
-              <Sparkles className="w-4 h-4" />
-              <span>Neu: Dynamische Preisgestaltung</span>
-            </div>
-
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-heading font-bold text-slate-900 dark:text-white leading-[1.1] mb-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              Die Zukunft Ihres <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-violet-600">Fahrradverleihs</span>
+              Buchungskalender. Rechnungen. Online-Widget. <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-violet-600">Alles in einer Software.</span>
             </h1>
 
             <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-              Verwalten Sie Flotte, Kunden und Buchungen in einer eleganten Plattform.
-              Steigern Sie Ihren Umsatz mit unserem modernen Online-Booking Widget.
+              VeloRent digitalisiert Ihren Fahrradverleih in weniger als 5 Minuten.
+              Entwickelt für Hotels, Pensionen und Fahrradläden in Deutschland.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
@@ -263,6 +255,11 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 <span>Jederzeit kündbar</span>
               </div>
             </div>
+
+            <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 animate-fade-in-up" style={{ animationDelay: '450ms' }}>
+              <Check className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+              <span>Bereits von 12+ Fahrradverleihen in Deutschland genutzt</span>
+            </div>
           </div>
 
           {/* Dashboard Preview / Hero Image */}
@@ -278,7 +275,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 </div>
                 <div className="flex-1 mx-4">
                   <div className="bg-white dark:bg-slate-950 rounded-md px-3 py-1.5 text-xs text-slate-400 text-center font-mono border border-slate-200 dark:border-slate-800">
-                    app.velorent.pro/dashboard
+                    velorent.app/dashboard
                   </div>
                 </div>
               </div>
@@ -499,7 +496,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
       {/* Testimonials */}
       {/* Target Groups (Formerly Testimonials) */}
-      <section id="testimonials" className="py-24 px-4 bg-slate-50 dark:bg-slate-950">
+      <section id="testimonials" className="hidden py-24 px-4 bg-slate-50 dark:bg-slate-950">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-slate-900 dark:text-white mb-16">
             Für wen ist VeloRent?
@@ -623,7 +620,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
           </div>
 
           <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-            <p>© {new Date().getFullYear()} VeloRent Pro. Alle Rechte vorbehalten.</p>
+            <p>© {new Date().getFullYear()} VeloRent. Alle Rechte vorbehalten.</p>
             <div className="flex items-center gap-6">
               <span className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
