@@ -7,6 +7,7 @@ export default function CookieBanner() {
 
     useEffect(() => {
         const consent = localStorage.getItem("cookie_consent");
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (!consent) setVisible(true);
     }, []);
 
