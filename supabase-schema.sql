@@ -2,6 +2,7 @@
 -- VELORENT PRO - CLOUD SAAS DATABASE SCHEMA
 -- Supabase PostgreSQL Schema mit Row Level Security
 -- Multi-Tenant Architektur für Hotels, Verleiher etc.
+-- IDEMPOTENT: Safe to re-run on existing databases
 -- =====================================================
 
 -- Enable UUID extension
@@ -10,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- =====================================================
 -- 1. ORGANIZATIONS (Tenants - Hotels, Verleiher etc.)
 -- =====================================================
-CREATE TABLE organizations (
+CREATE TABLE IF NOT EXISTS organizations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     slug TEXT UNIQUE NOT NULL, -- z.B. "hotel-zur-post" für Subdomain
@@ -34,7 +35,7 @@ CREATE TABLE organizations (
 -- =====================================================
 -- 2. USERS & ORGANIZATION MEMBERSHIP
 -- =====================================================
-CREATE TABLE profiles (
+CREATE TABLE IF NOT EXISTS profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT UNIQUE NOT NULL,
     full_name TEXT,
@@ -45,7 +46,7 @@ CREATE TABLE profiles (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE organization_members (
+CREATE TABLE IF NOT EXISTS organization_members (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
@@ -60,7 +61,7 @@ CREATE TABLE organization_members (
 -- =====================================================
 -- 3. BIKES (Fahrräder/Mietobjekte)
 -- =====================================================
-CREATE TABLE bikes (
+CREATE TABLE IF NOT EXISTS bikes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
@@ -88,13 +89,13 @@ CREATE TABLE bikes (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_bikes_org ON bikes(organization_id);
-CREATE INDEX idx_bikes_status ON bikes(organization_id, status);
+CREATE INDEX IF NOT EXISTS idx_bikes_org ON bikes(organization_id);
+CREATE INDEX IF NOT EXISTS idx_bikes_status ON bikes(organization_id, status);
 
 -- =====================================================
 -- 4. CUSTOMERS (Kunden)
 -- =====================================================
-CREATE TABLE customers (
+CREATE TABLE IF NOT EXISTS customers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
     first_name TEXT,
@@ -118,26 +119,26 @@ CREATE TABLE customers (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_customers_org ON customers(organization_id);
-CREATE INDEX idx_customers_email ON customers(organization_id, email);
+CREATE INDEX IF NOT EXISTS idx_customers_org ON customers(organization_id);
+CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(organization_id, email);
 
 -- =====================================================
 -- 5. BOOKINGS (Buchungen)
 -- =====================================================
-CREATE TABLE bookings (
+CREATE TABLE IF NOT EXISTS bookings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
     booking_number TEXT, -- Human-readable: VR-2024-001
     bike_id UUID REFERENCES bikes(id) ON DELETE SET NULL,
     customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
-    
+
     -- Kundendaten (auch ohne Customer-Datensatz)
     customer_name TEXT NOT NULL,
     customer_email TEXT,
     customer_phone TEXT,
     customer_address TEXT,
     customer_id_number TEXT,
-    
+
     -- Zeitraum
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
@@ -145,11 +146,11 @@ CREATE TABLE bookings (
     end_time TIME,
     actual_start TIMESTAMPTZ,
     actual_end TIMESTAMPTZ,
-    
+
     -- Orte
     pickup_location TEXT,
     return_location TEXT,
-    
+
     -- Preise
     price_per_day DECIMAL(10,2),
     total_days INTEGER,
@@ -162,40 +163,40 @@ CREATE TABLE bookings (
     deposit_amount DECIMAL(10,2) DEFAULT 0,
     deposit_paid BOOLEAN DEFAULT FALSE,
     deposit_returned BOOLEAN DEFAULT FALSE,
-    
+
     -- Zahlung
     payment_status TEXT DEFAULT 'pending', -- pending, partial, paid, refunded
     payment_method TEXT, -- cash, card, transfer, paypal
     paid_amount DECIMAL(10,2) DEFAULT 0,
-    
+
     -- Status
     status TEXT DEFAULT 'reserved', -- reserved, confirmed, picked_up, returned, cancelled, no_show
-    
+
     -- Zubehör
     accessories JSONB DEFAULT '{}', -- {lock: true, helmet: false, ...}
-    
+
     -- Sonstiges
     notes TEXT,
     internal_notes TEXT,
     source TEXT DEFAULT 'manual', -- manual, website, booking.com, api
     created_by UUID REFERENCES profiles(id),
     confirmed_by UUID REFERENCES profiles(id),
-    
+
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_bookings_org ON bookings(organization_id);
-CREATE INDEX idx_bookings_dates ON bookings(organization_id, start_date, end_date);
-CREATE INDEX idx_bookings_bike ON bookings(bike_id, start_date, end_date);
-CREATE INDEX idx_bookings_status ON bookings(organization_id, status);
-CREATE INDEX idx_bookings_customer ON bookings(customer_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_org ON bookings(organization_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_dates ON bookings(organization_id, start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_bookings_bike ON bookings(bike_id, start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(organization_id, status);
+CREATE INDEX IF NOT EXISTS idx_bookings_customer ON bookings(customer_id);
 
 -- =====================================================
 -- 6. BOOKING HISTORY / AUDIT LOG
 -- =====================================================
-CREATE TABLE booking_history (
+CREATE TABLE IF NOT EXISTS booking_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
     action TEXT NOT NULL, -- created, updated, status_changed, payment_received
@@ -206,46 +207,46 @@ CREATE TABLE booking_history (
     notes TEXT
 );
 
-CREATE INDEX idx_booking_history ON booking_history(booking_id);
+CREATE INDEX IF NOT EXISTS idx_booking_history ON booking_history(booking_id);
 
 -- =====================================================
 -- 7. INVOICES
 -- =====================================================
-CREATE TABLE invoices (
+CREATE TABLE IF NOT EXISTS invoices (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
     booking_id UUID REFERENCES bookings(id) ON DELETE SET NULL,
     customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
     invoice_number TEXT NOT NULL,
-    
+
     -- Beträge
     subtotal DECIMAL(10,2) NOT NULL,
     tax_rate DECIMAL(5,2) DEFAULT 19,
     tax_amount DECIMAL(10,2),
     total DECIMAL(10,2) NOT NULL,
-    
+
     -- Status
     status TEXT DEFAULT 'draft', -- draft, sent, paid, overdue, cancelled
     due_date DATE,
     paid_at TIMESTAMPTZ,
-    
+
     -- Inhalte
     items JSONB NOT NULL DEFAULT '[]',
     notes TEXT,
-    
+
     -- PDF
     pdf_url TEXT,
-    
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_invoices_org ON invoices(organization_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_org ON invoices(organization_id);
 
 -- =====================================================
 -- 8. MAINTENANCE LOGS
 -- =====================================================
-CREATE TABLE maintenance_logs (
+CREATE TABLE IF NOT EXISTS maintenance_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
     bike_id UUID REFERENCES bikes(id) ON DELETE CASCADE,
@@ -260,12 +261,12 @@ CREATE TABLE maintenance_logs (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_maintenance_bike ON maintenance_logs(bike_id);
+CREATE INDEX IF NOT EXISTS idx_maintenance_bike ON maintenance_logs(bike_id);
 
 -- =====================================================
 -- 9. LOCATIONS (für Multi-Standort)
 -- =====================================================
-CREATE TABLE locations (
+CREATE TABLE IF NOT EXISTS locations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
@@ -279,12 +280,12 @@ CREATE TABLE locations (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_locations_org ON locations(organization_id);
+CREATE INDEX IF NOT EXISTS idx_locations_org ON locations(organization_id);
 
 -- =====================================================
 -- 10. PRICING RULES (Dynamische Preise)
 -- =====================================================
-CREATE TABLE pricing_rules (
+CREATE TABLE IF NOT EXISTS pricing_rules (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
@@ -303,7 +304,7 @@ CREATE TABLE pricing_rules (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_pricing_org ON pricing_rules(organization_id);
+CREATE INDEX IF NOT EXISTS idx_pricing_org ON pricing_rules(organization_id);
 
 -- =====================================================
 -- ROW LEVEL SECURITY POLICIES
@@ -332,14 +333,18 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Profiles: Users can read/update their own profile
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 CREATE POLICY "Users can view own profile" ON profiles
     FOR SELECT USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile" ON profiles
     FOR UPDATE USING (auth.uid() = id);
 
 -- Organizations: Members can view their orgs
+DROP POLICY IF EXISTS "Members can view their organizations" ON organizations;
 CREATE POLICY "Members can view their organizations" ON organizations
     FOR SELECT USING (id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Owners can update their organizations" ON organizations;
 CREATE POLICY "Owners can update their organizations" ON organizations
     FOR UPDATE USING (
         id IN (
@@ -349,63 +354,67 @@ CREATE POLICY "Owners can update their organizations" ON organizations
     );
 
 -- Organization Members
+DROP POLICY IF EXISTS "Members can view org members" ON organization_members;
 CREATE POLICY "Members can view org members" ON organization_members
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
-CREATE POLICY "Admins can manage org members" ON organization_members
-    FOR ALL USING (
-        organization_id IN (
-            SELECT organization_id FROM organization_members
-            WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
-        )
-    );
+DROP POLICY IF EXISTS "Admins can manage org members" ON organization_members;
 
 -- Bikes: Organization members can access
+DROP POLICY IF EXISTS "Members can view bikes" ON bikes;
 CREATE POLICY "Members can view bikes" ON bikes
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can manage bikes" ON bikes;
 CREATE POLICY "Members can manage bikes" ON bikes
     FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
 -- Customers
+DROP POLICY IF EXISTS "Members can view customers" ON customers;
 CREATE POLICY "Members can view customers" ON customers
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can manage customers" ON customers;
 CREATE POLICY "Members can manage customers" ON customers
     FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
 -- Bookings
+DROP POLICY IF EXISTS "Members can view bookings" ON bookings;
 CREATE POLICY "Members can view bookings" ON bookings
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can manage bookings" ON bookings;
 CREATE POLICY "Members can manage bookings" ON bookings
     FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
 -- Booking History
+DROP POLICY IF EXISTS "Members can view booking history" ON booking_history;
 CREATE POLICY "Members can view booking history" ON booking_history
     FOR SELECT USING (
         booking_id IN (SELECT id FROM bookings WHERE organization_id IN (SELECT get_user_org_ids()))
     );
 
 -- Invoices
+DROP POLICY IF EXISTS "Members can view invoices" ON invoices;
 CREATE POLICY "Members can view invoices" ON invoices
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can manage invoices" ON invoices;
 CREATE POLICY "Members can manage invoices" ON invoices
     FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
 -- Maintenance
+DROP POLICY IF EXISTS "Members can view maintenance" ON maintenance_logs;
 CREATE POLICY "Members can view maintenance" ON maintenance_logs
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can manage maintenance" ON maintenance_logs;
 CREATE POLICY "Members can manage maintenance" ON maintenance_logs
     FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
 -- Locations
+DROP POLICY IF EXISTS "Members can view locations" ON locations;
 CREATE POLICY "Members can view locations" ON locations
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
-CREATE POLICY "Admins can manage locations" ON locations
-    FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
 -- Pricing Rules
+DROP POLICY IF EXISTS "Members can view pricing" ON pricing_rules;
 CREATE POLICY "Members can view pricing" ON pricing_rules
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
-CREATE POLICY "Admins can manage pricing" ON pricing_rules
-    FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
 -- =====================================================
 -- FUNCTIONS & TRIGGERS
@@ -420,14 +429,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_organizations_updated_at ON organizations;
 CREATE TRIGGER update_organizations_updated_at BEFORE UPDATE ON organizations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+DROP TRIGGER IF EXISTS update_bikes_updated_at ON bikes;
 CREATE TRIGGER update_bikes_updated_at BEFORE UPDATE ON bikes
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+DROP TRIGGER IF EXISTS update_customers_updated_at ON customers;
 CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON customers
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+DROP TRIGGER IF EXISTS update_bookings_updated_at ON bookings;
 CREATE TRIGGER update_bookings_updated_at BEFORE UPDATE ON bookings
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
@@ -439,7 +453,7 @@ DECLARE
     seq_num INTEGER;
 BEGIN
     year_str := TO_CHAR(NOW(), 'YYYY');
-    
+
     SELECT COALESCE(MAX(
         CAST(SPLIT_PART(booking_number, '-', 3) AS INTEGER)
     ), 0) + 1
@@ -447,12 +461,13 @@ BEGIN
     FROM bookings
     WHERE organization_id = NEW.organization_id
     AND booking_number LIKE 'VR-' || year_str || '-%';
-    
+
     NEW.booking_number := 'VR-' || year_str || '-' || LPAD(seq_num::TEXT, 4, '0');
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_booking_number ON bookings;
 CREATE TRIGGER set_booking_number BEFORE INSERT ON bookings
     FOR EACH ROW WHEN (NEW.booking_number IS NULL)
     EXECUTE FUNCTION generate_booking_number();
@@ -464,11 +479,11 @@ BEGIN
     IF NEW.customer_id IS NOT NULL THEN
         UPDATE customers SET
             total_bookings = (
-                SELECT COUNT(*) FROM bookings 
+                SELECT COUNT(*) FROM bookings
                 WHERE customer_id = NEW.customer_id AND status != 'cancelled'
             ),
             total_revenue = (
-                SELECT COALESCE(SUM(total_price), 0) FROM bookings 
+                SELECT COALESCE(SUM(total_price), 0) FROM bookings
                 WHERE customer_id = NEW.customer_id AND status IN ('picked_up', 'returned')
             ),
             last_booking_at = NOW()
@@ -478,6 +493,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_customer_stats_trigger ON bookings;
 CREATE TRIGGER update_customer_stats_trigger AFTER INSERT OR UPDATE ON bookings
     FOR EACH ROW EXECUTE FUNCTION update_customer_stats();
 
@@ -495,6 +511,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
@@ -504,20 +521,20 @@ CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
 
 -- Dashboard Stats View
 CREATE OR REPLACE VIEW dashboard_stats AS
-SELECT 
+SELECT
     o.id as organization_id,
     (SELECT COUNT(*) FROM bikes WHERE organization_id = o.id AND status = 'available') as available_bikes,
     (SELECT COUNT(*) FROM bikes WHERE organization_id = o.id AND status = 'rented') as rented_bikes,
     (SELECT COUNT(*) FROM bookings WHERE organization_id = o.id AND status IN ('reserved', 'confirmed')) as pending_bookings,
     (SELECT COUNT(*) FROM bookings WHERE organization_id = o.id AND status = 'picked_up') as active_rentals,
-    (SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE organization_id = o.id 
-        AND status IN ('picked_up', 'returned') 
+    (SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE organization_id = o.id
+        AND status IN ('picked_up', 'returned')
         AND start_date >= DATE_TRUNC('month', CURRENT_DATE)) as month_revenue,
-    (SELECT COUNT(*) FROM bookings WHERE organization_id = o.id 
-        AND start_date = CURRENT_DATE 
+    (SELECT COUNT(*) FROM bookings WHERE organization_id = o.id
+        AND start_date = CURRENT_DATE
         AND status IN ('reserved', 'confirmed')) as today_pickups,
-    (SELECT COUNT(*) FROM bookings WHERE organization_id = o.id 
-        AND end_date = CURRENT_DATE 
+    (SELECT COUNT(*) FROM bookings WHERE organization_id = o.id
+        AND end_date = CURRENT_DATE
         AND status = 'picked_up') as today_returns
 FROM organizations o;
 
@@ -535,18 +552,26 @@ FROM organizations o;
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 -- Prevent overlapping bookings for the same bike
-ALTER TABLE bookings
-ADD CONSTRAINT no_overlapping_bookings
-EXCLUDE USING gist (
-    bike_id WITH =,
-    daterange(start_date, end_date, '[]') WITH &&
-)
-WHERE (status != 'cancelled');
+-- (Use DO block to make constraint idempotent)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'no_overlapping_bookings'
+    ) THEN
+        ALTER TABLE bookings
+        ADD CONSTRAINT no_overlapping_bookings
+        EXCLUDE USING gist (
+            bike_id WITH =,
+            daterange(start_date, end_date, '[]') WITH &&
+        )
+        WHERE (status != 'cancelled');
+    END IF;
+END $$;
 
 -- =====================================================
 -- 12. ADD-ONS (Extras für Buchungen)
 -- =====================================================
-CREATE TABLE add_ons (
+CREATE TABLE IF NOT EXISTS add_ons (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
@@ -560,12 +585,12 @@ CREATE TABLE add_ons (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_add_ons_org ON add_ons(organization_id);
+CREATE INDEX IF NOT EXISTS idx_add_ons_org ON add_ons(organization_id);
 
 -- =====================================================
 -- 13. BIKE CATEGORIES
 -- =====================================================
-CREATE TABLE bike_categories (
+CREATE TABLE IF NOT EXISTS bike_categories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
@@ -578,12 +603,12 @@ CREATE TABLE bike_categories (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_bike_categories_org ON bike_categories(organization_id);
+CREATE INDEX IF NOT EXISTS idx_bike_categories_org ON bike_categories(organization_id);
 
 -- =====================================================
 -- 14. VOUCHERS (Gutscheine / Rabattcodes)
 -- =====================================================
-CREATE TABLE vouchers (
+CREATE TABLE IF NOT EXISTS vouchers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
     code TEXT NOT NULL,
@@ -601,8 +626,8 @@ CREATE TABLE vouchers (
     UNIQUE(organization_id, code)
 );
 
-CREATE INDEX idx_vouchers_org ON vouchers(organization_id);
-CREATE INDEX idx_vouchers_code ON vouchers(organization_id, code);
+CREATE INDEX IF NOT EXISTS idx_vouchers_org ON vouchers(organization_id);
+CREATE INDEX IF NOT EXISTS idx_vouchers_code ON vouchers(organization_id, code);
 
 -- =====================================================
 -- RLS FOR NEW TABLES
@@ -611,18 +636,24 @@ ALTER TABLE add_ons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bike_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vouchers ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Members can view add_ons" ON add_ons;
 CREATE POLICY "Members can view add_ons" ON add_ons
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can manage add_ons" ON add_ons;
 CREATE POLICY "Members can manage add_ons" ON add_ons
     FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
+DROP POLICY IF EXISTS "Members can view bike_categories" ON bike_categories;
 CREATE POLICY "Members can view bike_categories" ON bike_categories
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can manage bike_categories" ON bike_categories;
 CREATE POLICY "Members can manage bike_categories" ON bike_categories
     FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
+DROP POLICY IF EXISTS "Members can view vouchers" ON vouchers;
 CREATE POLICY "Members can view vouchers" ON vouchers
     FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can manage vouchers" ON vouchers;
 CREATE POLICY "Members can manage vouchers" ON vouchers
     FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
 
@@ -631,6 +662,7 @@ CREATE POLICY "Members can manage vouchers" ON vouchers
 -- =====================================================
 
 -- FIX 1: booking_history — add INSERT policy (previously only SELECT)
+DROP POLICY IF EXISTS "Members can insert booking history" ON booking_history;
 CREATE POLICY "Members can insert booking history" ON booking_history
     FOR INSERT WITH CHECK (
         booking_id IN (
@@ -643,6 +675,7 @@ CREATE POLICY "Members can insert booking history" ON booking_history
 -- Drop the broad FOR ALL policy and replace with fine-grained ones
 DROP POLICY IF EXISTS "Admins can manage org members" ON organization_members;
 
+DROP POLICY IF EXISTS "Admins can insert org members" ON organization_members;
 CREATE POLICY "Admins can insert org members" ON organization_members
     FOR INSERT WITH CHECK (
         organization_id IN (
@@ -651,6 +684,7 @@ CREATE POLICY "Admins can insert org members" ON organization_members
         )
     );
 
+DROP POLICY IF EXISTS "Admins can update org members" ON organization_members;
 CREATE POLICY "Admins can update org members" ON organization_members
     FOR UPDATE
     USING (
@@ -668,6 +702,7 @@ CREATE POLICY "Admins can update org members" ON organization_members
         )
     );
 
+DROP POLICY IF EXISTS "Admins can delete org members" ON organization_members;
 CREATE POLICY "Admins can delete org members" ON organization_members
     FOR DELETE USING (
         organization_id IN (

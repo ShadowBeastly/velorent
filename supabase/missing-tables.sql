@@ -192,10 +192,11 @@ CREATE POLICY "Members can insert booking history" ON booking_history
 -- profiles: backfill missing profiles for existing users
 -- (fixes 406 error on loadProfile if trigger was missing)
 -- =====================================================
-INSERT INTO profiles (id, full_name)
+INSERT INTO profiles (id, email, full_name)
 SELECT
     id,
-    COALESCE(raw_user_meta_data->>'full_name', split_part(email, '@', 1))
+    COALESCE(email, id::text || '@placeholder.local'),
+    COALESCE(raw_user_meta_data->>'full_name', split_part(COALESCE(email, ''), '@', 1))
 FROM auth.users
 WHERE id NOT IN (SELECT id FROM profiles)
 ON CONFLICT (id) DO NOTHING;

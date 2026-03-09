@@ -35,15 +35,18 @@ CREATE POLICY "Members can view bikes" ON bikes
     FOR SELECT
     USING (organization_id IN (SELECT get_user_org_ids()));
 
+DROP POLICY IF EXISTS "Members can write bikes" ON bikes;
 CREATE POLICY "Members can write bikes" ON bikes
     FOR INSERT
     WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
 
+DROP POLICY IF EXISTS "Members can update bikes" ON bikes;
 CREATE POLICY "Members can update bikes" ON bikes
     FOR UPDATE
     USING (organization_id IN (SELECT get_user_write_org_ids()))
     WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
 
+DROP POLICY IF EXISTS "Members can delete bikes" ON bikes;
 CREATE POLICY "Members can delete bikes" ON bikes
     FOR DELETE
     USING (organization_id IN (SELECT get_user_write_org_ids()));
@@ -60,15 +63,18 @@ CREATE POLICY "Members can view bookings" ON bookings
     FOR SELECT
     USING (organization_id IN (SELECT get_user_org_ids()));
 
+DROP POLICY IF EXISTS "Members can write bookings" ON bookings;
 CREATE POLICY "Members can write bookings" ON bookings
     FOR INSERT
     WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
 
+DROP POLICY IF EXISTS "Members can update bookings" ON bookings;
 CREATE POLICY "Members can update bookings" ON bookings
     FOR UPDATE
     USING (organization_id IN (SELECT get_user_write_org_ids()))
     WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
 
+DROP POLICY IF EXISTS "Members can delete bookings" ON bookings;
 CREATE POLICY "Members can delete bookings" ON bookings
     FOR DELETE
     USING (organization_id IN (SELECT get_user_write_org_ids()));
@@ -85,15 +91,18 @@ CREATE POLICY "Members can view customers" ON customers
     FOR SELECT
     USING (organization_id IN (SELECT get_user_org_ids()));
 
+DROP POLICY IF EXISTS "Members can write customers" ON customers;
 CREATE POLICY "Members can write customers" ON customers
     FOR INSERT
     WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
 
+DROP POLICY IF EXISTS "Members can update customers" ON customers;
 CREATE POLICY "Members can update customers" ON customers
     FOR UPDATE
     USING (organization_id IN (SELECT get_user_write_org_ids()))
     WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
 
+DROP POLICY IF EXISTS "Members can delete customers" ON customers;
 CREATE POLICY "Members can delete customers" ON customers
     FOR DELETE
     USING (organization_id IN (SELECT get_user_write_org_ids()));
@@ -110,15 +119,18 @@ CREATE POLICY "Members can view invoices" ON invoices
     FOR SELECT
     USING (organization_id IN (SELECT get_user_org_ids()));
 
+DROP POLICY IF EXISTS "Members can write invoices" ON invoices;
 CREATE POLICY "Members can write invoices" ON invoices
     FOR INSERT
     WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
 
+DROP POLICY IF EXISTS "Members can update invoices" ON invoices;
 CREATE POLICY "Members can update invoices" ON invoices
     FOR UPDATE
     USING (organization_id IN (SELECT get_user_write_org_ids()))
     WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
 
+DROP POLICY IF EXISTS "Members can delete invoices" ON invoices;
 CREATE POLICY "Members can delete invoices" ON invoices
     FOR DELETE
     USING (organization_id IN (SELECT get_user_write_org_ids()));
