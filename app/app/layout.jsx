@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { OrgProvider, useOrganization } from "../../src/context/OrgContext";
 import { AppProvider, useApp } from "../../src/context/AppContext";
@@ -18,7 +19,13 @@ function AppShell({ children }) {
     const { darkMode, sidebarOpen, setSidebarOpen, setSearchQuery } = useApp();
     const { bikes, bookings, notifications } = useData();
 
-    if (org.loading) return <LoadingScreen />;
+    useEffect(() => {
+        if (!auth.loading && !auth.user) {
+            router.push("/login");
+        }
+    }, [auth.loading, auth.user, router]);
+
+    if (auth.loading || org.loading) return <LoadingScreen />;
     if (!org.currentOrg) return <OnboardingPage />;
 
     return (
