@@ -30,6 +30,8 @@ export default function SettingsPage() {
             phone: form.phone,
             email: form.email,
             tax_id: form.tax_id,
+            iban: form.iban,
+            bic: form.bic,
             logo_url: form.logo_url,
             settings: form.settings
         }).eq("id", org.currentOrg.id);
@@ -84,6 +86,16 @@ export default function SettingsPage() {
                     <div>
                         <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>USt-IdNr.</label>
                         <input type="text" value={form.tax_id || ""} onChange={(e) => setForm(f => ({ ...f, tax_id: e.target.value }))} className={inputStyle} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>IBAN</label>
+                            <input type="text" placeholder="DE00 0000 0000 0000 0000 00" value={form.iban || ""} onChange={(e) => setForm(f => ({ ...f, iban: e.target.value }))} className={inputStyle} />
+                        </div>
+                        <div>
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>BIC</label>
+                            <input type="text" placeholder="XXXXDEXX" value={form.bic || ""} onChange={(e) => setForm(f => ({ ...f, bic: e.target.value }))} className={inputStyle} />
+                        </div>
                     </div>
                 </div>
 

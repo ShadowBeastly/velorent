@@ -1,7 +1,7 @@
 "use client";
 import { Eye, Download, FileText } from 'lucide-react';
 
-export default function InvoiceList({ invoices }) {
+export default function InvoiceList({ invoices, onViewInvoice, onDownloadInvoice }) {
     if (invoices.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -88,10 +88,10 @@ export default function InvoiceList({ invoices }) {
                             </td>
                             <td className="px-6 py-4 text-right">
                                 <div className="flex items-center justify-end gap-2">
-                                    <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-blue-600 transition-colors" title="Anschauen">
+                                    <button onClick={() => onViewInvoice?.(invoice)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-blue-600 transition-colors" title="Anschauen">
                                         <Eye className="w-4 h-4" />
                                     </button>
-                                    <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-green-600 transition-colors" title="PDF Herunterladen">
+                                    <button onClick={() => onDownloadInvoice?.(invoice)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-green-600 transition-colors" title="PDF Herunterladen">
                                         <Download className="w-4 h-4" />
                                     </button>
                                 </div>
