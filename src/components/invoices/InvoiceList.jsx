@@ -1,9 +1,11 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { Eye, Download, FileText, ChevronDown, CheckCircle, Send, XCircle, Mail, AlertTriangle } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 export default function InvoiceList({ invoices, onViewInvoice, onDownloadInvoice, onStatusChange, onSendEmail }) {
     const [openMenuId, setOpenMenuId] = useState(null);
+    const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
     const menuRef = useRef(null);
 
     // Close menu when clicking outside
@@ -16,6 +18,13 @@ export default function InvoiceList({ invoices, onViewInvoice, onDownloadInvoice
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
+
+    const toggleMenu = (e, invoiceId) => {
+        if (openMenuId === invoiceId) { setOpenMenuId(null); return; }
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMenuPos({ top: rect.bottom + window.scrollY + 4, right: window.innerWidth - rect.right });
+        setOpenMenuId(invoiceId);
+    };
 
     if (invoices.length === 0) {
         return (
@@ -74,6 +83,7 @@ export default function InvoiceList({ invoices, onViewInvoice, onDownloadInvoice
     };
 
     return (
+        <>
         <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
                 <thead>
@@ -160,60 +170,13 @@ export default function InvoiceList({ invoices, onViewInvoice, onDownloadInvoice
                                         </button>
                                         {/* Status quick-action dropdown */}
                                         {onStatusChange && (
-                                            <div className="relative">
-                                                <button
-                                                    onClick={() => setOpenMenuId(openMenuId === invoice.id ? null : invoice.id)}
-                                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                                                    title="Status ändern"
-                                                >
-                                                    <ChevronDown className="w-4 h-4" />
-                                                </button>
-                                                {openMenuId === invoice.id && (
-                                                    <div className="absolute right-0 mt-1 w-52 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-20 py-1 overflow-hidden">
-                                                        {invoice.status !== 'paid' && (
-                                                            <button
-                                                                onClick={() => { onStatusChange(invoice, 'paid'); setOpenMenuId(null); }}
-                                                                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                                                            >
-                                                                <CheckCircle className="w-4 h-4 text-emerald-500" />
-                                                                Als bezahlt markieren
-                                                            </button>
-                                                        )}
-                                                        {invoice.status !== 'sent' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
-                                                            <button
-                                                                onClick={() => { onStatusChange(invoice, 'sent'); setOpenMenuId(null); }}
-                                                                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                                                            >
-                                                                <Send className="w-4 h-4 text-blue-500" />
-                                                                Als gesendet markieren
-                                                            </button>
-                                                        )}
-                                                        {invoice.status !== 'cancelled' && invoice.status !== 'paid' && (
-                                                            <button
-                                                                onClick={() => { onStatusChange(invoice, 'cancelled'); setOpenMenuId(null); }}
-                                                                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                                                            >
-                                                                <XCircle className="w-4 h-4 text-slate-400" />
-                                                                Stornieren
-                                                            </button>
-                                                        )}
-                                                        {invoice.status === 'paid' && (
-                                                            <div className="px-4 py-2.5 text-xs text-slate-400 italic">
-                                                                Keine weiteren Aktionen verfügbar.
-                                                            </div>
-                                                        )}
-                                                        {invoice.status === 'cancelled' && (
-                                                            <button
-                                                                onClick={() => { onStatusChange(invoice, 'draft'); setOpenMenuId(null); }}
-                                                                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                                                            >
-                                                                <FileText className="w-4 h-4 text-amber-500" />
-                                                                Als Entwurf reaktivieren
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
+                                            <button
+                                                onClick={(e) => toggleMenu(e, invoice.id)}
+                                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                                                title="Status ändern"
+                                            >
+                                                <ChevronDown className="w-4 h-4" />
+                                            </button>
                                         )}
                                     </div>
                                 </td>
@@ -223,5 +186,50 @@ export default function InvoiceList({ invoices, onViewInvoice, onDownloadInvoice
                 </tbody>
             </table>
         </div>
+
+        {/* Dropdown rendered via portal so it escapes overflow:hidden parents */}
+        {openMenuId && onStatusChange && typeof document !== 'undefined' ? createPortal(
+            <div
+                ref={menuRef}
+                style={{ position: 'fixed', top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
+                className="w-52 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1 overflow-hidden"
+            >
+                {(() => {
+                    const invoice = invoices.find(i => i.id === openMenuId);
+                    if (!invoice) return null;
+                    return <>
+                        {invoice.status !== 'paid' && (
+                            <button onClick={() => { onStatusChange(invoice, 'paid'); setOpenMenuId(null); }}
+                                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                <CheckCircle className="w-4 h-4 text-emerald-500" />Als bezahlt markieren
+                            </button>
+                        )}
+                        {invoice.status !== 'sent' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                            <button onClick={() => { onStatusChange(invoice, 'sent'); setOpenMenuId(null); }}
+                                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                <Send className="w-4 h-4 text-blue-500" />Als gesendet markieren
+                            </button>
+                        )}
+                        {invoice.status !== 'cancelled' && invoice.status !== 'paid' && (
+                            <button onClick={() => { onStatusChange(invoice, 'cancelled'); setOpenMenuId(null); }}
+                                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                <XCircle className="w-4 h-4 text-slate-400" />Stornieren
+                            </button>
+                        )}
+                        {invoice.status === 'paid' && (
+                            <div className="px-4 py-2.5 text-xs text-slate-400 italic">Keine weiteren Aktionen verfügbar.</div>
+                        )}
+                        {invoice.status === 'cancelled' && (
+                            <button onClick={() => { onStatusChange(invoice, 'draft'); setOpenMenuId(null); }}
+                                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                <FileText className="w-4 h-4 text-amber-500" />Als Entwurf reaktivieren
+                            </button>
+                        )}
+                    </>;
+                })()}
+            </div>,
+            document.body
+        ) : null}
+        </>
     );
 }
