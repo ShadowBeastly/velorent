@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const formatDate = (dateStr) => {
     if (!dateStr) return '';
@@ -111,7 +111,7 @@ export const generateContract = (booking, organization) => {
     doc.text('2. Mietgegenstand', 20, y);
     y += 3;
 
-    doc.autoTable({
+    autoTable(doc, {
         startY: y,
         body: [
             ['Fahrrad', booking?.bike?.name || '—'],
@@ -147,7 +147,7 @@ export const generateContract = (booking, organization) => {
         return 1;
     })();
 
-    doc.autoTable({
+    autoTable(doc, {
         startY: y,
         body: [
             ['Mietbeginn', formatDate(booking?.start_date)],
@@ -178,7 +178,7 @@ export const generateContract = (booking, organization) => {
     const pricePerDay = booking?.price_per_day
         || (booking?.total_price && days ? booking.total_price / days : 0);
 
-    doc.autoTable({
+    autoTable(doc, {
         startY: y,
         body: [
             ['Preis pro Tag', formatCurrency(pricePerDay)],

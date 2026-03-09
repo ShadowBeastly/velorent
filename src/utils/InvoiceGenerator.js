@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 export const generateInvoice = (invoice, organization) => {
     const doc = new jsPDF();
@@ -103,7 +103,7 @@ export const generateInvoice = (invoice, organization) => {
         formatCurrency(item.total)
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
         startY: 120,
         head: [['Beschreibung', 'Menge / Zeitraum', 'Einzelpreis', 'Gesamt']],
         body: tableBody,
