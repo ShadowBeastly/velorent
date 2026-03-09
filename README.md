@@ -1,240 +1,89 @@
-# VeloRent Pro - Cloud SaaS für Fahrradvermietung
+# VeloRent Pro — Cloud SaaS für Fahrradvermietung
 
-## 🚀 Überblick
+Multi-Tenant SaaS für Fahrradverleiher, Hotels und Tourismusbetriebe.
 
-VeloRent Pro ist ein vollständiges, cloud-basiertes SaaS für Fahrradverleiher, Hotels, und Tourismusbetriebe. Multi-Tenant-fähig – jeder Kunde hat seine eigene isolierte Datenbank.
+## Stack
 
-### Features
-- ✅ **Multi-Tenant Architektur** - Verkaufe an beliebig viele Kunden
-- ✅ **Benutzerauthentifizierung** - Login, Registrierung, Team-Einladungen
-- ✅ **Buchungskalender** - Monats- und Wochenansicht
-- ✅ **Flottenmanagement** - E-Bikes, Lastenräder, Kinderräder, etc.
-- ✅ **Kundenverwaltung** - CRM mit Umsatztracking
-- ✅ **Statistiken** - Umsatz, Auslastung, Status-Verteilung
-- ✅ **Row Level Security** - Kunden sehen nur ihre eigenen Daten
-- ✅ **Responsive Design** - Desktop & Mobile
-- ✅ **Dark Mode** - Hell/Dunkel-Umschaltung
+- **Next.js 15** (App Router) + React 18
+- **Supabase** (PostgreSQL + Auth + Row Level Security)
+- **Tailwind CSS v3**
+- **Vercel** (Deployment)
 
----
+## Setup
 
-## 🌐 NEU: Öffentliches Buchungswidget
+### 1. Supabase Projekt erstellen
 
-Hotels können ein Buchungswidget auf ihrer Website einbetten. Kunden buchen selbst – ohne fremde Kundendaten zu sehen!
+1. [supabase.com](https://supabase.com) → New Project
+2. SQL Editor → `supabase-schema.sql` ausführen
+3. SQL Editor → `supabase-public-booking.sql` ausführen
+4. Authentication → Providers → Email aktivieren
+5. Settings → API → URL und Anon Key kopieren
 
-### Sicherheitskonzept
-- ✅ **Keine Kundendaten sichtbar** - Widget zeigt nur verfügbare Räder und Zeiträume
-- ✅ **Eigener API-Key pro Hotel** - Isolierte Zugriffskontrolle
-- ✅ **CORS-geschützt** - Nur erlaubte Domains
-- ✅ **Supabase RLS** - Row Level Security auf Datenbankebene
+### 2. Environment Variables
 
-### So funktioniert's
-1. Hotel aktiviert Widget im Dashboard → Einstellungen → Widget
-2. Hotel kopiert den Einbettungscode
-3. Code wird auf Hotel-Website eingefügt
-4. Kunden können sofort buchen!
+`.env` erstellen (siehe `.env.example`):
 
-### Dateien
-- `supabase-public-booking.sql` - Datenbank-Erweiterung
-- `src/BookingWidget.jsx` - React Widget-Komponente
-- `src/WidgetSettings.jsx` - Admin-Einstellungen
-- `widget-embed-example.html` - Komplettes Beispiel
-
----
-
-## 📋 Setup-Anleitung (30 Minuten)
-
-### 1. Supabase Projekt erstellen (kostenlos)
-
-1. Gehe zu [supabase.com](https://supabase.com) und erstelle einen Account
-2. Klicke auf "New Project"
-3. Wähle einen Namen (z.B. "velorent-prod")
-4. Wähle ein starkes Passwort und eine Region (eu-central-1 für Deutschland)
-5. Warte ~2 Minuten bis das Projekt erstellt ist
-
-### 2. Datenbank-Schema importieren
-
-1. In Supabase: Gehe zu **SQL Editor** (linke Sidebar)
-2. Klicke auf "+ New Query"
-3. Kopiere den Inhalt von `supabase-schema.sql` → Run
-4. Dann `supabase-public-booking.sql` → Run
-5. ✅ Du solltest "Success" sehen
-
-### 3. Authentication einrichten
-
-1. Gehe zu **Authentication** → **Providers**
-2. Stelle sicher, dass "Email" aktiviert ist
-3. Optional: Aktiviere weitere Provider (Google, GitHub, etc.)
-4. Gehe zu **Authentication** → **URL Configuration**
-5. Füge deine Domain hinzu (z.B. `https://velorent.de`)
-
-### 4. API Keys holen
-
-1. Gehe zu **Settings** → **API**
-2. Kopiere:
-   - **Project URL** (z.B. `https://xxxxx.supabase.co`)
-   - **anon public** Key (unter "Project API keys")
-
-### 5. React App konfigurieren
-
-Öffne `VeloRentApp.jsx` und ersetze die Platzhalter:
-
-```javascript
-// Zeile 15-16
-const SUPABASE_URL = "https://DEIN_PROJEKT.supabase.co";
-const SUPABASE_ANON_KEY = "DEIN_ANON_KEY_HIER";
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 ```
 
-### 6. Deployment
-
-#### Option A: Vercel (empfohlen, kostenlos)
-
-1. Pushe dein Projekt zu GitHub
-2. Gehe zu [vercel.com](https://vercel.com)
-3. Importiere dein GitHub Repository
-4. Framework: "Vite" oder "Create React App"
-5. Environment Variables hinzufügen:
-   ```
-   VITE_SUPABASE_URL=https://xxx.supabase.co
-   VITE_SUPABASE_ANON_KEY=eyJxxx...
-   ```
-6. Deploy! 🚀
-
-#### Option B: Netlify
-
-1. Ähnlich wie Vercel
-2. Build Command: `npm run build`
-3. Publish Directory: `dist` oder `build`
-
-#### Option C: Eigener Server
+### 3. Lokal starten
 
 ```bash
 npm install
-npm run build
-# Upload dist/ folder to your server
+npm run dev
 ```
 
----
+### 4. Deployment (Vercel)
 
-## 💰 Monetarisierung / Verkauf an Hotels
+```bash
+vercel --prod
+```
 
-### Preismodelle (Beispiel)
-
-| Plan | Preis/Monat | Features |
-|------|------------|----------|
-| **Starter** | 19€ | 5 Räder, 1 User, Basis-Features |
-| **Growth** | 49€ | 25 Räder, 3 User, Widget |
-| **Pro** | 99€ | Unbegrenzte Räder, 5 User, White-Label Widget |
-| **Enterprise** | 199€ | ∞ Räder, ∞ User, API & Support |
-
-### Stripe Integration
-
-1. Erstelle einen Stripe Account
-2. Nutze Supabase Functions für Webhooks
-3. Oder integriere Stripe Checkout direkt
-
-### White-Label Option
-
-Für Enterprise-Kunden:
-- Custom Domain (hotel-name.velorent.app)
-- Logo-Upload
-- Angepasste Farben
-- Eigene E-Mail-Templates
+Environment Variables in Vercel Dashboard eintragen (gleiche wie `.env`).
 
 ---
 
-## 🔧 Technische Details
+## Features
 
-### Stack
-- **Frontend**: React 18 + Tailwind CSS
-- **Backend**: Supabase (PostgreSQL + Auth + Realtime)
-- **Charts**: Recharts
-- **Icons**: Lucide React
+- Multi-Tenant Architektur (jeder Kunde = eigene Organisation)
+- Buchungskalender mit Drag & Drop (Gantt-Ansicht)
+- Flottenmanagement (Bikes, Kategorien, Wartung)
+- Kundenverwaltung (CRM)
+- Rechnungen mit PDF-Export
+- Öffentliches Buchungswidget (einbettbar auf Hotel-Website)
+- Add-ons, Gutscheine, Wartungsblöcke
+- Dark Mode
 
-### Datenbank-Tabellen
+## Datenbank-Tabellen
 
 | Tabelle | Beschreibung |
-|---------|-------------|
+|---|---|
 | `organizations` | Tenants (Hotels, Verleiher) |
 | `profiles` | User-Profile |
-| `organization_members` | User ↔ Org Verknüpfung |
+| `organization_members` | User ↔ Org (Rollen: owner, admin, member, viewer) |
 | `bikes` | Fahrräder/Mietobjekte |
+| `bike_categories` | Kategorien (E-Bike, MTB, etc.) |
 | `customers` | Endkunden |
 | `bookings` | Buchungen |
 | `invoices` | Rechnungen |
-| `maintenance_logs` | Wartungshistorie |
-| `locations` | Standorte (Multi-Location) |
-| `pricing_rules` | Dynamische Preise |
+| `maintenance_blocks` | Wartungssperren |
+| `add_ons` | Zusatzartikel (Helme, Schlösser, etc.) |
+| `vouchers` | Rabattgutscheine |
 
-### Row Level Security
+## Buchungswidget
 
-Jede Tabelle hat RLS-Policies, die sicherstellen:
-- User sehen nur Daten ihrer Organisation(en)
-- Admins können Daten verwalten
-- Viewer haben nur Lesezugriff
+Hotels können ein Iframe-Widget auf ihrer Website einbetten:
 
----
+1. Dashboard → Einstellungen → Widget aktivieren
+2. Einbettungscode kopieren
+3. Auf Hotel-Website einfügen
 
-## 📱 Mobile App (Optional)
+Siehe `widget-embed-example.html` für ein vollständiges Beispiel.
 
-Die Web-App ist vollständig responsive. Für native Apps:
+## Nächste Schritte (Roadmap)
 
-1. **React Native**: Gleiche Codebase nutzen
-2. **Capacitor**: Web-App als native App wrappen
-3. **PWA**: Manifest.json hinzufügen für "Add to Homescreen"
-
----
-
-## 🔐 Sicherheit
-
-- [x] Row Level Security auf allen Tabellen
-- [x] Verschlüsselte Passwörter (Supabase Auth)
-- [x] HTTPS erzwungen
-- [x] SQL Injection Prevention (Prepared Statements)
-- [x] XSS Protection (React Default)
-
-### Empfehlungen für Produktion
-1. Aktiviere 2FA in Supabase Dashboard
-2. Setze API Rate Limits
-3. Konfiguriere Backup-Retention
-4. Monitoring einrichten (z.B. Sentry)
-
----
-
-## 📈 Nächste Schritte
-
-### Phase 1 (MVP) ✅
-- [x] Auth & Multi-Tenancy
-- [x] Buchungskalender
-- [x] Flottenverwaltung
-- [x] Dashboard
-
-### Phase 2 (Growth) 🔄
-- [x] **Öffentliches Buchungswidget** ← NEU!
-- [ ] E-Mail-Benachrichtigungen (Buchungsbestätigung)
-- [ ] PDF-Mietverträge
+- [ ] E-Mail-Benachrichtigungen (Buchungsbestätigung via Resend)
 - [ ] Stripe Payments
-
-### Phase 3 (Enterprise)
-- [ ] API für Drittanbieter
 - [ ] Booking.com Integration
-- [ ] White-Label
-- [ ] Mobile App
-
----
-
-## 🆘 Support
-
-Bei Fragen oder Problemen:
-1. Supabase Docs: https://supabase.com/docs
-2. React Docs: https://react.dev
-3. Tailwind Docs: https://tailwindcss.com/docs
-
----
-
-## 📄 Lizenz
-
-Dieses Projekt ist für kommerzielle Nutzung freigegeben. Du darfst es verkaufen, modifizieren und unter deinem eigenen Branding vertreiben.
-
----
-
-**Viel Erfolg beim Verkauf an Hotels! 🏨🚴‍♂️**

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { X, Battery, AlertTriangle, CheckCircle, Camera } from "lucide-react";
+"use client";
+import { useState } from "react";
+import { X, Battery, AlertTriangle, CheckCircle } from "lucide-react";
 
 export default function HandoverModal({ booking, type, onConfirm, onClose, darkMode }) {
     const isPickup = type === "pickup";
@@ -9,6 +10,7 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
     const [newDamage, setNewDamage] = useState("");
 
     const handleConfirm = () => {
+        /*
         const protocol = {
             type,
             date: new Date().toISOString(),
@@ -16,6 +18,7 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
             notes,
             damages
         };
+        */
         // In a real app, we would save this protocol to a separate table or JSON column
         // For now, we append it to the notes
         const updatedNotes = (booking.notes || "") + `\n\n[${type.toUpperCase()} PROTOCOL]\nBattery: ${batteryLevel}%\nDamages: ${damages.join(", ") || "None"}\nNotes: ${notes}`;

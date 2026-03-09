@@ -1,7 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+"use client";
+import { useState, useRef, useEffect } from "react";
 import { X, Printer, Plus, Trash2, Download } from "lucide-react";
-import { fmtDate, fmtCurrency } from "../../utils/formatUtils";
+import { fmtDate, fmtCurrency } from "../../utils/formatters";
 import { generateInvoicePDF } from "../../utils/InvoiceGenerator";
+import { supabase } from "../../utils/supabase";
 
 export default function InvoiceModal({ invoice, customers, bookings, org, onSave, onClose, darkMode }) {
     const [formData, setFormData] = useState(() => {
@@ -13,9 +15,9 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
             };
         } else {
             const year = new Date().getFullYear();
-            const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+            const ts = Date.now().toString().slice(-6);
             return {
-                invoice_number: `RE-${year}-${random}`,
+                invoice_number: `RE-${year}-${ts}`,
                 customer_id: "",
                 booking_id: "",
                 items: [{ description: "Fahrradmiete", quantity: 1, unit_price: 0, total: 0 }],
@@ -26,6 +28,27 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
             };
         }
     });
+
+    useEffect(() => {
+        if (invoice) return; // editing existing invoice, keep its number
+        const fetchNextNumber = async () => {
+            const { data } = await supabase
+                .from("invoices")
+                .select("invoice_number")
+                .order("created_at", { ascending: false })
+                .limit(1)
+                .single();
+            const year = new Date().getFullYear();
+            if (data?.invoice_number) {
+                const match = data.invoice_number.match(/(\d+)$/);
+                const next = match ? (parseInt(match[1]) + 1).toString().padStart(4, "0") : "0001";
+                setFormData(f => ({ ...f, invoice_number: `RE-${year}-${next}` }));
+            } else {
+                setFormData(f => ({ ...f, invoice_number: `RE-${year}-0001` }));
+            }
+        };
+        fetchNextNumber();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const calculateTotals = () => {
         const subtotal = formData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
@@ -68,7 +91,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
     };
 
     const handleDownload = () => {
-        const { subtotal, taxAmount, total } = calculateTotals();
+        const { total } = calculateTotals();
         // Merge calculated totals into formData for the generator
         const invoiceData = {
             ...formData,

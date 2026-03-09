@@ -1,0 +1,284 @@
+{
+  "name": "VeloRent – E-Mail Automation (Brevo)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "velorent-booking-events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Supabase Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {}
+      },
+      "id": "respond-immediately",
+      "name": "Respond 200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 160]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Supabase webhook payload structure:\n// { type: 'INSERT'|'UPDATE', table: 'bookings', record: {...}, old_record: {...} }\nconst body = $input.first().json.body;\nconst record = body.record;\n\nreturn [{\n  json: {\n    eventType: body.type,\n    table: body.table,\n    status: record.status,\n    bookingId: record.id,\n    bookingNumber: record.booking_number,\n    bikeId: record.bike_id,\n    customerName: record.customer_name,\n    customerEmail: record.customer_email,\n    startDate: record.start_date,\n    endDate: record.end_date,\n    totalPrice: record.total_price,\n    depositAmount: record.deposit_amount\n  }\n}];"
+      },
+      "id": "parse-payload",
+      "name": "Payload aufbereiten",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 320]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/bikes?select=name,brand,model&id=eq.{{ $json.bikeId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_ANON_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_ANON_KEY }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetch-bike",
+      "name": "Bike-Name holen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "const booking = $('Payload aufbereiten').first().json;\nconst bikes = $input.first().json;\nconst bike = Array.isArray(bikes) ? bikes[0] : bikes;\n\nreturn [{\n  json: {\n    ...booking,\n    bikeName: bike ? `${bike.brand || ''} ${bike.name || bike.model || ''}`.trim() : 'E-Bike'\n  }\n}];"
+      },
+      "id": "merge-data",
+      "name": "Daten zusammenführen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 320]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.eventType }}",
+                    "rightValue": "INSERT",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Neue Buchung"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.eventType }}",
+                    "rightValue": "UPDATE",
+                    "operator": { "type": "string", "operation": "equals" }
+                  },
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "picked_up",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Abholung"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.eventType }}",
+                    "rightValue": "UPDATE",
+                    "operator": { "type": "string", "operation": "equals" }
+                  },
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "returned",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Rückgabe"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.eventType }}",
+                    "rightValue": "UPDATE",
+                    "operator": { "type": "string", "operation": "equals" }
+                  },
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "cancelled",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Stornierung"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "switch-event",
+      "name": "Event-Typ",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1120, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "api-key", "value": "={{ $env.BREVO_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'VeloRent', email: 'noreply@velorent.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Buchungsbestätigung – ' + $json.bikeName + ' (' + $json.bookingNumber + ')',\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#f97316;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Buchung bestätigt!</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>vielen Dank für deine Buchung bei VeloRent. Hier sind deine Buchungsdetails:</p>\n      <table style=\"border-collapse:collapse;width:100%;margin:16px 0\">\n        <tr style=\"background:#f8fafc\"><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Buchungsnummer</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${$json.bookingNumber}</td></tr>\n        <tr><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Fahrrad</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${$json.bikeName}</td></tr>\n        <tr style=\"background:#f8fafc\"><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Von</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${new Date($json.startDate).toLocaleDateString('de-DE')}</td></tr>\n        <tr><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Bis</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${new Date($json.endDate).toLocaleDateString('de-DE')}</td></tr>\n        <tr style=\"background:#f8fafc\"><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Gesamtpreis</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>${$json.totalPrice}€</b></td></tr>\n      </table>\n      <p>Wir freuen uns auf deinen Besuch!</p>\n      <p>Viele Grüße<br><b>Dein VeloRent-Team</b></p>\n    </div>\n  </div>`\n}) }}",
+        "options": {}
+      },
+      "id": "email-buchungsbestaetigung",
+      "name": "E-Mail: Buchungsbestätigung",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1360, 160]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "api-key", "value": "={{ $env.BREVO_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'VeloRent', email: 'noreply@velorent.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Gute Fahrt! Dein Rad wartet – ' + $json.bikeName,\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#f97316;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Gute Fahrt!</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>dein E-Bike <b>${$json.bikeName}</b> wurde soeben übergeben. Wir wünschen dir tolle Touren!</p>\n      <p>Bis zur Rückgabe am <b>${new Date($json.endDate).toLocaleDateString('de-DE')}</b>.</p>\n      <p>Viele Grüße<br><b>Dein VeloRent-Team</b></p>\n    </div>\n  </div>`\n}) }}",
+        "options": {}
+      },
+      "id": "email-abholung",
+      "name": "E-Mail: Abholung",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1360, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "api-key", "value": "={{ $env.BREVO_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'VeloRent', email: 'noreply@velorent.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Danke für deine Miete bei VeloRent!',\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#10b981;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Danke und auf Wiedersehen!</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>dein E-Bike <b>${$json.bikeName}</b> wurde erfolgreich zurückgegeben. Wir hoffen, es hat dir Spaß gemacht!</p>\n      <p>Wir freuen uns auf deinen nächsten Besuch.</p>\n      <p>Viele Grüße<br><b>Dein VeloRent-Team</b></p>\n    </div>\n  </div>`\n}) }}",
+        "options": {}
+      },
+      "id": "email-rueckgabe",
+      "name": "E-Mail: Rückgabe",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1360, 440]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "api-key", "value": "={{ $env.BREVO_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'VeloRent', email: 'noreply@velorent.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Buchung storniert – ' + $json.bookingNumber,\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#64748b;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Buchung storniert</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>deine Buchung <b>${$json.bookingNumber}</b> für <b>${$json.bikeName}</b> wurde storniert.</p>\n      <p>Falls du Fragen zur Stornierung hast, melde dich gerne bei uns.</p>\n      <p>Viele Grüße<br><b>Dein VeloRent-Team</b></p>\n    </div>\n  </div>`\n}) }}",
+        "options": {}
+      },
+      "id": "email-stornierung",
+      "name": "E-Mail: Stornierung",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1360, 580]
+    }
+  ],
+  "connections": {
+    "Supabase Webhook": {
+      "main": [
+        [
+          { "node": "Respond 200 OK", "type": "main", "index": 0 },
+          { "node": "Payload aufbereiten", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Payload aufbereiten": {
+      "main": [
+        [{ "node": "Bike-Name holen", "type": "main", "index": 0 }]
+      ]
+    },
+    "Bike-Name holen": {
+      "main": [
+        [{ "node": "Daten zusammenführen", "type": "main", "index": 0 }]
+      ]
+    },
+    "Daten zusammenführen": {
+      "main": [
+        [{ "node": "Event-Typ", "type": "main", "index": 0 }]
+      ]
+    },
+    "Event-Typ": {
+      "main": [
+        [{ "node": "E-Mail: Buchungsbestätigung", "type": "main", "index": 0 }],
+        [{ "node": "E-Mail: Abholung", "type": "main", "index": 0 }],
+        [{ "node": "E-Mail: Rückgabe", "type": "main", "index": 0 }],
+        [{ "node": "E-Mail: Stornierung", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["velorent", "email", "brevo"],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-09T00:00:00.000Z",
+  "versionId": "1"
+}

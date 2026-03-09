@@ -1,17 +1,31 @@
-import React from 'react';
+"use client";
+
+import { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-    { name: 'Mo', value: 4000 },
-    { name: 'Di', value: 3000 },
-    { name: 'Mi', value: 2000 },
-    { name: 'Do', value: 2780 },
-    { name: 'Fr', value: 1890 },
-    { name: 'Sa', value: 2390 },
-    { name: 'So', value: 3490 },
-];
+export default function RevenueChart({ bookings = [], darkMode }) {
+    const data = useMemo(() => {
+        const result = [];
+        const today = new Date();
 
-export default function RevenueChart({ darkMode }) {
+        // Last 7 days including today
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().slice(0, 10);
+            const dayName = d.toLocaleDateString("de-DE", { weekday: 'short' });
+
+            const dailyRevenue = bookings
+                .filter(b => b.start_date === dateStr && b.status !== 'cancelled') // Assuming start_date is the revenue date
+                .reduce((sum, b) => sum + (Number(b.total_price) || 0), 0);
+
+            result.push({ name: dayName, value: dailyRevenue, fullDate: dateStr });
+        }
+        return result;
+    }, [bookings]);
+
+    const totalRevenue = data.reduce((acc, curr) => acc + curr.value, 0);
+
     return (
         <div className="premium-card p-6 h-[400px] animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center justify-between mb-6">
@@ -20,7 +34,7 @@ export default function RevenueChart({ darkMode }) {
                     <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Letzte 7 Tage</p>
                 </div>
                 <div className={`px-3 py-1 rounded-full text-xs font-bold ${darkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
-                    +12.5%
+                    Summe: €{totalRevenue}
                 </div>
             </div>
 
@@ -55,10 +69,18 @@ export default function RevenueChart({ darkMode }) {
                                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                             }}
                             itemStyle={{ color: darkMode ? '#fff' : '#0f172a' }}
+                            formatter={(value) => [`€${value}`, "Umsatz"]}
+                            labelFormatter={(label, payload) => {
+                                if (payload && payload.length > 0) {
+                                    return payload[0].payload.fullDate;
+                                }
+                                return label;
+                            }}
                         />
                         <Area
                             type="monotone"
                             dataKey="value"
+                            name="Umsatz"
                             stroke="#3b82f6"
                             strokeWidth={3}
                             fillOpacity={1}

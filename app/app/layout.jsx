@@ -1,0 +1,60 @@
+"use client";
+import { useRouter } from "next/navigation";
+import { OrgProvider, useOrganization } from "../../src/context/OrgContext";
+import { AppProvider, useApp } from "../../src/context/AppContext";
+import { DataProvider, useData } from "../../src/context/DataContext";
+import { useAuth } from "../../src/context/AuthContext";
+import Sidebar from "../../src/components/layout/Sidebar";
+import Header from "../../src/components/layout/Header";
+import LoadingScreen from "../../src/components/ui/LoadingScreen";
+import OnboardingPage from "../../src/views/OnboardingPage";
+import OnboardingWizard from "../../src/components/onboarding/OnboardingWizard";
+import { ToastProvider } from "../../src/components/ui/Toast";
+
+function AppShell({ children }) {
+    const router = useRouter();
+    const org = useOrganization();
+    const auth = useAuth();
+    const { darkMode, sidebarOpen, setSearchQuery } = useApp();
+    const { bikes, bookings, notifications } = useData();
+
+    if (org.loading) return <LoadingScreen />;
+    if (!org.currentOrg) return <OnboardingPage />;
+
+    return (
+        <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
+            <Sidebar org={org} auth={auth} sidebarOpen={sidebarOpen} darkMode={darkMode} />
+            <main className={`transition-all duration-300 ${sidebarOpen ? "ml-64" : "ml-20"}`}>
+                <Header notifications={notifications} />
+                <div className="p-6">
+                    {children}
+                </div>
+                <OnboardingWizard
+                    bikes={bikes.bikes}
+                    bookings={bookings.bookings}
+                    darkMode={darkMode}
+                    hasOrgData={!!(org.currentOrg?.address && org.currentOrg?.city)}
+                    hasWidgetKey={!!org.currentOrg?.settings?.widget_api_key}
+                    onCreateBike={() => { setSearchQuery(""); router.push("/app/fleet"); }}
+                    onCreateBooking={() => { setSearchQuery(""); router.push("/app/bookings"); }}
+                    onGoToSettings={() => { setSearchQuery(""); router.push("/app/settings"); }}
+                    onGoToWidget={() => { setSearchQuery(""); router.push("/app/settings"); }}
+                />
+            </main>
+        </div>
+    );
+}
+
+export default function AppLayout({ children }) {
+    return (
+        <OrgProvider>
+            <AppProvider>
+                <DataProvider>
+                    <ToastProvider>
+                        <AppShell>{children}</AppShell>
+                    </ToastProvider>
+                </DataProvider>
+            </AppProvider>
+        </OrgProvider>
+    );
+}

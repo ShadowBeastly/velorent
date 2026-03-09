@@ -1,11 +1,17 @@
-import React from "react";
+"use client";
+import { useState } from "react";
 import { Menu, Search, Bell, Sun, Moon } from "lucide-react";
-import { useLocation } from "react-router-dom";
-import { NAVIGATION_ITEMS } from "./Sidebar";
+import { usePathname } from "next/navigation";
+import { NAVIGATION_ITEMS } from "../../utils/navigationItems";
+import { useApp } from "../../context/AppContext";
+import { useData } from "../../context/DataContext";
 
-export default function Header({ sidebarOpen, setSidebarOpen, searchQuery, setSearchQuery, notifications, darkMode, setDarkMode }) {
-    const location = useLocation();
-    const currentItem = NAVIGATION_ITEMS.find(item => item.path === location.pathname) || NAVIGATION_ITEMS[0];
+export default function Header() {
+    const pathname = usePathname();
+    const { sidebarOpen, setSidebarOpen, searchQuery, setSearchQuery, darkMode, setDarkMode } = useApp();
+    const { notifications } = useData();
+    const [showNotifications, setShowNotifications] = useState(false);
+    const currentItem = NAVIGATION_ITEMS.find(item => item.path === pathname) || NAVIGATION_ITEMS[0];
 
     return (
         <header className={`sticky top-0 z-30 ${darkMode ? "bg-slate-900/80 border-slate-800" : "bg-white/80 border-slate-200"} backdrop-blur-xl border-b transition-colors duration-300`}>
@@ -38,12 +44,31 @@ export default function Header({ sidebarOpen, setSidebarOpen, searchQuery, setSe
                     </div>
 
                     {/* Notifications */}
-                    <button className={`relative p-2 rounded-lg transition-colors ${darkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-500 hover:text-slate-900"}`}>
-                        <Bell className="w-5 h-5" />
-                        {notifications.length > 0 && (
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowNotifications(prev => !prev)}
+                            className={`relative p-2 rounded-lg transition-colors ${darkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-500 hover:text-slate-900"}`}
+                        >
+                            <Bell className="w-5 h-5" />
+                            {notifications.length > 0 && (
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
+                            )}
+                        </button>
+                        {showNotifications && (
+                            <div className="absolute right-0 top-10 w-80 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-50 p-4">
+                                <p className="text-sm font-semibold text-white mb-2">Benachrichtigungen</p>
+                                {notifications && notifications.length > 0 ? (
+                                    notifications.slice(0, 5).map((n, i) => (
+                                        <div key={i} className="text-sm text-slate-300 py-1 border-b border-slate-700 last:border-0">
+                                            {n.message || n.title || n.msg || JSON.stringify(n)}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-slate-400">Keine neuen Benachrichtigungen</p>
+                                )}
+                            </div>
                         )}
-                    </button>
+                    </div>
 
                     {/* Dark Mode */}
                     <button

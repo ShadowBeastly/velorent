@@ -1,3 +1,4 @@
+"use client";
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -15,6 +16,7 @@ export default function DateRangePicker({
 }) {
     const [viewMonth, setViewMonth] = useState(new Date());
     const [selecting, setSelecting] = useState("start"); // "start" or "end"
+    const [rangeError, setRangeError] = useState(null);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -65,19 +67,24 @@ export default function DateRangePicker({
         } else {
             // Check if range is valid
             const days = Math.ceil((d - startDate) / (1000 * 60 * 60 * 24)) + 1;
+            if (days < minDays) {
+                setRangeError(`Mindestens ${minDays} Tage buchbar`);
+                return;
+            }
             if (days > maxDays) {
-                alert(`Maximal ${maxDays} Tage buchbar`);
+                setRangeError(`Maximal ${maxDays} Tage buchbar`);
                 return;
             }
 
             // Check if any blocked date in range
             for (let check = new Date(startDate); check <= d; check.setDate(check.getDate() + 1)) {
                 if (isBlocked(check)) {
-                    alert("Im gewählten Zeitraum ist ein Tag bereits belegt");
+                    setRangeError("Im gewählten Zeitraum ist ein Tag bereits belegt");
                     return;
                 }
             }
 
+            setRangeError(null);
             onEndDateChange(d);
             setSelecting("start");
         }
@@ -196,6 +203,12 @@ export default function DateRangePicker({
                     })}
                 </div>
             </div>
+
+            {rangeError && (
+                <div style={{ color: "#ef4444", background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "6px", padding: "8px 12px", marginTop: "8px", fontSize: "13px" }}>
+                    {rangeError}
+                </div>
+            )}
 
             {/* Legend */}
             <div style={{ display: "flex", gap: "16px", marginTop: "12px", fontSize: "12px", color: "#64748b" }}>

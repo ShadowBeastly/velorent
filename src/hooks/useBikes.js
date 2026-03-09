@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../utils/supabase";
 
@@ -35,6 +36,7 @@ export function useBikes(orgId) {
             .from("bikes")
             .update(updates)
             .eq("id", id)
+            .eq("organization_id", orgId)
             .select()
             .single();
         if (!error) setBikes(prev => prev.map(b => b.id === id ? data : b));
@@ -42,7 +44,7 @@ export function useBikes(orgId) {
     };
 
     const remove = async (id) => {
-        const { error } = await supabase.from("bikes").delete().eq("id", id);
+        const { error } = await supabase.from("bikes").delete().eq("id", id).eq("organization_id", orgId);
         if (!error) setBikes(prev => prev.filter(b => b.id !== id));
         return { error };
     };

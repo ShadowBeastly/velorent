@@ -1,9 +1,7 @@
+"use client";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../utils/supabase";
-
-// Simple utils to avoid circular dependencies if possible, or import them
-const daysDiff = (a, b) => Math.ceil((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24)) + 1;
-const fmtCurrency = (n) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n || 0);
+import { daysDiff, fmtCurrency } from "../utils/formatters";
 
 export function useBookings(orgId) {
     const [bookings, setBookings] = useState([]);
@@ -38,6 +36,8 @@ export function useBookings(orgId) {
             if (data.customer?.email) {
                 sendConfirmationEmail(data).catch(err => console.error("Email failed:", err));
             }
+        } else {
+            console.error("Booking creation failed:", error);
         }
         return { data, error };
     };
@@ -76,15 +76,31 @@ export function useBookings(orgId) {
             .from("bookings")
             .update(updates)
             .eq("id", id)
+            .eq("organization_id", orgId)
             .select("*, bike:bikes(*), customer:customers(*)")
             .single();
-        if (!error) setBookings(prev => prev.map(b => b.id === id ? data : b));
+        if (!error) {
+            setBookings(prev => prev.map(b => b.id === id ? data : b));
+        } else {
+            console.error("Booking update failed:", error);
+        }
         return { data, error };
     };
 
     const remove = async (id) => {
-        const { error } = await supabase.from("bookings").delete().eq("id", id);
-        if (!error) setBookings(prev => prev.filter(b => b.id !== id));
+        // Soft-delete: Set status to 'cancelled' instead of hard deleting
+        const { error } = await supabase
+            .from("bookings")
+            .update({ status: 'cancelled' })
+            .eq("id", id)
+            .eq("organization_id", orgId);
+
+        if (!error) {
+            // Update local state: keep the booking but mark as cancelled
+            setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
+        } else {
+            console.error("Booking cancellation failed:", error);
+        }
         return { error };
     };
 

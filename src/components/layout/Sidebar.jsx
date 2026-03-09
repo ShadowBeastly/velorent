@@ -1,19 +1,12 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Bike, LogOut, Home, Calendar, FileText, Users, BarChart3, Settings } from "lucide-react";
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Bike, LogOut } from "lucide-react";
 
-export const NAVIGATION_ITEMS = [
-    { id: "dashboard", label: "Dashboard", icon: Home, path: "/app" },
-    { id: "calendar", label: "Kalender", icon: Calendar, path: "/app/calendar" },
-    { id: "bookings", label: "Buchungen", icon: FileText, path: "/app/bookings" },
-    { id: "invoices", label: "Rechnungen", icon: FileText, path: "/app/invoices" },
-    { id: "fleet", label: "Flotte", icon: Bike, path: "/app/fleet" },
-    { id: "customers", label: "Kunden", icon: Users, path: "/app/customers" },
-    { id: "settings", label: "Einstellungen", icon: Settings, path: "/app/settings" }
-];
+import { NAVIGATION_ITEMS } from "../../utils/navigationItems";
 
 export default function Sidebar({ org, auth, sidebarOpen, darkMode }) {
-    const location = useLocation();
+    const pathname = usePathname();
 
     return (
         <aside className={`fixed top-0 left-0 z-40 h-screen transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"} ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"} border-r`}>
@@ -50,12 +43,13 @@ export default function Sidebar({ org, auth, sidebarOpen, darkMode }) {
                 <nav className="flex-1 px-3 space-y-1 overflow-y-auto py-2">
                     {NAVIGATION_ITEMS.map(item => {
                         const isActive = item.path === "/app"
-                            ? location.pathname === "/app" || location.pathname === "/app/"
-                            : location.pathname.startsWith(item.path);
+                            ? pathname === "/app" || pathname === "/app/"
+                            : pathname.startsWith(item.path);
                         return (
                             <Link
                                 key={item.id}
-                                to={item.path}
+                                href={item.path}
+                                title={!sidebarOpen ? item.label : undefined}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
                                     ? "bg-brand-600 text-white shadow-md shadow-brand-600/20"
                                     : darkMode

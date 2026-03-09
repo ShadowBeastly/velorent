@@ -1,3 +1,4 @@
+"use client";
 export default function StatCard({ title, value, subtitle, icon: Icon, color, darkMode, trend }) {
     const colors = {
         orange: "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400",

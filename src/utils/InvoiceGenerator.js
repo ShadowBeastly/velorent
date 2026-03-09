@@ -1,98 +1,161 @@
-import jsPDF from "jspdf";
-import "jspdf-autotable";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
-const fmtCurrency = (n) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n || 0);
-const fmtDate = (s) => s ? new Date(s).toLocaleDateString("de-DE") : "—";
-
-export const generateInvoicePDF = (invoice, org) => {
+export const generateInvoice = (invoice, organization) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
 
-    // --- Header ---
+    // --- Fonts & Colors ---
+    const primaryColor = organization?.settings?.primary_color || '#f97316'; // Orange default
+    const grayColor = '#64748b';
+    const blackColor = '#0f172a';
+
+    // --- Helper Functions ---
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount || 0);
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleDateString('de-DE');
+    };
+
+    // --- HEADER ---
+    // Organization Details (Left)
     doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.text("RECHNUNG", pageWidth - 20, 20, { align: "right" });
+    doc.setTextColor(primaryColor);
+    doc.text(organization?.name || 'VeloRent Service', 20, 20);
 
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(100);
-    doc.text(`Rechnungs-Nr: ${invoice.invoice_number}`, pageWidth - 20, 30, { align: "right" });
-    doc.text(`Datum: ${fmtDate(invoice.created_at)}`, pageWidth - 20, 35, { align: "right" });
+    doc.setTextColor(grayColor);
+    doc.text(organization?.address || '', 20, 30);
+    doc.text(`${organization?.postal_code || ''} ${organization?.city || ''}`, 20, 35);
+    doc.text(organization?.country || 'Deutschland', 20, 40);
+    doc.text(`E-Mail: ${organization?.email || ''}`, 20, 50);
+    doc.text(`Tel: ${organization?.phone || ''}`, 20, 55);
 
-    // --- Sender (Org) ---
-    doc.setTextColor(0);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text(org?.name || "VeloRent Pro", 20, 20);
+    // Invoice Details (Right)
+    doc.setFontSize(24);
+    doc.setTextColor(blackColor);
+    doc.text('RECHNUNG', pageWidth - 20, 25, { align: 'right' });
 
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text("Musterstraße 123", 20, 26);
-    doc.text("12345 Musterstadt", 20, 31);
-    doc.text("Deutschland", 20, 36);
-    doc.text(`E-Mail: kontakt@${org?.slug || "velorent"}.de`, 20, 41);
+    doc.setTextColor(grayColor);
+    doc.text(`Rechnungsnr.: ${invoice.invoice_number}`, pageWidth - 20, 40, { align: 'right' });
+    doc.text(`Datum: ${formatDate(invoice.created_at)}`, pageWidth - 20, 45, { align: 'right' });
+    if (invoice.due_date) {
+        doc.text(`Fällig am: ${formatDate(invoice.due_date)}`, pageWidth - 20, 50, { align: 'right' });
+    }
 
-    // --- Recipient (Customer) ---
+    // Divider
+    doc.setDrawColor(226, 232, 240); // slate-200
+    doc.line(20, 65, pageWidth - 20, 65);
+
+    // --- RECIPIENT ---
+    doc.setFontSize(11);
+    doc.setTextColor(blackColor);
+    doc.text('Rechnungsempfänger:', 20, 80);
+
     doc.setFontSize(10);
-    doc.text("Rechnungsempfänger:", 20, 60);
-    doc.setFont("helvetica", "bold");
-    doc.text(`${invoice.customer?.first_name} ${invoice.customer?.last_name}`, 20, 65);
-    doc.setFont("helvetica", "normal");
-    if (invoice.customer?.email) doc.text(invoice.customer.email, 20, 70);
-    if (invoice.customer?.phone) doc.text(invoice.customer.phone, 20, 75);
+    doc.setTextColor(grayColor);
+    doc.text(`${invoice.customer?.first_name} ${invoice.customer?.last_name}`, 20, 90);
+    doc.text(invoice.customer?.email || '', 20, 95);
+    // Address if available
+    if (invoice.customer?.address) {
+        doc.text(invoice.customer.address, 20, 100);
+        doc.text(`${invoice.customer.postal_code || ''} ${invoice.customer.city || ''}`, 20, 105);
+    }
 
-    // --- Items Table ---
-    const tableColumn = ["Beschreibung", "Menge", "Einzelpreis", "Gesamt"];
-    const tableRows = [];
+    // Booking Reference
+    if (invoice.booking?.booking_number) {
+        doc.text(`Buchungsreferenz: ${invoice.booking.booking_number}`, pageWidth - 20, 90, { align: 'right' });
+    }
 
-    // If invoice has explicit items, use them. Otherwise, try to infer from bookings if linked (not implemented in this data model yet, assuming manual items or flat total)
-    // For this MVP, we often just have a total. Let's assume we might have items in the future, but for now we'll create a dummy item "Fahrradvermietung" if no items exist.
+    // --- ITEMS TABLE ---
+    const items = invoice.items || [];
+    // Fallback if items are empty but we have booking totals
+    if (items.length === 0 && invoice.booking) {
+        // Create detailed items from booking
+        items.push({
+            description: `Fahrradmiete: ${invoice.booking.bike?.name || 'Bike'} (${formatDate(invoice.booking.start_date)} - ${formatDate(invoice.booking.end_date)})`,
+            quantity: `${invoice.booking.total_days} Tage`,
+            unit_price: invoice.booking.price_per_day,
+            total: invoice.booking.subtotal || (invoice.booking.price_per_day * invoice.booking.total_days)
+        });
+        if (invoice.booking.deposit_amount > 0) {
+            // Deposits usually handled separately or noted, depending on accounting. 
+            // For simple invoices we might just list the rental fee.
+            // Let's assume this invoice is for the rental fee.
+        }
+    }
 
-    const items = invoice.items || [
-        { description: "Fahrradvermietung / Service", quantity: 1, unit_price: invoice.total }
-    ];
-
-    items.forEach(item => {
-        const itemData = [
-            item.description,
-            item.quantity,
-            fmtCurrency(item.unit_price),
-            fmtCurrency(item.quantity * item.unit_price)
-        ];
-        tableRows.push(itemData);
-    });
+    const tableBody = items.map(item => [
+        item.description,
+        item.quantity,
+        formatCurrency(item.unit_price),
+        formatCurrency(item.total)
+    ]);
 
     doc.autoTable({
-        head: [tableColumn],
-        body: tableRows,
-        startY: 85,
+        startY: 120,
+        head: [['Beschreibung', 'Menge / Zeitraum', 'Einzelpreis', 'Gesamt']],
+        body: tableBody,
         theme: 'grid',
-        headStyles: { fillColor: [249, 115, 22], textColor: 255 }, // Orange header
-        styles: { fontSize: 10, cellPadding: 3 },
+        headStyles: { fillColor: primaryColor, textColor: 255 },
+        styles: { fontSize: 9, cellPadding: 5 },
+        columnStyles: {
+            0: { cellWidth: 'auto' }, // Description
+            1: { cellWidth: 30, halign: 'center' }, // Qty
+            2: { cellWidth: 30, halign: 'right' }, // Unit Price
+            3: { cellWidth: 30, halign: 'right' }  // Total
+        }
     });
 
-    // --- Totals ---
+    // --- TOTALS ---
     const finalY = doc.lastAutoTable.finalY + 10;
 
     doc.setFontSize(10);
-    doc.text("Netto:", pageWidth - 60, finalY);
-    doc.text(fmtCurrency(invoice.total / 1.19), pageWidth - 20, finalY, { align: "right" });
+    doc.setTextColor(grayColor);
 
-    doc.text("MwSt (19%):", pageWidth - 60, finalY + 5);
-    doc.text(fmtCurrency(invoice.total - (invoice.total / 1.19)), pageWidth - 20, finalY + 5, { align: "right" });
+    // Right aligned totals
+    const rightColX = pageWidth - 60;
+    const valueColX = pageWidth - 20;
 
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text("Gesamtbetrag:", pageWidth - 60, finalY + 12);
-    doc.text(fmtCurrency(invoice.total), pageWidth - 20, finalY + 12, { align: "right" });
+    doc.text('Zwischensumme:', rightColX, finalY, { align: 'left' });
+    doc.text(formatCurrency(invoice.subtotal), valueColX, finalY, { align: 'right' });
 
-    // --- Footer ---
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(150);
-    const footerText = "Vielen Dank für Ihren Auftrag! Bitte überweisen Sie den Betrag innerhalb von 14 Tagen.";
-    doc.text(footerText, pageWidth / 2, doc.internal.pageSize.height - 20, { align: "center" });
+    doc.text(`MwSt. (${invoice.tax_rate}%):`, rightColX, finalY + 7, { align: 'left' });
+    doc.text(formatCurrency(invoice.tax_amount), valueColX, finalY + 7, { align: 'right' });
 
-    // Save
-    doc.save(`Rechnung_${invoice.invoice_number}.pdf`);
+    // Bold Total
+    doc.setFontSize(14);
+    doc.setTextColor(blackColor);
+    doc.setFont(undefined, 'bold');
+    doc.text('GESAMTBETRAG:', rightColX, finalY + 18, { align: 'left' });
+    doc.text(formatCurrency(invoice.total), valueColX, finalY + 18, { align: 'right' });
+    doc.setFont(undefined, 'normal');
+
+    // --- FOOTER ---
+    const footerY = 270;
+    doc.setFontSize(8);
+    doc.setTextColor('#94a3b8');
+    doc.setDrawColor(226, 232, 240);
+    doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
+
+    const footerText = [
+        `${organization?.name || 'VeloRent'} • ${organization?.address || ''}, ${organization?.city || ''}`,
+        organization?.iban
+            ? `Bankverbindung: ${organization.iban}${organization.bic ? ` • BIC ${organization.bic}` : ''}`
+            : '',
+        `USt-IdNr.: ${organization?.tax_id || ''} • ${organization?.registration_court || ''}`
+    ];
+
+    doc.text(footerText, pageWidth / 2, footerY, { align: 'center', lineHeightFactor: 1.5 });
+
+    return doc;
+};
+
+export const generateInvoicePDF = (invoice, organization) => {
+    const doc = generateInvoice(invoice, organization);
+    doc.save(`Rechnung_${invoice.invoice_number || 'Entwurf'}.pdf`);
 };

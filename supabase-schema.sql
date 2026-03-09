@@ -526,3 +526,171 @@ FROM organizations o;
 -- =====================================================
 
 -- Wird via App erstellt beim Onboarding
+
+-- =====================================================
+-- 11. CONSTRAINTS
+-- =====================================================
+
+-- Enable btree_gist extension for mixing scalar and range types
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+-- Prevent overlapping bookings for the same bike
+ALTER TABLE bookings
+ADD CONSTRAINT no_overlapping_bookings
+EXCLUDE USING gist (
+    bike_id WITH =,
+    daterange(start_date, end_date, '[]') WITH &&
+)
+WHERE (status != 'cancelled');
+
+-- =====================================================
+-- 12. ADD-ONS (Extras für Buchungen)
+-- =====================================================
+CREATE TABLE add_ons (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL DEFAULT 0,
+    price_type TEXT DEFAULT 'per_day', -- per_day, flat, per_booking
+    is_active BOOLEAN DEFAULT TRUE,
+    icon TEXT,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_add_ons_org ON add_ons(organization_id);
+
+-- =====================================================
+-- 13. BIKE CATEGORIES
+-- =====================================================
+CREATE TABLE bike_categories (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    color TEXT DEFAULT '#6366f1',
+    icon TEXT,
+    sort_order INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_bike_categories_org ON bike_categories(organization_id);
+
+-- =====================================================
+-- 14. VOUCHERS (Gutscheine / Rabattcodes)
+-- =====================================================
+CREATE TABLE vouchers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
+    code TEXT NOT NULL,
+    description TEXT,
+    discount_type TEXT DEFAULT 'percent', -- percent, fixed
+    discount_value DECIMAL(10,2) NOT NULL,
+    min_booking_value DECIMAL(10,2),
+    max_uses INTEGER,
+    uses_count INTEGER DEFAULT 0,
+    valid_from DATE,
+    valid_until DATE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(organization_id, code)
+);
+
+CREATE INDEX idx_vouchers_org ON vouchers(organization_id);
+CREATE INDEX idx_vouchers_code ON vouchers(organization_id, code);
+
+-- =====================================================
+-- RLS FOR NEW TABLES
+-- =====================================================
+ALTER TABLE add_ons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bike_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vouchers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Members can view add_ons" ON add_ons
+    FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+CREATE POLICY "Members can manage add_ons" ON add_ons
+    FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
+
+CREATE POLICY "Members can view bike_categories" ON bike_categories
+    FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+CREATE POLICY "Members can manage bike_categories" ON bike_categories
+    FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
+
+CREATE POLICY "Members can view vouchers" ON vouchers
+    FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+CREATE POLICY "Members can manage vouchers" ON vouchers
+    FOR ALL USING (organization_id IN (SELECT get_user_org_ids()));
+
+-- =====================================================
+-- SECURITY FIXES (apply after initial schema setup)
+-- =====================================================
+
+-- FIX 1: booking_history — add INSERT policy (previously only SELECT)
+CREATE POLICY "Members can insert booking history" ON booking_history
+    FOR INSERT WITH CHECK (
+        booking_id IN (
+            SELECT id FROM bookings
+            WHERE organization_id IN (SELECT get_user_org_ids())
+        )
+    );
+
+-- FIX 2: organization_members — prevent admin→owner role escalation
+-- Drop the broad FOR ALL policy and replace with fine-grained ones
+DROP POLICY IF EXISTS "Admins can manage org members" ON organization_members;
+
+CREATE POLICY "Admins can insert org members" ON organization_members
+    FOR INSERT WITH CHECK (
+        organization_id IN (
+            SELECT organization_id FROM organization_members
+            WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
+        )
+    );
+
+CREATE POLICY "Admins can update org members" ON organization_members
+    FOR UPDATE
+    USING (
+        organization_id IN (
+            SELECT organization_id FROM organization_members
+            WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
+        )
+    )
+    WITH CHECK (
+        -- Admins cannot assign 'owner' role (only owners can)
+        role IN ('member', 'viewer', 'admin')
+        OR organization_id IN (
+            SELECT organization_id FROM organization_members
+            WHERE user_id = auth.uid() AND role = 'owner'
+        )
+    );
+
+CREATE POLICY "Admins can delete org members" ON organization_members
+    FOR DELETE USING (
+        organization_id IN (
+            SELECT organization_id FROM organization_members
+            WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
+        )
+    );
+
+-- FIX 3: locations and pricing_rules — require admin/owner role
+DROP POLICY IF EXISTS "Admins can manage locations" ON locations;
+CREATE POLICY "Admins can manage locations" ON locations
+    FOR ALL USING (
+        organization_id IN (
+            SELECT organization_id FROM organization_members
+            WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
+        )
+    );
+
+DROP POLICY IF EXISTS "Admins can manage pricing" ON pricing_rules;
+CREATE POLICY "Admins can manage pricing" ON pricing_rules
+    FOR ALL USING (
+        organization_id IN (
+            SELECT organization_id FROM organization_members
+            WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
+        )
+    );

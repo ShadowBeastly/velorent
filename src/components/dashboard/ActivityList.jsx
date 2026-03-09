@@ -1,6 +1,7 @@
-import React from "react";
+"use client";
+
 import { CheckCircle, Clock, ArrowRight, ArrowLeft } from "lucide-react";
-import { fmtDateShort } from "../../utils/dateUtils";
+import { fmtDateShort } from "../../utils/formatters";
 
 export default function ActivityList({ title, items, type, onAction, darkMode }) {
     const isPickup = type === "pickup";
@@ -58,7 +59,7 @@ export default function ActivityList({ title, items, type, onAction, darkMode })
 
                             <button
                                 onClick={() => onAction(booking)}
-                                className={`w-full py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0
+                                className={`w-full py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 translate-y-2 group-hover:translate-y-0 [@media(hover:none)]:translate-y-0
                                     ${isPickup
                                         ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-500/20"
                                         : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20"

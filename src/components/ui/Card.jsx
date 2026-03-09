@@ -1,3 +1,4 @@
+"use client";
 
 
 const Card = ({ children, className = '', hover = false, glass = false, ...props }) => {

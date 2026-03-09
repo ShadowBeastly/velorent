@@ -1,9 +1,12 @@
-import React, { useRef } from "react";
-import { X, Printer, Bike } from "lucide-react";
-import { fmtDate, fmtCurrency } from "../../utils/formatUtils";
+"use client";
+import { useRef } from "react";
+import { X, Printer } from "lucide-react";
+import { fmtDate, fmtCurrency } from "../../utils/formatters";
+import { useOrganization } from "../../context/OrgContext";
 
 export default function ContractModal({ booking, onClose, darkMode }) {
     const printRef = useRef();
+    const { currentOrg } = useOrganization();
 
     const handlePrint = () => {
         const content = printRef.current.innerHTML;
@@ -47,9 +50,9 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                                 <p>Nr. {booking.booking_number || "PENDING"}</p>
                             </div>
                             <div style={{ textAlign: "right" }}>
-                                <strong>VeloRent Pro</strong><br />
-                                Musterstraße 1<br />
-                                12345 Musterstadt
+                                <strong>{currentOrg?.name || "VeloRent Pro"}</strong><br />
+                                {currentOrg?.address && <>{currentOrg.address}<br /></>}
+                                {[currentOrg?.postal_code, currentOrg?.city].filter(Boolean).join(" ")}
                             </div>
                         </div>
 

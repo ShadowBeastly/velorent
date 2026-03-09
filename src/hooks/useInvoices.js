@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../utils/supabase";
 
@@ -56,6 +57,7 @@ export function useInvoices(organizationId) {
                 .from("invoices")
                 .update(updates)
                 .eq("id", id)
+                .eq("organization_id", organizationId)
                 .select()
                 .single();
 
@@ -72,7 +74,8 @@ export function useInvoices(organizationId) {
             const { error } = await supabase
                 .from("invoices")
                 .delete()
-                .eq("id", id);
+                .eq("id", id)
+                .eq("organization_id", organizationId);
 
             if (error) throw error;
             setInvoices(invoices.filter(i => i.id !== id));

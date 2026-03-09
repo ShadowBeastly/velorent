@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, ChevronLeft, Search, Plus, FileText } from "lucide-react";
-import { fmtISO, addDays, daysDiff, parseDate } from "../../utils/dateUtils";
-import { fmtCurrency } from "../../utils/formatUtils";
+"use client";
+import { useState, useMemo } from "react";
+import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone } from "lucide-react";
+import { fmtISO, addDays, daysDiff, fmtCurrency } from "../../utils/formatters";
 import { STATUS } from "../../utils/constants";
 import ContractModal from "./ContractModal";
 
@@ -54,9 +54,33 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
 
     // Derived State
     const selectedBike = bikes.find(b => b.id === form.bike_id);
-    const days = form.start_date && form.end_date ? Math.max(1, daysDiff(form.start_date, form.end_date) + 1) : 1;
+    const days = form.start_date && form.end_date ? Math.max(1, daysDiff(form.start_date, form.end_date)) : 1;
 
-    // Auto-calc price if not manually edited (simple logic for now)
+    // Auto-calc price
+    // Helper to calc price
+    const calculatePrice = (bikeId, start, end) => {
+        if (!bikeId || !start || !end) return 0;
+        const bike = bikes.find(b => b.id === bikeId);
+        if (!bike) return 0;
+        const days = Math.max(1, daysDiff(start, end));
+        return bike.price_per_day * days;
+    };
+
+    const updateFormWithPrice = (updates) => {
+        setForm(prev => {
+            const next = { ...prev, ...updates };
+            // Auto-calc price if dates or bike changed
+            if (updates.bike_id !== undefined || updates.start_date !== undefined || updates.end_date !== undefined) {
+                const price = calculatePrice(
+                    next.bike_id,
+                    next.start_date,
+                    next.end_date
+                );
+                if (price > 0) next.total_price = price;
+            }
+            return next;
+        });
+    };
 
 
     // Filtered Customers
@@ -68,20 +92,22 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     }, [customers, customerSearch]);
 
     // Availability Check
-    const isBikeAvailable = useMemo(() => {
-        if (!form.bike_id || !form.start_date || !form.end_date) return true;
-        return !existingBookings.some(b =>
+    const conflictingBooking = useMemo(() => {
+        if (!form.bike_id || !form.start_date || !form.end_date) return null;
+        return existingBookings.find(b =>
             b.id !== booking?.id &&
             b.bike_id === form.bike_id &&
-            b.status !== "cancelled" &&
+            !["cancelled", "returned", "deleted"].includes(b.status) &&
             new Date(b.start_date) <= new Date(form.end_date) &&
             new Date(b.end_date) >= new Date(form.start_date)
         );
     }, [form.bike_id, form.start_date, form.end_date, existingBookings, booking]);
 
+    const isBikeAvailable = !conflictingBooking;
+
     const handleNext = () => {
         if (step === 1) {
-            if (!isBikeAvailable) return alert("Das Rad ist in diesem Zeitraum nicht verfügbar.");
+            if (!isBikeAvailable) return alert(`Das Rad ist nicht verfügbar. Konflikt mit Buchung ${conflictingBooking.booking_number} (${new Date(conflictingBooking.start_date).toLocaleDateString()} - ${new Date(conflictingBooking.end_date).toLocaleDateString()}).`);
             if (!form.bike_id) return alert("Bitte ein Rad wählen.");
         }
         if (step === 2) {
@@ -93,6 +119,10 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const handleBack = () => setStep(s => s - 1);
 
     const handleSave = async () => {
+        if (conflictingBooking) {
+            console.error("Speichern blockiert: Buchungskonflikt erkannt");
+            return;
+        }
         setSaving(true);
         await onSave(form);
         setSaving(false);
@@ -148,7 +178,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
 
                 {/* Progress Steps */}
                 <div className={`flex items-center justify-between px-8 py-4 border-b ${darkMode ? "border-slate-800 bg-slate-800/30" : "border-slate-100 bg-slate-50"}`}>
-                    {STEPS.map((s, i) => {
+                    {STEPS.map((s) => {
                         const isActive = step === s.id;
                         const isDone = step > s.id;
                         return (
@@ -179,23 +209,13 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                 <div>
                                     <label className={labelStyle}>Startdatum</label>
                                     <input type="date" value={form.start_date} onChange={(e) => {
-                                        const newStart = e.target.value;
-                                        setForm(f => {
-                                            const d = newStart && f.end_date ? Math.max(1, daysDiff(newStart, f.end_date) + 1) : 1;
-                                            const bike = bikes.find(b => b.id === f.bike_id);
-                                            return { ...f, start_date: newStart, total_price: bike ? bike.price_per_day * d : 0 };
-                                        });
+                                        updateFormWithPrice({ start_date: e.target.value });
                                     }} className={inputStyle} />
                                 </div>
                                 <div>
                                     <label className={labelStyle}>Enddatum</label>
                                     <input type="date" value={form.end_date} onChange={(e) => {
-                                        const newEnd = e.target.value;
-                                        setForm(f => {
-                                            const d = f.start_date && newEnd ? Math.max(1, daysDiff(f.start_date, newEnd) + 1) : 1;
-                                            const bike = bikes.find(b => b.id === f.bike_id);
-                                            return { ...f, end_date: newEnd, total_price: bike ? bike.price_per_day * d : 0 };
-                                        });
+                                        updateFormWithPrice({ end_date: e.target.value });
                                     }} className={inputStyle} />
                                 </div>
                             </div>
@@ -208,10 +228,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         return (
                                             <div
                                                 key={bike.id}
-                                                onClick={() => setForm(f => {
-                                                    const d = f.start_date && f.end_date ? Math.max(1, daysDiff(f.start_date, f.end_date) + 1) : 1;
-                                                    return { ...f, bike_id: bike.id, total_price: bike.price_per_day * d };
-                                                })}
+                                                onClick={() => updateFormWithPrice({ bike_id: bike.id })}
                                                 className={`p-3 rounded-xl border cursor-pointer transition-all ${isSelected
                                                     ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500"
                                                     : darkMode ? "border-slate-700 hover:border-slate-600 bg-slate-800" : "border-slate-200 hover:border-slate-300 bg-white"
@@ -230,10 +247,13 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                 </div>
                             </div>
 
-                            {!isBikeAvailable && (
+                            {conflictingBooking && (
                                 <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-500 text-sm flex items-center gap-2">
                                     <X className="w-4 h-4" />
-                                    Achtung: Das gewählte Rad ist in diesem Zeitraum bereits gebucht!
+                                    <span>
+                                        Konflikt mit <strong>{conflictingBooking.booking_number || "Buchung"}</strong><br />
+                                        ({new Date(conflictingBooking.start_date).toLocaleDateString()} - {new Date(conflictingBooking.end_date).toLocaleDateString()})
+                                    </span>
                                 </div>
                             )}
                         </div>
@@ -286,23 +306,87 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                     </button>
                                 </div>
                             ) : (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <div className="flex justify-between items-center">
-                                        <h4 className="font-medium">Neuer Kunde</h4>
-                                        <button onClick={() => setIsNewCustomer(false)} className="text-xs text-orange-500 hover:underline">Zurück zur Suche</button>
+                                <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    <div className="flex justify-between items-center bg-orange-50 p-3 rounded-lg border border-orange-100">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1.5 bg-orange-500 rounded text-white"><User className="w-4 h-4" /></div>
+                                            <h4 className="font-semibold text-orange-900">Schnell-Check-in</h4>
+                                        </div>
+                                        <button onClick={() => setIsNewCustomer(false)} className="text-sm font-medium text-orange-600 hover:text-orange-700 hover:underline">
+                                            Zurück zur Suche
+                                        </button>
                                     </div>
+
+                                    {/* Primary Row: Name */}
                                     <div>
-                                        <label className={labelStyle}>Name *</label>
-                                        <input type="text" value={form.customer_name} onChange={(e) => setForm(f => ({ ...f, customer_name: e.target.value }))} className={inputStyle} placeholder="Max Mustermann" />
+                                        <label className={labelStyle}>Name des Gastes <span className="text-rose-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            value={form.customer_name}
+                                            onChange={(e) => setForm(f => ({ ...f, customer_name: e.target.value }))}
+                                            className={`${inputStyle} text-lg font-medium`}
+                                            placeholder="z.B. Max Mustermann"
+                                            autoFocus
+                                        />
                                     </div>
+
+                                    {/* Security Row: ID & Mobile */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className={labelStyle}>E-Mail</label>
-                                            <input type="email" value={form.customer_email} onChange={(e) => setForm(f => ({ ...f, customer_email: e.target.value }))} className={inputStyle} />
+                                            <label className={labelStyle}>Ausweis-Nr. <span className="text-slate-400 font-normal">(Sicherheit)</span></label>
+                                            <div className="relative">
+                                                <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <input
+                                                    type="text"
+                                                    value={form.id_number || ""}
+                                                    onChange={(e) => setForm(f => ({ ...f, id_number: e.target.value }))}
+                                                    className={`${inputStyle} pl-9`}
+                                                    placeholder="L8822..."
+                                                />
+                                            </div>
                                         </div>
                                         <div>
-                                            <label className={labelStyle}>Telefon</label>
-                                            <input type="tel" value={form.customer_phone} onChange={(e) => setForm(f => ({ ...f, customer_phone: e.target.value }))} className={inputStyle} />
+                                            <label className={labelStyle}>Mobilnummer <span className="text-rose-500">*</span></label>
+                                            <div className="relative">
+                                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <input
+                                                    type="tel"
+                                                    value={form.customer_phone}
+                                                    onChange={(e) => setForm(f => ({ ...f, customer_phone: e.target.value }))}
+                                                    className={`${inputStyle} pl-9`}
+                                                    placeholder="0171..."
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Optional Context Row */}
+                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-dashed border-slate-200">
+                                        <div>
+                                            <label className={`${labelStyle} flex justify-between`}>
+                                                <span>Zimmer / Adresse</span>
+                                                <span className="text-xs text-slate-400 font-normal">Optional</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={form.customer_address || ""}
+                                                onChange={(e) => setForm(f => ({ ...f, customer_address: e.target.value }))}
+                                                className={inputStyle}
+                                                placeholder="Hotelzimmer..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={`${labelStyle} flex justify-between`}>
+                                                <span>E-Mail</span>
+                                                <span className="text-xs text-slate-400 font-normal">Optional</span>
+                                            </label>
+                                            <input
+                                                type="email"
+                                                value={form.customer_email}
+                                                onChange={(e) => setForm(f => ({ ...f, customer_email: e.target.value }))}
+                                                className={inputStyle}
+                                                placeholder="@"
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -383,10 +467,21 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
 
                 {/* Footer */}
                 <div className={`p-4 border-t flex justify-between items-center ${darkMode ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"}`}>
-                    <div>
-                        {step === 1 && booking && (
-                            <button onClick={() => { if (confirm("Wirklich löschen?")) onDelete(booking.id); }} className="text-rose-500 hover:text-rose-600 text-sm font-medium flex items-center gap-2">
-                                <Trash2 className="w-4 h-4" /> Löschen
+                    <div className="flex gap-2">
+                        {booking && (
+                            <button
+                                onClick={() => {
+                                    if (booking.status === 'cancelled') return;
+                                    if (confirm("Buchung wirklich stornieren? Dies gibt den Zeitraum wieder frei.")) onDelete(booking.id);
+                                }}
+                                disabled={booking.status === 'cancelled'}
+                                className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${booking.status === 'cancelled'
+                                    ? "text-slate-400 cursor-not-allowed"
+                                    : "text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                                    }`}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                {booking.status === 'cancelled' ? "Storniert" : "Stornieren"}
                             </button>
                         )}
                         {step > 1 && (

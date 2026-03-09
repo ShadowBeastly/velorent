@@ -1,4 +1,27 @@
 node_modules
 dist
 .env
+.env.local
 .DS_Store
+
+# Next.js build output
+.next/
+
+# Claude Code
+.claude/
+
+# Logs
+*.log
+dev_start.log
+
+# Lint artifacts
+lint_*
+lint_report.json
+
+# IDE
+.vscode
+.idea
+
+# OS
+Thumbs.db
+nul

@@ -10,7 +10,7 @@ export default [
         files: ['**/*.{js,jsx}'],
         languageOptions: {
             ecmaVersion: 2020,
-            globals: globals.browser,
+            globals: { ...globals.browser, ...globals.node },
             parserOptions: {
                 ecmaVersion: 'latest',
                 ecmaFeatures: { jsx: true },
@@ -34,6 +34,13 @@ export default [
                 { allowConstantExport: true },
             ],
             'react/prop-types': 'off',
+        },
+    },
+    // Next.js App Router: named exports (metadata, config) alongside default components are valid
+    {
+        files: ['app/**/*.{js,jsx,ts,tsx}'],
+        rules: {
+            'react-refresh/only-export-components': 'off',
         },
     },
 ];

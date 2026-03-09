@@ -1,7 +1,8 @@
-import React from "react";
-import { fmtDateShort, fmtCurrency } from "../../utils/formatUtils";
+"use client";
 
-export default function RecentBookingsTable({ bookings, darkMode }) {
+import { fmtDateShort, fmtCurrency } from "../../utils/formatters";
+
+export default function RecentBookingsTable({ bookings, darkMode, onViewAll }) {
     const recentBookings = bookings.slice(0, 5);
 
     const getStatusBadge = (status) => {
@@ -28,7 +29,7 @@ export default function RecentBookingsTable({ bookings, darkMode }) {
         <div className="premium-card p-6 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Neueste Buchungen</h3>
-                <button className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                <button onClick={onViewAll} className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
                     Alle anzeigen
                 </button>
             </div>
