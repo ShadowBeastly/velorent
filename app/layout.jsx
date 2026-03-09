@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import "./globals.css";
 import { AuthProvider } from "../src/context/AuthContext";
+import CookieBanner from "../src/components/ui/CookieBanner";
 
 export const metadata = {
     title: "VeloRent Pro",
@@ -13,6 +14,7 @@ export default function RootLayout({ children }) {
         <html lang="de">
             <body>
                 <AuthProvider>{children}</AuthProvider>
+                <CookieBanner />
             </body>
         </html>
     );
