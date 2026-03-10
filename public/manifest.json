@@ -1,6 +1,6 @@
 {
-    "name": "VeloRent Pro",
-    "short_name": "VeloRent Pro",
+    "name": "RentCore",
+    "short_name": "RentCore",
     "description": "Cloud-basierte Fahrradvermietung",
     "start_url": "/app",
     "display": "standalone",

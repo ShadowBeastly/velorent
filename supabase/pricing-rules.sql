@@ -1,5 +1,5 @@
 -- =====================================================
--- VeloRent Pro — PRICING RULES MIGRATION
+-- RentCore — PRICING RULES MIGRATION
 -- Run this in Supabase SQL Editor to add the
 -- dynamic/seasonal pricing table.
 -- Safe to run multiple times (IF NOT EXISTS).

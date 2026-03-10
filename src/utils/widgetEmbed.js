@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import VeloRentBookingWidget from '../components/widget/BookingWidget';
+import RentCoreBookingWidget from '../components/widget/BookingWidget';
 
 // ============ STANDALONE EMBED SCRIPT ============
 // Für Hotels die nur ein Script einbinden wollen
-export function initVeloRentWidget(containerId, options) {
+export function initRentCoreWidget(containerId, options) {
     const container = document.getElementById(containerId);
     if (!container) {
-        console.error("VeloRent: Container not found:", containerId);
+        console.error("RentCore: Container not found:", containerId);
         return;
     }
 
@@ -29,5 +29,5 @@ export function initVeloRentWidget(containerId, options) {
 
 function renderWidget(container, options) {
     const root = ReactDOM.createRoot(container);
-    root.render(React.createElement(VeloRentBookingWidget, options));
+    root.render(React.createElement(RentCoreBookingWidget, options));
 }

@@ -1,5 +1,5 @@
 // =====================================================
-// VELORENT PRO - E-MAIL SERVICE (Brevo)
+// RENTCORE - E-MAIL SERVICE (Brevo)
 // Supabase Edge Function
 // =====================================================
 //
@@ -18,8 +18,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "noreply@velorent.app";
-const FROM_NAME = Deno.env.get("FROM_NAME") || "VeloRent Pro";
+const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "noreply@rentcore.de";
+const FROM_NAME = Deno.env.get("FROM_NAME") || "RentCore";
 
 // The Supabase project URL is used to validate allowed CORS origins.
 // Example: https://fqycoldheyxzxbxqmayf.supabase.co
@@ -78,7 +78,7 @@ const templates = {
       </div>
     </div>
     <div style="background:#f8fafc;padding:24px;text-align:center;border-top:1px solid #e2e8f0;">
-      <p style="color:#94a3b8;font-size:12px;margin:0;">${data.organization_name} • ${data.organization_address||""}<br>Diese E-Mail wurde automatisch versendet via VeloRent Pro</p>
+      <p style="color:#94a3b8;font-size:12px;margin:0;">${data.organization_name} • ${data.organization_address||""}<br>Diese E-Mail wurde automatisch versendet via RentCore</p>
     </div>
   </div>
 </body></html>`
@@ -148,7 +148,7 @@ const templates = {
   }),
 
   welcome: (data) => ({
-    subject: `Willkommen bei VeloRent Pro! 🚴`,
+    subject: `Willkommen bei RentCore! 🚴`,
     html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="font-family:-apple-system,sans-serif;background:#f8fafc;margin:0;padding:40px 20px;">
   <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;">

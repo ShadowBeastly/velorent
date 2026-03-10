@@ -104,7 +104,7 @@ export default function InvoicesPage() {
                         total: invoice.total,
                         due_date: invoice.due_date,
                         customer_name: customerName,
-                        org_name: org.currentOrg?.name || 'VeloRent Pro',
+                        org_name: org.currentOrg?.name || 'RentCore',
                     },
                 },
             });
