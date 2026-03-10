@@ -41,7 +41,7 @@
     </div>
     
     <!-- ========================================
-         VELORENT BUCHUNGS-WIDGET
+         RENTCORE BUCHUNGS-WIDGET
          
          So betten Sie das Widget ein:
          1. Kopieren Sie diesen Container-DIV
@@ -49,9 +49,9 @@
          3. Ersetzen Sie die API-Werte
     ======================================== -->
     
-    <div id="velorent-booking"></div>
+    <div id="rentcore-booking"></div>
     
-    <!-- VeloRent Widget Script -->
+    <!-- RentCore Widget Script -->
     <script type="module">
         // =============================================
         // KONFIGURATION - HIER IHRE WERTE EINTRAGEN:
@@ -59,7 +59,7 @@
         
         const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
         const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
-        const API_KEY = "YOUR_PUBLIC_API_KEY"; // Aus VeloRent Dashboard → Einstellungen → Widget
+        const API_KEY = "YOUR_PUBLIC_API_KEY"; // Aus RentCore Dashboard → Einstellungen → Widget
         
         // =============================================
         // WIDGET LADEN (nicht ändern)
@@ -73,7 +73,7 @@
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // Widget-Komponente laden
-        const container = document.getElementById("velorent-booking");
+        const container = document.getElementById("rentcore-booking");
         
         // Fetch und Render
         async function initWidget() {
@@ -93,7 +93,7 @@
                 renderSimpleWidget(container, settings, bikes || [], supabase, API_KEY);
                 
             } catch (err) {
-                console.error("VeloRent Widget Error:", err);
+                console.error("RentCore Widget Error:", err);
                 container.innerHTML = `<div style="text-align:center;padding:40px;color:#dc2626;">Fehler beim Laden des Widgets</div>`;
             }
         }
@@ -173,7 +173,7 @@
                         </div>
                         
                         <div style="padding:16px 24px;border-top:1px solid #e2e8f0;text-align:center;font-size:11px;color:#94a3b8;">
-                            Powered by VeloRent Pro
+                            Powered by RentCore
                         </div>
                     </div>
                 `;

@@ -1,10 +1,10 @@
 {
-  "name": "VeloRent – E-Mail Automation (Brevo)",
+  "name": "RentCore – E-Mail Automation (Brevo)",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "velorent-booking-events",
+        "path": "rentcore-booking-events",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -163,7 +163,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'VeloRent', email: 'noreply@velorent.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Buchungsbestätigung – ' + $json.bikeName + ' (' + $json.bookingNumber + ')',\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#f97316;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Buchung bestätigt!</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>vielen Dank für deine Buchung bei VeloRent. Hier sind deine Buchungsdetails:</p>\n      <table style=\"border-collapse:collapse;width:100%;margin:16px 0\">\n        <tr style=\"background:#f8fafc\"><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Buchungsnummer</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${$json.bookingNumber}</td></tr>\n        <tr><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Fahrrad</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${$json.bikeName}</td></tr>\n        <tr style=\"background:#f8fafc\"><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Von</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${new Date($json.startDate).toLocaleDateString('de-DE')}</td></tr>\n        <tr><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Bis</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${new Date($json.endDate).toLocaleDateString('de-DE')}</td></tr>\n        <tr style=\"background:#f8fafc\"><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Gesamtpreis</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>${$json.totalPrice}€</b></td></tr>\n      </table>\n      <p>Wir freuen uns auf deinen Besuch!</p>\n      <p>Viele Grüße<br><b>Dein VeloRent-Team</b></p>\n    </div>\n  </div>`\n}) }}",
+        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'RentCore', email: 'noreply@rentcore.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Buchungsbestätigung – ' + $json.bikeName + ' (' + $json.bookingNumber + ')',\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#f97316;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Buchung bestätigt!</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>vielen Dank für deine Buchung bei RentCore. Hier sind deine Buchungsdetails:</p>\n      <table style=\"border-collapse:collapse;width:100%;margin:16px 0\">\n        <tr style=\"background:#f8fafc\"><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Buchungsnummer</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${$json.bookingNumber}</td></tr>\n        <tr><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Fahrrad</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${$json.bikeName}</td></tr>\n        <tr style=\"background:#f8fafc\"><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Von</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${new Date($json.startDate).toLocaleDateString('de-DE')}</td></tr>\n        <tr><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Bis</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\">${new Date($json.endDate).toLocaleDateString('de-DE')}</td></tr>\n        <tr style=\"background:#f8fafc\"><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>Gesamtpreis</b></td><td style=\"padding:10px;border:1px solid #e2e8f0\"><b>${$json.totalPrice}€</b></td></tr>\n      </table>\n      <p>Wir freuen uns auf deinen Besuch!</p>\n      <p>Viele Grüße<br><b>Dein RentCore-Team</b></p>\n    </div>\n  </div>`\n}) }}",
         "options": {}
       },
       "id": "email-buchungsbestaetigung",
@@ -185,7 +185,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'VeloRent', email: 'noreply@velorent.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Gute Fahrt! Dein Rad wartet – ' + $json.bikeName,\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#f97316;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Gute Fahrt!</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>dein E-Bike <b>${$json.bikeName}</b> wurde soeben übergeben. Wir wünschen dir tolle Touren!</p>\n      <p>Bis zur Rückgabe am <b>${new Date($json.endDate).toLocaleDateString('de-DE')}</b>.</p>\n      <p>Viele Grüße<br><b>Dein VeloRent-Team</b></p>\n    </div>\n  </div>`\n}) }}",
+        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'RentCore', email: 'noreply@rentcore.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Gute Fahrt! Dein Rad wartet – ' + $json.bikeName,\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#f97316;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Gute Fahrt!</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>dein E-Bike <b>${$json.bikeName}</b> wurde soeben übergeben. Wir wünschen dir tolle Touren!</p>\n      <p>Bis zur Rückgabe am <b>${new Date($json.endDate).toLocaleDateString('de-DE')}</b>.</p>\n      <p>Viele Grüße<br><b>Dein RentCore-Team</b></p>\n    </div>\n  </div>`\n}) }}",
         "options": {}
       },
       "id": "email-abholung",
@@ -207,7 +207,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'VeloRent', email: 'noreply@velorent.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Danke für deine Miete bei VeloRent!',\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#10b981;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Danke und auf Wiedersehen!</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>dein E-Bike <b>${$json.bikeName}</b> wurde erfolgreich zurückgegeben. Wir hoffen, es hat dir Spaß gemacht!</p>\n      <p>Wir freuen uns auf deinen nächsten Besuch.</p>\n      <p>Viele Grüße<br><b>Dein VeloRent-Team</b></p>\n    </div>\n  </div>`\n}) }}",
+        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'RentCore', email: 'noreply@rentcore.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Danke für deine Miete bei RentCore!',\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#10b981;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Danke und auf Wiedersehen!</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>dein E-Bike <b>${$json.bikeName}</b> wurde erfolgreich zurückgegeben. Wir hoffen, es hat dir Spaß gemacht!</p>\n      <p>Wir freuen uns auf deinen nächsten Besuch.</p>\n      <p>Viele Grüße<br><b>Dein RentCore-Team</b></p>\n    </div>\n  </div>`\n}) }}",
         "options": {}
       },
       "id": "email-rueckgabe",
@@ -229,7 +229,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'VeloRent', email: 'noreply@velorent.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Buchung storniert – ' + $json.bookingNumber,\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#64748b;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Buchung storniert</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>deine Buchung <b>${$json.bookingNumber}</b> für <b>${$json.bikeName}</b> wurde storniert.</p>\n      <p>Falls du Fragen zur Stornierung hast, melde dich gerne bei uns.</p>\n      <p>Viele Grüße<br><b>Dein VeloRent-Team</b></p>\n    </div>\n  </div>`\n}) }}",
+        "jsonBody": "={{ JSON.stringify({\n  sender: { name: 'RentCore', email: 'noreply@rentcore.de' },\n  to: [{ email: $json.customerEmail, name: $json.customerName }],\n  subject: 'Buchung storniert – ' + $json.bookingNumber,\n  htmlContent: `<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto\">\n    <div style=\"background:#64748b;padding:24px;color:white\">\n      <h1 style=\"margin:0;font-size:24px\">Buchung storniert</h1>\n    </div>\n    <div style=\"padding:24px\">\n      <p>Hallo ${$json.customerName},</p>\n      <p>deine Buchung <b>${$json.bookingNumber}</b> für <b>${$json.bikeName}</b> wurde storniert.</p>\n      <p>Falls du Fragen zur Stornierung hast, melde dich gerne bei uns.</p>\n      <p>Viele Grüße<br><b>Dein RentCore-Team</b></p>\n    </div>\n  </div>`\n}) }}",
         "options": {}
       },
       "id": "email-stornierung",
@@ -277,7 +277,7 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "tags": ["velorent", "email", "brevo"],
+  "tags": ["rentcore", "email", "brevo"],
   "triggerCount": 1,
   "updatedAt": "2026-03-09T00:00:00.000Z",
   "versionId": "1"

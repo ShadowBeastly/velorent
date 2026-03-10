@@ -104,7 +104,11 @@ All Supabase tables have Row Level Security. Data is scoped to `organization_id`
 
 ### Deployment
 
-The `vercel.json` contains a leftover Vite SPA rewrite — it should be removed for Next.js since Next.js handles routing natively. Deploy with `vercel --prod` after removing it.
+Deploy with `vercel --prod`. A few critical production constraints:
+
+- `app/layout.jsx` exports `export const dynamic = "force-dynamic"` — do NOT remove it. It prevents static generation of `/_not-found`, which breaks Supabase SSR cookie reading.
+- `src/utils/supabase.js` uses `|| "placeholder"` fallbacks for the URL/key — `createBrowserClient` throws synchronously if either value is falsy (even during build).
+- If Vercel builds succeed in ~126ms without running `next build`, check the project's `outputDirectory` setting — an empty string causes Vercel to skip the build entirely. Fix via Vercel dashboard or API: set `outputDirectory` to `null`.
 
 ### Database Setup
 
