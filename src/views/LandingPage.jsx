@@ -431,12 +431,13 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               </button>
               <button
                 onClick={() => setBillingCycle("yearly")}
-                className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${billingCycle === "yearly"
+                className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${billingCycle === "yearly"
                   ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
               >
                 Jährlich
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500 text-white leading-none">−17%</span>
               </button>
             </div>
           </div>
@@ -470,6 +471,11 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                       /{billingCycle === "monthly" ? "Monat" : "Jahr"}
                     </span>
                   </div>
+                  {billingCycle === "yearly" && (
+                    <p className="text-xs text-emerald-500 mt-1 font-medium">
+                      ≈ {Math.round(plan.price.yearly / 12)}€/Monat · 2 Monate gratis
+                    </p>
+                  )}
                 </div>
 
                 <ul className="space-y-4 mb-8 flex-1">
