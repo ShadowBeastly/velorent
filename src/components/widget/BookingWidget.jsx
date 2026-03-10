@@ -19,7 +19,7 @@ const DEFAULT_SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
 const DEFAULT_SUPABASE_KEY = "YOUR_ANON_KEY";
 
 // ============ WIDGET COMPONENT ============
-export default function VeloRentBookingWidget({
+export default function RentCoreBookingWidget({
   supabaseUrl = DEFAULT_SUPABASE_URL,
   supabaseKey = DEFAULT_SUPABASE_KEY,
   apiKey,
@@ -863,7 +863,7 @@ export default function VeloRentBookingWidget({
           fontSize: "12px",
           color: "#94a3b8"
         }}>
-          Powered by VeloRent Pro
+          Powered by RentCore
         </div>
       )}
 

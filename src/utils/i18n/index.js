@@ -9,7 +9,7 @@ const I18nContext = createContext(null);
 export function I18nProvider({ children }) {
     const [locale, setLocale] = useState(() => {
         if (typeof window !== "undefined") {
-            return localStorage.getItem("velorent_locale") || "de";
+            return localStorage.getItem("rentcore_locale") || "de";
         }
         return "de";
     });
@@ -29,7 +29,7 @@ export function I18nProvider({ children }) {
 
     const changeLocale = useCallback((newLocale) => {
         setLocale(newLocale);
-        localStorage.setItem("velorent_locale", newLocale);
+        localStorage.setItem("rentcore_locale", newLocale);
     }, []);
 
     return (

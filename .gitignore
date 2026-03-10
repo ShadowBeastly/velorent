@@ -28,3 +28,4 @@ lint_report.json
 # OS
 Thumbs.db
 nul
+.env*.local

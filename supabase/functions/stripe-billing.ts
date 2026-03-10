@@ -5,8 +5,8 @@
 // SETUP:
 // 1. Stripe Account: https://dashboard.stripe.com
 // 2. Produkte erstellen in Stripe Dashboard:
-//    - "VeloRent Starter" = 29€/Monat (price_starter_monthly)
-//    - "VeloRent Pro" = 79€/Monat (price_pro_monthly)
+//    - "RentCore Starter" = 29€/Monat (price_starter_monthly)
+//    - "RentCore Pro" = 79€/Monat (price_pro_monthly)
 // 3. Webhook Endpoint erstellen: https://yourapp.com/api/webhooks/stripe
 // 4. Environment Variables setzen:
 //    - STRIPE_SECRET_KEY

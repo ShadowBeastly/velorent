@@ -7,17 +7,17 @@ import CookieBanner from "../src/components/ui/CookieBanner";
 import ServiceWorkerRegistration from "../src/components/ServiceWorkerRegistration";
 
 export const metadata = {
-    title: "VeloRent Pro — Cloud-basierte Fahrradvermietung",
+    title: "RentCore — Cloud-basierte Fahrradvermietung",
     description: "Die All-in-One SaaS-Lösung für Fahrradvermietungen. Flottenmanagement, Online-Buchungen, Rechnungen und mehr.",
     manifest: "/manifest.json",
     themeColor: "#f97316",
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
-        title: "VeloRent Pro",
+        title: "RentCore",
     },
     openGraph: {
-        title: "VeloRent Pro — Cloud-basierte Fahrradvermietung",
+        title: "RentCore — Cloud-basierte Fahrradvermietung",
         description: "Die All-in-One SaaS-Lösung für Fahrradvermietungen.",
         type: "website",
         locale: "de_DE",

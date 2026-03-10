@@ -83,7 +83,7 @@ export function useBookings(orgId) {
         booking_number: bookingData.booking_number || bookingData.id.slice(0, 8).toUpperCase(),
         customer_name: `${bookingData.customer.first_name} ${bookingData.customer.last_name}`,
         customer_phone: bookingData.customer.phone,
-        organization_name: org?.name || "VeloRent Pro",
+        organization_name: org?.name || "RentCore",
         organization_email: org?.email,
         organization_phone: org?.phone,
         bike_name: bookingData.bike.name,

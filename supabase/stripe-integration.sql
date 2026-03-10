@@ -1,5 +1,5 @@
 -- =====================================================
--- VELORENT PRO - STRIPE INTEGRATION
+-- RENTCORE - STRIPE INTEGRATION
 -- =====================================================
 -- Fügt die notwendigen Felder für Stripe-Zahlungen hinzu
 -- Ausführen NACH supabase-schema.sql

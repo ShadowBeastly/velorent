@@ -37,7 +37,7 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                     {showLabels && (
                         <div className="min-w-0 flex-1 animate-fade-in">
                             <h1 className="font-bold text-lg tracking-tight truncate font-sans">
-                                {org.currentOrg?.name || "VeloRent"}
+                                {org.currentOrg?.name || "RentCore"}
                             </h1>
                             <p className={`text-xs truncate font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                                 Pro Cloud
@@ -48,7 +48,7 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                     {!showLabels && (
                         <div className="min-w-0 flex-1 animate-fade-in md:hidden">
                             <h1 className="font-bold text-lg tracking-tight truncate font-sans">
-                                {org.currentOrg?.name || "VeloRent"}
+                                {org.currentOrg?.name || "RentCore"}
                             </h1>
                             <p className={`text-xs truncate font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                                 Pro Cloud

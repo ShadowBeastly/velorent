@@ -1,5 +1,5 @@
 -- =====================================================
--- VELORENT PRO - DEMO SEED DATA
+-- RENTCORE - DEMO SEED DATA
 -- =====================================================
 -- Erstellt einen Demo-Account mit realistischen Daten
 -- zum Testen und für Demos an potenzielle Kunden.
@@ -26,7 +26,7 @@ INSERT INTO organizations (
   'Am Seeufer 15',
   '83684 Tegernsee',
   '+49 8022 12345',
-  'demo@velorent.de',
+  'demo@rentcore.de',
   '{"currency": "EUR", "timezone": "Europe/Berlin", "language": "de"}',
   'pro',
   'active'

@@ -285,7 +285,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                     <p className="text-slate-500">Nr. {formData.invoice_number}</p>
                                 </div>
                                 <div className="meta">
-                                    <strong>{org?.name || "VeloRent Pro"}</strong><br />
+                                    <strong>{org?.name || "RentCore"}</strong><br />
                                     Musterstraße 1<br />
                                     12345 Musterstadt
                                 </div>

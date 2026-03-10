@@ -1,5 +1,5 @@
 -- =====================================================
--- VELORENT PRO - DEMO DATA RESET SCRIPT (V2)
+-- RENTCORE - DEMO DATA RESET SCRIPT (V2)
 -- =====================================================
 -- ANLEITUNG:
 -- 1. Öffnen Sie den SQL Editor in Ihrem Supabase Dashboard.

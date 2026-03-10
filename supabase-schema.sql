@@ -1,5 +1,5 @@
 -- =====================================================
--- VELORENT PRO - CLOUD SAAS DATABASE SCHEMA
+-- RENTCORE - CLOUD SAAS DATABASE SCHEMA
 -- Supabase PostgreSQL Schema mit Row Level Security
 -- Multi-Tenant Architektur für Hotels, Verleiher etc.
 -- IDEMPOTENT: Safe to re-run on existing databases

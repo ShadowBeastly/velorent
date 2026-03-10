@@ -60,7 +60,7 @@ export default function AuthPage({ initialMode = "login" }) {
                     <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
                         <Bike className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-white">VeloRent Pro</h1>
+                    <h1 className="text-3xl font-bold text-white">RentCore</h1>
                     <p className="text-slate-400 mt-2">{t("auth.tagline")}</p>
                 </div>
 

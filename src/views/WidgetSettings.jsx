@@ -108,8 +108,8 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
   const generateEmbedCode = () => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "YOUR_SUPABASE_URL";
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "YOUR_SUPABASE_ANON_KEY";
-    return `<!-- VeloRent Buchungs-Widget -->
-<div id="velorent-booking"></div>
+    return `<!-- RentCore Buchungs-Widget -->
+<div id="rentcore-booking"></div>
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 

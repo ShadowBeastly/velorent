@@ -1,5 +1,5 @@
 -- =====================================================
--- VELORENT PRO - PUBLIC BOOKING EXTENSION
+-- RENTCORE - PUBLIC BOOKING EXTENSION
 -- Ermöglicht öffentliche Buchungen ohne Login
 -- Schützt alle Kundendaten vor öffentlichem Zugriff
 -- =====================================================

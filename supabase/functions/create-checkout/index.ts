@@ -88,7 +88,7 @@ serve(async (req) => {
     }
 
     // Create checkout session
-    const origin = req.headers.get("origin") || "https://velorent.de";
+    const origin = req.headers.get("origin") || "https://rentcore.de";
 
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,

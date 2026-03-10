@@ -1,5 +1,5 @@
 -- =====================================================
--- VeloRent Pro — MISSING TABLES
+-- RentCore — MISSING TABLES
 -- Run this in Supabase SQL Editor if invoices /
 -- maintenance_logs / add_ons / bike_categories /
 -- vouchers are missing (PGRST205 / 404 errors).
