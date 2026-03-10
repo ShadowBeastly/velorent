@@ -1,5 +1,5 @@
 -- =====================================================
--- RentCore — PUBLIC BOOKING WIDGET API
+-- VeloRent Pro — PUBLIC BOOKING WIDGET API
 -- Run this in Supabase SQL Editor after supabase-schema.sql
 -- Provides an anon-accessible RPC for the booking widget.
 -- =====================================================

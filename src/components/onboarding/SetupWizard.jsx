@@ -90,7 +90,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
             }
           });
         } catch {
-          console.log("Email sending failed, but continuing...");
+          // Silently ignore — email failure must not block onboarding
         }
       }
 

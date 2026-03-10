@@ -1,5 +1,5 @@
 -- =====================================================
--- RentCore — Group / Multi-Bike Booking Support
+-- VeloRent Pro — Group / Multi-Bike Booking Support
 -- Run ONCE in Supabase SQL Editor after missing-tables.sql
 -- Safe to re-run (IF NOT EXISTS / ADD COLUMN IF NOT EXISTS).
 -- =====================================================

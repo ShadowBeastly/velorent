@@ -1,5 +1,5 @@
 -- =====================================================
--- RentCore — VIEWER ROLE RLS FIX
+-- VeloRent Pro — VIEWER ROLE RLS FIX
 -- Run in Supabase SQL Editor.
 -- Splits the FOR ALL policies on core tables so that
 -- "viewer" role members can read data but cannot write.

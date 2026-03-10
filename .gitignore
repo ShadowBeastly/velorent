@@ -29,3 +29,6 @@ lint_report.json
 Thumbs.db
 nul
 .env*.local
+
+# Supabase CLI temp files
+supabase/.temp/

@@ -75,7 +75,7 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                             <p className="text-sm text-gray-500">Datum: {new Date().toLocaleDateString('de-DE')}</p>
                         </div>
                         <div className="text-right text-sm">
-                            <strong className="text-base">{currentOrg?.name || 'RentCore'}</strong>
+                            <strong className="text-base">{currentOrg?.name || 'VeloRent Pro'}</strong>
                             {currentOrg?.address && <><br />{currentOrg.address}</>}
                             {(currentOrg?.postal_code || currentOrg?.city) && (
                                 <><br />{[currentOrg.postal_code, currentOrg.city].filter(Boolean).join(' ')}</>

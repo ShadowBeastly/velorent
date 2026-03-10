@@ -149,14 +149,10 @@ export default function BookingsPage() {
         try {
             // 3. Save to Database
             if (invoices && invoices.create) {
-                console.log("Saving invoice to DB...");
-                const { data, error } = await invoices.create(invoiceData);
+                const { error } = await invoices.create(invoiceData);
                 if (error) {
                     console.error("DB Error:", error);
                     // Continue to offer PDF even if DB Save fails (fallback)
-                    // alert("Fehler beim Speichern der Rechnung: " + error.message);
-                } else {
-                    console.log("Invoice saved:", data);
                 }
             }
 

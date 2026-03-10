@@ -25,7 +25,7 @@ export const generateContract = (booking, organization) => {
     doc.setFontSize(18);
     doc.setTextColor(primaryColorHex);
     doc.setFont(undefined, 'bold');
-    doc.text(organization?.name || 'RentCore Service', 20, 22);
+    doc.text(organization?.name || 'VeloRent Service', 20, 22);
 
     doc.setFontSize(9);
     doc.setTextColor(grayColor);
@@ -286,7 +286,7 @@ export const generateContract = (booking, organization) => {
     doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
 
     const footerParts = [
-        organization?.name || 'RentCore',
+        organization?.name || 'VeloRent',
         organization?.address ? `${organization.address}, ${organization.city || ''}` : '',
         organization?.iban ? `IBAN: ${organization.iban}${organization.bic ? ` | BIC: ${organization.bic}` : ''}` : '',
         organization?.tax_id ? `USt-IdNr.: ${organization.tax_id}` : '',
