@@ -9,16 +9,22 @@ export function useCustomers(orgId) {
     const load = useCallback(async () => {
         if (!orgId) { setLoading(false); return; }
         setLoading(true);
-        const { data } = await supabase
-            .from("customers")
-            .select("*")
-            .eq("organization_id", orgId)
-            .order("last_name", { ascending: true });
-        setCustomers(data || []);
-        setLoading(false);
+        try {
+            const { data, error } = await supabase
+                .from("customers")
+                .select("*")
+                .eq("organization_id", orgId)
+                .order("last_name", { ascending: true });
+            if (error) throw error;
+            setCustomers(data || []);
+        } catch (err) {
+            console.error("Failed to load customers:", err);
+            setCustomers([]);
+        } finally {
+            setLoading(false);
+        }
     }, [orgId]);
 
-    // eslint-disable-next-line
     useEffect(() => { load(); }, [load]);
 
     const create = async (customer) => {

@@ -3,7 +3,15 @@ import autoTable from 'jspdf-autotable';
 
 const formatDate = (dateStr) => {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('de-DE');
+    const d = typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+        ? new Date(dateStr + 'T00:00:00')
+        : new Date(dateStr);
+    return d.toLocaleDateString('de-DE');
+};
+
+const hexToRgb = (hex) => {
+    const h = hex.replace('#', '');
+    return [parseInt(h.substring(0,2),16), parseInt(h.substring(2,4),16), parseInt(h.substring(4,6),16)];
 };
 
 const formatCurrency = (amount) => {
@@ -23,7 +31,8 @@ export const generateContract = (booking, organization) => {
 
     // Left: organization name + address
     doc.setFontSize(18);
-    doc.setTextColor(primaryColorHex);
+    const [pr, pg, pb] = hexToRgb(primaryColorHex);
+    doc.setTextColor(pr, pg, pb);
     doc.setFont(undefined, 'bold');
     doc.text(organization?.name || 'RentCore Service', 20, 22);
 
@@ -93,7 +102,7 @@ export const generateContract = (booking, organization) => {
     const mieterLines = [
         booking?.customer_name || '',
         booking?.customer_address || '',
-        booking?.id_number ? `Ausweis-Nr.: ${booking.id_number}` : '',
+        (booking?.customer_id_number || booking?.id_number) ? `Ausweis-Nr.: ${booking?.customer_id_number || booking?.id_number}` : '',
         booking?.customer_phone || '',
         booking?.customer_email || '',
     ].filter(Boolean);

@@ -65,21 +65,24 @@ export default function VouchersPage() {
         if (editVoucher) {
             const { error } = await vouchers.update(editVoucher.id, payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
+            addToast("Gutschein gespeichert.", "success");
         } else {
             const { error } = await vouchers.create(payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
+            addToast("Gutschein erstellt.", "success");
         }
         setShowForm(false);
     };
 
     const handleDelete = async (id) => {
         const { error } = await vouchers.remove(id);
-        if (error) addToast("Fehler: " + error.message, "error");
+        if (error) { addToast("Fehler: " + error.message, "error"); return; }
         setConfirmDeleteId(null);
     };
 
     const toggleActive = async (v) => {
-        await vouchers.update(v.id, { is_active: !v.is_active });
+        const { error } = await vouchers.update(v.id, { is_active: !v.is_active });
+        if (error) addToast("Fehler beim Aktualisieren: " + error.message, "error");
     };
 
     return (
@@ -121,7 +124,8 @@ export default function VouchersPage() {
                             </thead>
                             <tbody className={`divide-y ${darkMode ? "divide-slate-800" : "divide-slate-100"}`}>
                                 {vouchers.vouchers.map(v => {
-                                    const isExpired = v.valid_until && new Date(v.valid_until) < new Date();
+                                    const endOfToday = new Date(); endOfToday.setHours(23, 59, 59, 999);
+                                    const isExpired = v.valid_until && new Date(v.valid_until) < endOfToday;
                                     const isExhausted = v.max_uses && v.used_count >= v.max_uses;
                                     return (
                                         <tr key={v.id} className={`${darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"} ${!v.is_active ? "opacity-50" : ""}`}>
@@ -144,9 +148,9 @@ export default function VouchersPage() {
                                                 {v.max_uses ? ` / ${v.max_uses}` : " / ∞"}
                                             </td>
                                             <td className="px-4 py-3 text-sm">
-                                                {v.valid_from && v.valid_until ? (
+                                                {v.valid_from || v.valid_until ? (
                                                     <span className={isExpired ? "text-red-500 line-through" : ""}>
-                                                        {fmtDate(v.valid_from)} – {fmtDate(v.valid_until)}
+                                                        {v.valid_from ? fmtDate(v.valid_from) : "∞"} – {v.valid_until ? fmtDate(v.valid_until) : "∞"}
                                                     </span>
                                                 ) : "Unbegrenzt"}
                                             </td>
@@ -201,9 +205,9 @@ export default function VouchersPage() {
             {/* Modal */}
             {showForm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className={`w-full max-w-lg rounded-2xl border p-6 ${cardStyle} shadow-2xl`}>
-                        <h2 className="text-xl font-bold mb-6">{editVoucher ? "Gutschein bearbeiten" : "Neuer Gutschein"}</h2>
-                        <div className="space-y-4">
+                    <div className={`w-full max-w-lg rounded-2xl border ${cardStyle} shadow-2xl max-h-[90dvh] flex flex-col`}>
+                        <h2 className="text-xl font-bold p-6 pb-0 mb-0">{editVoucher ? "Gutschein bearbeiten" : "Neuer Gutschein"}</h2>
+                        <div className="space-y-4 p-6 overflow-y-auto">
                             <div>
                                 <label className="text-sm font-medium mb-1 block">Code *</label>
                                 <div className="flex gap-2">
@@ -213,7 +217,7 @@ export default function VouchersPage() {
                                     </button>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-sm font-medium mb-1 block">Typ</label>
                                     <select className={inputStyle} value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
@@ -226,7 +230,7 @@ export default function VouchersPage() {
                                     <input type="number" className={inputStyle} value={form.value} onChange={e => setForm({ ...form, value: e.target.value })} placeholder={form.type === "percent" ? "10" : "5.00"} />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-sm font-medium mb-1 block">Mindestbestellwert (€)</label>
                                     <input type="number" className={inputStyle} value={form.min_order} onChange={e => setForm({ ...form, min_order: e.target.value })} placeholder="Optional" />
@@ -236,7 +240,7 @@ export default function VouchersPage() {
                                     <input type="number" className={inputStyle} value={form.max_uses} onChange={e => setForm({ ...form, max_uses: e.target.value })} placeholder="Unbegrenzt" />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-sm font-medium mb-1 block">Gültig von</label>
                                     <input type="date" className={inputStyle} value={form.valid_from} onChange={e => setForm({ ...form, valid_from: e.target.value })} />
@@ -251,7 +255,7 @@ export default function VouchersPage() {
                                 <span className="text-sm font-medium">Sofort aktiv</span>
                             </label>
                         </div>
-                        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
                             <button onClick={() => setShowForm(false)} className={`px-4 py-2 rounded-xl text-sm font-medium ${darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"}`}>Abbrechen</button>
                             <button onClick={handleSave} disabled={!form.code || !form.value} className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-lg shadow-brand-500/20">
                                 {editVoucher ? "Speichern" : "Erstellen"}

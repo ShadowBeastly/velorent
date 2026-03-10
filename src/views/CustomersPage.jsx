@@ -32,8 +32,10 @@ export default function CustomersPage() {
 
     const handleSave = async (data) => {
         try {
-            if (editCustomer) await customers.update(editCustomer.id, data);
-            else await customers.create(data);
+            let result;
+            if (editCustomer) result = await customers.update(editCustomer.id, data);
+            else result = await customers.create(data);
+            if (result?.error) throw result.error;
             setShowModal(false);
         } catch (error) {
             console.error("Error saving customer:", error);

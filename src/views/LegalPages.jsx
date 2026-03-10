@@ -150,7 +150,8 @@ export function Datenschutz({ onBack }) {
       <h3>Vercel</h3>
       <p>
         Anbieter ist die Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA.
-        Details entnehmen Sie der Datenschutzerklärung von Vercel:
+        Die Übermittlung in die USA erfolgt auf Grundlage der EU-Standardvertragsklauseln (SCC) gemäß Art. 46 Abs. 2 lit. c DSGVO.
+        Details entnehmen Sie der Datenschutzerklärung von Vercel:{" "}
         <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">
           https://vercel.com/legal/privacy-policy
         </a>
@@ -184,6 +185,22 @@ export function Datenschutz({ onBack }) {
         Telefon: {process.env.NEXT_PUBLIC_COMPANY_PHONE || "+49 30 12345678"}<br />
         E-Mail: {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "info@rentcore.de"}
       </p>
+
+      <h3>Datenschutzbeauftragter / Datenschutzkontakt</h3>
+      <p>
+        Bei Fragen zum Datenschutz wenden Sie sich bitte an:{" "}
+        <a href={`mailto:${process.env.NEXT_PUBLIC_COMPANY_EMAIL || "datenschutz@rentcore.de"}`}>
+          {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "datenschutz@rentcore.de"}
+        </a>
+      </p>
+
+      <h3>Rechtsgrundlagen der Verarbeitung</h3>
+      <p>Wir verarbeiten personenbezogene Daten auf folgenden Rechtsgrundlagen gemäß Art. 6 DSGVO:</p>
+      <ul>
+        <li><strong>Art. 6 Abs. 1 lit. b DSGVO</strong> — Vertragserfüllung: Registrierung, Nutzerkonto, Buchungsabwicklung, Rechnungsstellung</li>
+        <li><strong>Art. 6 Abs. 1 lit. c DSGVO</strong> — Rechtliche Verpflichtung: Aufbewahrung von Rechnungen und Buchungsbelegen (§ 147 AO)</li>
+        <li><strong>Art. 6 Abs. 1 lit. f DSGVO</strong> — Berechtigtes Interesse: Betrieb und Sicherheit der Plattform, Missbrauchsprävention</li>
+      </ul>
 
       <h3>Speicherdauer</h3>
       <p>
@@ -239,9 +256,15 @@ export function Datenschutz({ onBack }) {
 
       <h2>6. E-Mail-Versand</h2>
 
-      <h3>Resend</h3>
+      <h3>Brevo (ehemals Sendinblue)</h3>
       <p>
-        Für den Versand von Transaktions-E-Mails nutzen wir Resend. Anbieter ist Resend, Inc.
+        Für den Versand von Transaktions-E-Mails (z.B. Buchungsbestätigungen) nutzen wir den Dienst Brevo.
+        Anbieter ist die Sendinblue SAS, 7 rue de Madrid, 75008 Paris, Frankreich.
+        Die Datenverarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
+        Details:{" "}
+        <a href="https://www.brevo.com/de/legal/privacypolicy/" target="_blank" rel="noopener">
+          https://www.brevo.com/de/legal/privacypolicy/
+        </a>
       </p>
 
       <hr />
@@ -277,7 +300,7 @@ export function AGB({ onBack }) {
         Fahrradvermietungen zur Verfügung (Software as a Service, SaaS).
       </p>
       <p>
-        (2) Der Funktionsumfang richtet sich nach dem gewählten Tarif (Free, Basic, Pro, Unlimited).
+        (2) Der Funktionsumfang richtet sich nach dem gewählten Tarif (Basic, Pro, Unlimited).
       </p>
       <p>
         (3) Die Software wird über das Internet bereitgestellt und erfordert einen

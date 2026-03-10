@@ -9,16 +9,22 @@ export function useBikeCategories(orgId) {
     const load = useCallback(async () => {
         if (!orgId) { setLoading(false); return; }
         setLoading(true);
-        const { data } = await supabase
-            .from("bike_categories")
-            .select("*")
-            .eq("organization_id", orgId)
-            .order("sort_order", { ascending: true });
-        setCategories(data || []);
-        setLoading(false);
+        try {
+            const { data, error } = await supabase
+                .from("bike_categories")
+                .select("*")
+                .eq("organization_id", orgId)
+                .order("sort_order", { ascending: true });
+            if (error) throw error;
+            setCategories(data || []);
+        } catch (err) {
+            console.error("Failed to load categories:", err);
+            setCategories([]);
+        } finally {
+            setLoading(false);
+        }
     }, [orgId]);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { load(); }, [load]);
 
     const create = async (category) => {

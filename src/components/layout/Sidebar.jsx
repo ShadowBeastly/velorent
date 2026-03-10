@@ -16,6 +16,15 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
     const showLabels = sidebarOpen;
 
     return (
+        <>
+        {/* Mobile backdrop overlay */}
+        {sidebarOpen && (
+            <div
+                className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm md:hidden"
+                onClick={() => setSidebarOpen(false)}
+                aria-hidden="true"
+            />
+        )}
         <aside className={`
             fixed top-0 left-0 z-40 h-screen border-r w-64
             transition-all duration-300
@@ -58,7 +67,7 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                     {/* Close button — mobile only */}
                     <button
                         onClick={() => setSidebarOpen(false)}
-                        className={`md:hidden p-1.5 rounded-lg transition-colors flex-shrink-0 ${darkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"}`}
+                        className={`md:hidden p-2.5 rounded-lg transition-colors flex-shrink-0 ${darkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"}`}
                         aria-label="Sidebar schließen"
                     >
                         <X className="w-4 h-4" />
@@ -173,5 +182,6 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                 </div>
             </div>
         </aside>
+        </>
     );
 }

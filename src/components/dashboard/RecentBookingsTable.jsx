@@ -39,8 +39,8 @@ export default function RecentBookingsTable({ bookings, darkMode, onViewAll }) {
                     <thead className={`text-xs uppercase font-bold ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                         <tr>
                             <th className="pb-3 pl-2">Kunde</th>
-                            <th className="pb-3">Fahrrad</th>
-                            <th className="pb-3">Zeitraum</th>
+                            <th className="pb-3 hidden sm:table-cell">Fahrrad</th>
+                            <th className="pb-3 hidden sm:table-cell">Zeitraum</th>
                             <th className="pb-3">Status</th>
                             <th className="pb-3 text-right pr-2">Preis</th>
                         </tr>
@@ -51,10 +51,10 @@ export default function RecentBookingsTable({ bookings, darkMode, onViewAll }) {
                                 <td className="py-3 pl-2 font-medium text-slate-900 dark:text-white">
                                     {booking.customer_name}
                                 </td>
-                                <td className={`py-3 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                <td className={`py-3 hidden sm:table-cell ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                                     {booking.bike?.name}
                                 </td>
-                                <td className={`py-3 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                <td className={`py-3 hidden sm:table-cell ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                                     {fmtDateShort(booking.start_date)} - {fmtDateShort(booking.end_date)}
                                 </td>
                                 <td className="py-3">

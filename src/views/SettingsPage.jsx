@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Building, Loader2, Check, Key, Copy, CreditCard, Palette, Zap, Star, Rocket, ExternalLink, Clock, Languages } from "lucide-react";
+import { Building, Loader2, Check, Key, Copy, CreditCard, Palette, Zap, Star, Rocket, ExternalLink, Clock, Languages, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "../utils/supabase";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { useOrganization } from "../context/OrgContext";
 import { useToast } from "../components/ui/Toast";
 import { useI18n } from "../utils/i18n";
@@ -79,11 +80,30 @@ const STATUS_COLORS = {
 export default function SettingsPage() {
     const { darkMode } = useApp();
     const org = useOrganization();
+    const auth = useAuth();
     const { addToast } = useToast();
     const { t, locale, changeLocale } = useI18n();
     const [form, setForm] = useState(org.currentOrg || {});
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+
+    // Account deletion state
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteInput, setDeleteInput] = useState("");
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDeleteAccount = async () => {
+        if (deleteInput !== auth.user?.email) return;
+        setDeleting(true);
+        try {
+            const { error } = await supabase.functions.invoke("delete-account");
+            if (error) throw new Error(error.message);
+            await auth.signOut();
+        } catch (err) {
+            addToast(`Fehler: ${err.message}`, "error");
+            setDeleting(false);
+        }
+    };
 
     // Subscription state
     const [billingInterval, setBillingInterval] = useState("monthly");
@@ -128,7 +148,7 @@ export default function SettingsPage() {
             settings: form.settings,
             late_fee_enabled: form.late_fee_enabled ?? false,
             late_fee_type: form.late_fee_type || "fixed",
-            late_fee_amount: parseFloat(form.late_fee_amount) || 10,
+            late_fee_amount: Math.max(0, parseFloat(form.late_fee_amount) || 10),
             late_fee_grace_hours: parseInt(form.late_fee_grace_hours, 10) || 2,
         }).eq("id", org.currentOrg.id);
         org.reload();
@@ -189,17 +209,23 @@ export default function SettingsPage() {
                         <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Firmenname</label>
                         <input type="text" value={form.name || ""} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className={inputStyle} />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Adresse</label>
                             <input type="text" value={form.address || ""} onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))} className={inputStyle} />
                         </div>
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Stadt</label>
-                            <input type="text" value={form.city || ""} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} className={inputStyle} />
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>PLZ</label>
+                                <input type="text" value={form.postal_code || ""} onChange={(e) => setForm(f => ({ ...f, postal_code: e.target.value }))} className={inputStyle} />
+                            </div>
+                            <div>
+                                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Stadt</label>
+                                <input type="text" value={form.city || ""} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} className={inputStyle} />
+                            </div>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Telefon</label>
                             <input type="tel" value={form.phone || ""} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className={inputStyle} />
@@ -213,7 +239,7 @@ export default function SettingsPage() {
                         <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>USt-IdNr.</label>
                         <input type="text" value={form.tax_id || ""} onChange={(e) => setForm(f => ({ ...f, tax_id: e.target.value }))} className={inputStyle} />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>IBAN</label>
                             <input type="text" placeholder="DE00 0000 0000 0000 0000 00" value={form.iban || ""} onChange={(e) => setForm(f => ({ ...f, iban: e.target.value }))} className={inputStyle} />
@@ -348,7 +374,7 @@ export default function SettingsPage() {
                     <div className="flex gap-2">
                         {isSubscribed && (
                             <button
-                                onClick={() => addToast("Stripe Customer Portal wird konfiguriert. Bitte wende dich an den Support.", "info")}
+                                onClick={() => { window.location.href = "mailto:support@rentcore.de?subject=Abo%20verwalten&body=Organisations-ID%3A%20" + (org.currentOrg?.id || ""); }}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 border ${darkMode ? "border-slate-700 hover:bg-slate-700" : "border-slate-300 hover:bg-slate-100"}`}
                             >
                                 <ExternalLink className="w-3.5 h-3.5" />
@@ -621,6 +647,68 @@ export default function SettingsPage() {
 
             {/* Widget Settings */}
             <WidgetSettings supabase={supabase} orgId={org.currentOrg?.id} darkMode={darkMode} />
+
+            {/* Danger Zone */}
+            <div className={`rounded-2xl border p-6 ${darkMode ? "bg-slate-900 border-red-900/40" : "bg-white border-red-200"}`}>
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center">
+                        <AlertTriangle className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-lg text-red-600 dark:text-red-400">Danger Zone</h3>
+                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Unwiderrufliche Aktionen</p>
+                    </div>
+                </div>
+
+                {!showDeleteConfirm ? (
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Konto und alle Daten löschen</p>
+                            <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                Löscht dein Konto, deine Organisation und alle gespeicherten Daten dauerhaft (Art. 17 DSGVO).
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="px-4 py-2 text-sm rounded-lg border border-red-500 text-red-500 hover:bg-red-500/10 transition-colors shrink-0 ml-4"
+                        >
+                            Konto löschen
+                        </button>
+                    </div>
+                ) : (
+                    <div className={`rounded-xl p-4 border ${darkMode ? "bg-red-900/20 border-red-800" : "bg-red-50 border-red-200"}`}>
+                        <p className={`text-sm font-medium mb-1 ${darkMode ? "text-red-300" : "text-red-700"}`}>
+                            Diese Aktion ist unwiderruflich.
+                        </p>
+                        <p className={`text-xs mb-3 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                            Gib deine E-Mail-Adresse ein, um die Löschung zu bestätigen: <strong>{auth.user?.email}</strong>
+                        </p>
+                        <input
+                            type="email"
+                            value={deleteInput}
+                            onChange={(e) => setDeleteInput(e.target.value)}
+                            placeholder={auth.user?.email}
+                            className={`w-full px-3 py-2 rounded-lg border text-sm outline-none mb-3 ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-300"}`}
+                        />
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}
+                                className={`px-4 py-2 text-sm rounded-lg border transition-colors ${darkMode ? "border-slate-700 text-slate-400 hover:bg-slate-800" : "border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+                            >
+                                Abbrechen
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={deleteInput !== auth.user?.email || deleting}
+                                className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                Konto endgültig löschen
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

@@ -13,7 +13,7 @@ const STEPS = [
     { id: 4, label: "Abschluss", icon: CheckCircle }
 ];
 
-export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, pricingRules, onSave, onDelete, onClose, darkMode }) {
+export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, pricingRules, addOns, onSave, onDelete, onClose, darkMode }) {
     const [step, setStep] = useState(1);
     const [saving, setSaving] = useState(false);
     const [stepError, setStepError] = useState(null);
@@ -22,7 +22,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const [isNewCustomer, setIsNewCustomer] = useState(false);
     const [showContract, setShowContract] = useState(false);
 
-    const [isGroupBooking, setIsGroupBooking] = useState(false);
+    const [isGroupBooking, setIsGroupBooking] = useState(Boolean(booking?.is_group_booking));
 
     const [form, setForm] = useState(() => {
         if (booking) return {
@@ -31,6 +31,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             customer_name: booking.customer_name,
             customer_phone: booking.customer_phone || "",
             customer_email: booking.customer_email || "",
+            customer_address: booking.customer_address || "",
             start_date: booking.start_date,
             end_date: booking.end_date,
             total_price: booking.total_price || 0,
@@ -39,7 +40,9 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             notes: booking.notes || "",
             pickup_location: booking.pickup_location || "Laden",
             return_location: booking.return_location || "Laden",
+            id_number: booking.customer_id_number || booking.id_number || "",
             selectedBikes: [],
+            selectedAddOns: booking.booking_addons?.map(ba => ba.addon_id).filter(Boolean) || [],
         };
         return {
             bike_id: initialBikeId || bikes[0]?.id || "",
@@ -58,6 +61,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             id_number: "",
             customer_address: "",
             selectedBikes: [],
+            selectedAddOns: [],
         };
     });
 
@@ -124,6 +128,41 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                 selectedBikes: nextSelected,
                 bike_id: firstBike?.id || "",
                 total_price: total > 0 ? total : prev.total_price,
+            };
+        });
+    };
+
+    // Add-on total
+    const addonTotal = useMemo(() => {
+        if (!addOns || !form.selectedAddOns.length) return 0;
+        return form.selectedAddOns.reduce((sum, addonId) => {
+            const addon = addOns.find(a => a.id === addonId);
+            if (!addon) return sum;
+            return sum + (addon.price_type === 'per_day' ? addon.price * days : addon.price);
+        }, 0);
+    }, [form.selectedAddOns, addOns, days]);
+
+    const toggleAddOn = (addonId) => {
+        setForm(prev => {
+            const isSelected = prev.selectedAddOns.includes(addonId);
+            const nextSelected = isSelected
+                ? prev.selectedAddOns.filter(id => id !== addonId)
+                : [...prev.selectedAddOns, addonId];
+
+            const bikePrice = isGroupBooking
+                ? calcGroupTotal(prev.selectedBikes, prev.start_date, prev.end_date)
+                : calcPrice(prev.bike_id, prev.start_date, prev.end_date);
+            const d = Math.max(1, daysDiff(prev.start_date, prev.end_date));
+            const newAddonTotal = nextSelected.reduce((sum, id) => {
+                const addon = (addOns || []).find(a => a.id === id);
+                if (!addon) return sum;
+                return sum + (addon.price_type === 'per_day' ? addon.price * d : addon.price);
+            }, 0);
+
+            return {
+                ...prev,
+                selectedAddOns: nextSelected,
+                total_price: (bikePrice || prev.total_price) + newAddonTotal,
             };
         });
     };
@@ -237,7 +276,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="booking-modal-title"
-                className={`w-full max-w-2xl flex flex-col max-h-[90vh] rounded-2xl ${modalBg} shadow-2xl overflow-hidden`}
+                className={`w-full max-w-2xl flex flex-col max-h-[90dvh] rounded-2xl ${modalBg} shadow-2xl overflow-hidden`}
             >
 
                 {/* Header */}
@@ -300,7 +339,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                     {step === 1 && (
                         <div className="space-y-6">
                             {/* Date pickers */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className={labelStyle}>Startdatum</label>
                                     <input type="date" value={form.start_date} onChange={(e) => {
@@ -511,7 +550,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                     </div>
 
                                     {/* Security Row: ID & Mobile */}
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className={labelStyle}>Ausweis-Nr. <span className="text-slate-400 font-normal">(Sicherheit)</span></label>
                                             <div className="relative">
@@ -541,7 +580,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                     </div>
 
                                     {/* Optional Context Row */}
-                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-dashed border-slate-200">
+                                    <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-dashed ${darkMode ? "border-slate-700" : "border-slate-200"}`}>
                                         <div>
                                             <label className={`${labelStyle} flex justify-between`}>
                                                 <span>Zimmer / Adresse</span>
@@ -577,7 +616,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                     {/* STEP 3: DETAILS */}
                     {step === 3 && (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className={labelStyle}>Gesamtpreis (€)</label>
                                     <input type="number" value={form.total_price} onChange={(e) => setForm(f => ({ ...f, total_price: Number(e.target.value) }))} className={inputStyle} />
@@ -609,8 +648,48 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
 
                             <div>
                                 <label className={labelStyle}>Notizen</label>
-                                <textarea value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} rows={3} className={inputStyle} placeholder="Zubehör, Besonderheiten..." />
+                                <textarea value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} rows={3} className={inputStyle} placeholder="Besonderheiten..." />
                             </div>
+
+                            {/* Add-ons */}
+                            {addOns && addOns.filter(a => a.is_active).length > 0 && (
+                                <div>
+                                    <label className={labelStyle}>Zubehör & Add-ons</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        {addOns.filter(a => a.is_active).map(addon => {
+                                            const isSelected = form.selectedAddOns.includes(addon.id);
+                                            const addonPrice = addon.price_type === 'per_day' ? addon.price * days : addon.price;
+                                            return (
+                                                <div
+                                                    key={addon.id}
+                                                    onClick={() => toggleAddOn(addon.id)}
+                                                    className={`p-3 rounded-xl border cursor-pointer transition-all ${isSelected
+                                                        ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500"
+                                                        : darkMode ? "border-slate-700 bg-slate-800 hover:border-slate-600" : "border-slate-200 bg-white hover:border-slate-300"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-start gap-2">
+                                                        <div className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center ${isSelected ? "bg-orange-500 border-orange-500" : darkMode ? "border-slate-500" : "border-slate-300"}`}>
+                                                            {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <div className="font-medium text-sm truncate">{addon.name}</div>
+                                                            <div className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                                                {fmtCurrency(addonPrice)}{addon.price_type === "per_day" ? "/Tag" : " einmalig"}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    {form.selectedAddOns.length > 0 && (
+                                        <div className={`mt-2 text-xs text-right ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                            Zubehör: <span className="font-medium text-orange-500">{fmtCurrency(addonTotal)}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -660,6 +739,29 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         <span className="text-slate-500">Zeitraum</span>
                                         <span className="font-medium">{new Date(form.start_date).toLocaleDateString()} - {new Date(form.end_date).toLocaleDateString()} ({days} Tage)</span>
                                     </div>
+                                    {/* Add-ons summary */}
+                                    {form.selectedAddOns.length > 0 && addOns && (
+                                        <div>
+                                            <div className="flex justify-between mb-1">
+                                                <span className="text-slate-500">Zubehör</span>
+                                                <span className="font-medium text-orange-500">{fmtCurrency(addonTotal)}</span>
+                                            </div>
+                                            <div className="space-y-0.5 pl-2">
+                                                {form.selectedAddOns.map(addonId => {
+                                                    const addon = addOns.find(a => a.id === addonId);
+                                                    if (!addon) return null;
+                                                    const price = addon.price_type === "per_day" ? addon.price * days : addon.price;
+                                                    return (
+                                                        <div key={addonId} className="flex justify-between text-xs">
+                                                            <span className={darkMode ? "text-slate-400" : "text-slate-600"}>{addon.name}</span>
+                                                            <span className={darkMode ? "text-slate-300" : "text-slate-700"}>{fmtCurrency(price)}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="border-t my-2 pt-2 flex justify-between text-base">
                                         <span className="font-medium">Gesamtbetrag</span>
                                         <div className="text-right">

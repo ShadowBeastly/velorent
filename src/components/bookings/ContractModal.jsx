@@ -31,7 +31,7 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="contract-modal-title"
-                className={`w-full max-w-3xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}
+                className={`w-full max-w-3xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}
             >
 
                 {/* Header */}
@@ -40,17 +40,17 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                     <div className="flex gap-2">
                         <button
                             onClick={handlePrint}
-                            className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm font-medium hover:bg-slate-700 flex items-center gap-2 transition-colors"
+                            className="px-3 py-2 bg-slate-600 text-white rounded-lg text-sm font-medium hover:bg-slate-700 flex items-center gap-2 transition-colors"
                         >
                             <Printer className="w-4 h-4" />
-                            Drucken
+                            <span className="hidden sm:inline">Drucken</span>
                         </button>
                         <button
                             onClick={handleDownload}
-                            className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 flex items-center gap-2 transition-colors"
+                            className="px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 flex items-center gap-2 transition-colors"
                         >
                             <Download className="w-4 h-4" />
-                            PDF herunterladen
+                            <span className="hidden sm:inline">PDF herunterladen</span>
                         </button>
                         <button onClick={onClose} aria-label="Schließen" className={`p-2 rounded-full transition-colors ${darkMode ? "hover:bg-slate-800 text-white" : "hover:bg-slate-100 text-slate-900"}`}>
                             <X className="w-5 h-5" />
@@ -59,10 +59,10 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                 </div>
 
                 {/* Preview Area */}
-                <div className="p-8 overflow-y-auto bg-white text-black">
+                <div className="p-4 sm:p-8 overflow-y-auto bg-white text-black">
 
                     {/* Contract header */}
-                    <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-black pb-4 mb-6 gap-4">
                         <div>
                             <h1 className="text-2xl font-bold">Mietvertrag</h1>
                             <p className="text-sm text-gray-500 mt-1">
@@ -88,7 +88,7 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                     {/* Section 1: Vertragsparteien */}
                     <div className="mb-6">
                         <h2 className="text-base font-bold border-b border-gray-300 pb-1 mb-3">1. Vertragsparteien</h2>
-                        <div className="grid grid-cols-2 gap-6 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
                             <div>
                                 <p className="font-semibold text-gray-500 mb-1">Vermieter</p>
                                 <p className="font-medium">{currentOrg?.name || '—'}</p>
@@ -103,7 +103,7 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                                 <p className="font-semibold text-gray-500 mb-1">Mieter</p>
                                 <p className="font-medium">{booking?.customer_name || '—'}</p>
                                 {booking?.customer_address && <p>{booking.customer_address}</p>}
-                                {booking?.id_number && <p>Ausweis-Nr.: {booking.id_number}</p>}
+                                {(booking?.customer_id_number || booking?.id_number) && <p>Ausweis-Nr.: {booking?.customer_id_number || booking?.id_number}</p>}
                                 {booking?.customer_phone && <p>{booking.customer_phone}</p>}
                                 {booking?.customer_email && <p>{booking.customer_email}</p>}
                             </div>
@@ -223,7 +223,7 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                     <div>
                         <h2 className="text-base font-bold border-b border-gray-300 pb-1 mb-4">6. Unterschriften</h2>
                         <p className="text-sm text-gray-500 mb-6">Ort, Datum: _________________________</p>
-                        <div className="flex justify-between gap-8">
+                        <div className="flex flex-col sm:flex-row justify-between gap-8">
                             <div className="flex-1">
                                 <div className="border-t border-black pt-2 text-sm text-center">
                                     {currentOrg?.name || 'Vermieter'} (Unterschrift)

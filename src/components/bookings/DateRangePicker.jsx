@@ -64,6 +64,7 @@ export default function DateRangePicker({
             onStartDateChange(d);
             onEndDateChange(null);
             setSelecting("end");
+            setRangeError(null);
         } else {
             // Check if range is valid
             const days = Math.ceil((d - startDate) / (1000 * 60 * 60 * 24)) + 1;

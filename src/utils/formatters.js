@@ -8,6 +8,6 @@ export const daysDiff = (a, b) => Math.ceil((toLocal(b) - toLocal(a)) / (1000 * 
 
 // ============ FORMAT UTILITIES ============
 export const fmtDate = (s) => s ? toLocal(s).toLocaleDateString("de-DE") : "—";
-export const fmtDateShort = (s) => toLocal(s).toLocaleDateString("de-DE", { day: "2-digit", month: "short" });
-export const fmtDateCompact = (d) => toLocal(d).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+export const fmtDateShort = (s) => s ? toLocal(s).toLocaleDateString("de-DE", { day: "2-digit", month: "short" }) : "—";
+export const fmtDateCompact = (d) => d ? toLocal(d).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }) : "—";
 export const fmtCurrency = (n) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n || 0);

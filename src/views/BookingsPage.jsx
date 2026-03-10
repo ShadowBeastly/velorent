@@ -15,7 +15,7 @@ import { exportToCSV } from "../utils/exportCSV";
 
 export default function BookingsPage() {
     const { darkMode, searchQuery } = useApp();
-    const { bikes, bookings, customers, invoices, pricingRules } = useData();
+    const { bikes, bookings, customers, invoices, pricingRules, addOns } = useData();
     const org = useOrganization();
     const currentOrg = org.currentOrg;
     const { addToast } = useToast();
@@ -28,7 +28,7 @@ export default function BookingsPage() {
     const filtered = useMemo(() => {
         return bookings.bookings
             .filter(b => statusFilter === "all" || b.status === statusFilter)
-            .filter(b => searchQuery === "" || b.customer_name.toLowerCase().includes(searchQuery.toLowerCase()));
+            .filter(b => searchQuery === "" || (b.customer_name || "").toLowerCase().includes(searchQuery.toLowerCase()));
     }, [bookings.bookings, statusFilter, searchQuery]);
 
     const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
@@ -61,13 +61,13 @@ export default function BookingsPage() {
         }
 
         if (editBooking) {
-            const { error } = await bookings.update(editBooking.id, bookingData);
+            const { error } = await bookings.update(editBooking.id, bookingData, addOns.addOns);
             if (error) {
                 addToast("Fehler beim Aktualisieren: " + error.message, "error");
                 return;
             }
         } else {
-            const { error } = await bookings.create(bookingData);
+            const { error } = await bookings.create(bookingData, addOns.addOns);
             if (error) {
                 addToast("Fehler beim Erstellen: " + error.message, "error");
                 return;
@@ -86,20 +86,28 @@ export default function BookingsPage() {
         setHandoverType("return");
     };
 
-    const confirmHandover = async (updatedNotes) => {
+    const confirmHandover = async (protocol) => {
+        const notesText = [
+            protocol.notes,
+            protocol.damages?.length ? `Schäden: ${protocol.damages.join(", ")}` : null,
+            `Akku: ${protocol.batteryLevel}%`,
+        ].filter(Boolean).join("\n");
+
         let updates;
         if (handoverType === "pickup") {
             updates = {
                 status: "picked_up",
-                pickup_notes: updatedNotes,
+                pickup_notes: notesText,
+                pickup_protocol: protocol,
                 deposit_amount: handoverBooking.deposit_amount,
                 deposit_status: "held"
             };
         } else {
             updates = {
                 status: "returned",
-                return_notes: updatedNotes,
-                deposit_status: "refunded"
+                return_notes: notesText,
+                return_protocol: protocol,
+                deposit_status: protocol.damages?.length ? "held" : "refunded"
             };
         }
         const { error } = await bookings.update(handoverBooking.id, updates);
@@ -119,12 +127,12 @@ export default function BookingsPage() {
 
         // 1. Calculate Amounts
         const total = Number(booking.total_price);
-        const taxRate = 19;
+        const taxRate = currentOrg?.tax_rate ?? 19;
         const net = total / (1 + (taxRate / 100));
         const tax = total - net;
 
         // 2. Prepare Data
-        const invoiceNumber = `RE-${(booking.booking_number || '000').replace('VR-', '')}`;
+        const invoiceNumber = `RE-${(booking.booking_number || '000').replace(/^[A-Z]+-/, '')}`;
         const items = [{
             description: `Fahrradmiete: ${booking.bike?.name || 'Bike'} (${fmtDate(booking.start_date)} - ${fmtDate(booking.end_date)})`,
             quantity: `${booking.total_days || 1} Tage`,
@@ -161,8 +169,8 @@ export default function BookingsPage() {
                 ...invoiceData,
                 created_at: new Date().toISOString(),
                 customer: {
-                    first_name: booking.customer_name.split(" ")[0],
-                    last_name: booking.customer_name.split(" ").slice(1).join(" ") || "",
+                    first_name: (booking.customer_name || "").split(" ")[0] || "",
+                    last_name: (booking.customer_name || "").split(" ").slice(1).join(" ") || "",
                     email: booking.customer_email,
                     address: booking.customer_address
                 },
@@ -233,12 +241,12 @@ export default function BookingsPage() {
                         <table className="w-full">
                             <thead className={darkMode ? "bg-slate-800/50" : "bg-slate-50"}>
                                 <tr className={`text-left text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                    <th className="px-4 py-3">Nr.</th>
+                                    <th className="px-4 py-3 hidden md:table-cell">Nr.</th>
                                     <th className="px-4 py-3">Kunde</th>
-                                    <th className="px-4 py-3">Rad</th>
-                                    <th className="px-4 py-3">Zeitraum</th>
+                                    <th className="px-4 py-3 hidden sm:table-cell">Rad</th>
+                                    <th className="px-4 py-3 hidden lg:table-cell">Zeitraum</th>
                                     <th className="px-4 py-3">Preis</th>
-                                    <th className="px-4 py-3">Kaution</th>
+                                    <th className="px-4 py-3 hidden md:table-cell">Kaution</th>
                                     <th className="px-4 py-3">Status</th>
                                     <th className="px-4 py-3">Aktionen</th>
                                 </tr>
@@ -249,12 +257,12 @@ export default function BookingsPage() {
                                     const lateFee = calculateLateFee(b, currentOrg);
                                     return (
                                         <tr key={b.id} className={`${darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"} ${lateFee.isLate ? darkMode ? "bg-red-500/5" : "bg-red-50/60" : ""}`}>
-                                            <td className="px-4 py-3 font-mono text-sm">{b.booking_number}</td>
+                                            <td className="px-4 py-3 font-mono text-sm hidden md:table-cell">{b.booking_number}</td>
                                             <td className="px-4 py-3">
                                                 <div className="font-medium">{b.customer_name}</div>
                                                 <div className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{b.customer_phone}</div>
                                             </td>
-                                            <td className="px-4 py-3">
+                                            <td className="px-4 py-3 hidden sm:table-cell">
                                                 <div className="flex items-center gap-2">
                                                     <div className={`w-6 h-6 rounded ${BIKE_COLORS[bikeIdx % BIKE_COLORS.length]} flex items-center justify-center text-white text-xs font-bold`}>
                                                         {bikeIdx + 1}
@@ -272,9 +280,9 @@ export default function BookingsPage() {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-3 text-sm">{fmtDate(b.start_date)} → {fmtDate(b.end_date)}</td>
+                                            <td className="px-4 py-3 text-sm hidden lg:table-cell">{fmtDate(b.start_date)} → {fmtDate(b.end_date)}</td>
                                             <td className="px-4 py-3 font-medium">{fmtCurrency(b.total_price)}</td>
-                                            <td className="px-4 py-3">
+                                            <td className="px-4 py-3 hidden md:table-cell">
                                                 {b.deposit_amount ? (
                                                     <div className="text-sm">
                                                         <span className="font-medium">{fmtCurrency(b.deposit_amount)}</span>
@@ -304,7 +312,7 @@ export default function BookingsPage() {
                                                     {["reserved", "confirmed"].includes(b.status) && (
                                                         <button
                                                             onClick={() => handlePickup(b)}
-                                                            className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors"
+                                                            className="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors"
                                                             title="Übergabe"
                                                         >
                                                             <ArrowUpRight className="w-4 h-4" />
@@ -314,7 +322,7 @@ export default function BookingsPage() {
                                                     {b.status === "picked_up" && (
                                                         <button
                                                             onClick={() => handleReturn(b)}
-                                                            className="p-2 rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-colors"
+                                                            className="p-2.5 rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-colors"
                                                             title="Rückgabe"
                                                         >
                                                             <ArrowDownLeft className="w-4 h-4" />
@@ -322,13 +330,13 @@ export default function BookingsPage() {
                                                     )}
                                                     <button
                                                         onClick={() => { setEditBooking(b); setShowModal(true); }}
-                                                        className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-200"}`}
+                                                        className={`p-2.5 rounded-lg ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-200"}`}
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleInvoice(b)}
-                                                        className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-200"} text-slate-400 hover:text-green-500`}
+                                                        className={`p-2.5 rounded-lg ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-200"} text-slate-400 hover:text-green-500`}
                                                         title="Rechnung erstellen"
                                                     >
                                                         <FileText className="w-4 h-4" />
@@ -357,6 +365,7 @@ export default function BookingsPage() {
                     customers={customers.customers}
                     existingBookings={bookings.bookings}
                     pricingRules={pricingRules?.rules || []}
+                    addOns={addOns.addOns}
                     onSave={handleSave}
                     onDelete={async (id) => {
                         const { error } = await bookings.remove(id);
@@ -375,7 +384,7 @@ export default function BookingsPage() {
                     booking={handoverBooking}
                     type={handoverType}
                     onConfirm={confirmHandover}
-                    onClose={() => setHandoverBooking(null)}
+                    onClose={() => { setHandoverBooking(null); setHandoverType(null); }}
                     darkMode={darkMode}
                 />
             )}

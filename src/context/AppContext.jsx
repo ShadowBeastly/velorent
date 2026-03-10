@@ -10,15 +10,30 @@ export function AppProvider({ children }) {
         return stored === null ? true : stored === "true";
     });
     const [searchQuery, setSearchQuery] = useState("");
-    const [sidebarOpen, setSidebarOpen] = useState(() => {
-        if (typeof window === "undefined") return true;
-        // Default closed on mobile, open on desktop
-        return window.innerWidth >= 768;
-    });
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+
+    // After hydration, adjust sidebar based on screen width (avoid SSR mismatch)
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+            setSidebarOpen(false);
+        }
+    }, []);
 
     useEffect(() => {
         localStorage.setItem("darkMode", String(darkMode));
+        // Sync Tailwind `dark:` class variants with our darkMode state
+        if (typeof document !== "undefined") {
+            document.documentElement.classList.toggle("dark", darkMode);
+        }
     }, [darkMode]);
+
+    // Apply dark class on initial hydration before first paint
+    useEffect(() => {
+        if (typeof document !== "undefined") {
+            document.documentElement.classList.toggle("dark", darkMode);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <AppContext.Provider value={{

@@ -128,7 +128,7 @@ CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(organization_id, ema
 CREATE TABLE IF NOT EXISTS bookings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
-    booking_number TEXT, -- Human-readable: VR-2024-001
+    booking_number TEXT, -- Human-readable: RC-2024-001
     bike_id UUID REFERENCES bikes(id) ON DELETE SET NULL,
     customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
 
@@ -460,9 +460,9 @@ BEGIN
     INTO seq_num
     FROM bookings
     WHERE organization_id = NEW.organization_id
-    AND booking_number LIKE 'VR-' || year_str || '-%';
+    AND booking_number LIKE 'RC-' || year_str || '-%';
 
-    NEW.booking_number := 'VR-' || year_str || '-' || LPAD(seq_num::TEXT, 4, '0');
+    NEW.booking_number := 'RC-' || year_str || '-' || LPAD(seq_num::TEXT, 4, '0');
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

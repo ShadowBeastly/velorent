@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../utils/supabase";
-import { daysDiff, fmtCurrency } from "../utils/formatters";
+import { daysDiff, fmtCurrency, fmtDate } from "../utils/formatters";
 
 export function useBookings(orgId) {
     const [bookings, setBookings] = useState([]);
@@ -10,31 +10,75 @@ export function useBookings(orgId) {
     const load = useCallback(async () => {
         if (!orgId) { setLoading(false); return; }
         setLoading(true);
-        const { data } = await supabase
-            .from("bookings")
-            .select("*, bike:bikes(*), customer:customers(*)")
-            .eq("organization_id", orgId)
-            .order("start_date", { ascending: false });
-        setBookings(data || []);
-        setLoading(false);
+        try {
+            const { data, error } = await supabase
+                .from("bookings")
+                .select("*, bike:bikes(*), customer:customers(*), booking_items:booking_items(*, bike:bikes(id, name, category, price_per_day)), booking_addons:booking_addons(*, addon:add_ons(id, name, icon))")
+                .eq("organization_id", orgId)
+                .order("start_date", { ascending: false });
+            if (error) throw error;
+            setBookings(data || []);
+        } catch (err) {
+            console.error("Failed to load bookings:", err);
+            setBookings([]);
+        } finally {
+            setLoading(false);
+        }
     }, [orgId]);
 
-    // eslint-disable-next-line
     useEffect(() => { load(); }, [load]);
 
-    const create = async (booking) => {
-        const selectedBikes = booking.selectedBikes || [];
-        const isGroup = selectedBikes.length > 1;
+    const normalizeBookingPayload = (booking) => {
+        const {
+            selectedBikes = [],
+            selectedAddOns = [],
+            id_number,
+            customer_id_number,
+            ...bookingRow
+        } = booking;
 
-        // Strip UI-only fields before inserting into bookings table
-        // eslint-disable-next-line no-unused-vars
-        const { selectedBikes: _sb, ...bookingRow } = booking;
+        if (customer_id_number !== undefined || id_number !== undefined) {
+            bookingRow.customer_id_number = (customer_id_number ?? id_number) || null;
+        }
+
+        return { selectedBikes, selectedAddOns, bookingRow };
+    };
+
+    const saveBookingAddons = async (bookingId, selectedAddOns, addOnsData, totalDays) => {
+        if (!selectedAddOns || selectedAddOns.length === 0) return;
+        const rows = selectedAddOns.map(addonId => {
+            const addon = (addOnsData || []).find(a => a.id === addonId);
+            const unitPrice = addon?.price ?? 0;
+            const priceType = addon?.price_type ?? 'per_day';
+            const totalPrice = priceType === 'per_day' ? unitPrice * Math.max(1, totalDays) : unitPrice;
+            return {
+                booking_id: bookingId,
+                addon_id: addonId,
+                addon_name: addon?.name ?? addonId,
+                price_type: priceType,
+                unit_price: unitPrice,
+                total_price: totalPrice,
+            };
+        });
+        const { error } = await supabase.from("booking_addons").insert(rows);
+        if (error) {
+            console.error("booking_addons insert failed:", error);
+            throw error;
+        }
+    };
+
+    const create = async (booking, addOnsData) => {
+        const { selectedBikes, selectedAddOns, bookingRow } = normalizeBookingPayload(booking);
+        const isGroup = selectedBikes.length > 1;
 
         const insertRow = {
             ...bookingRow,
             organization_id: orgId,
             is_group_booking: isGroup,
             bike_count: isGroup ? selectedBikes.length : 1,
+            total_days: bookingRow.start_date && bookingRow.end_date
+                ? daysDiff(bookingRow.start_date, bookingRow.end_date)
+                : (bookingRow.total_days || null),
         };
 
         const { data, error } = await supabase
@@ -62,6 +106,11 @@ export function useBookings(orgId) {
                 }
             }
 
+            // Save selected add-ons
+            if (selectedAddOns.length > 0) {
+                await saveBookingAddons(data.id, selectedAddOns, addOnsData, insertRow.total_days || 1);
+            }
+
             setBookings(prev => [data, ...prev]);
 
             // Trigger Email asynchronously
@@ -75,21 +124,29 @@ export function useBookings(orgId) {
     };
 
     const fetchOrg = async () => {
-        const { data: org } = await supabase.from("organizations").select("name, email, phone").eq("id", orgId).single();
-        return org;
+        try {
+            const { data, error } = await supabase.from("organizations").select("name, email, phone").eq("id", orgId).single();
+            if (error) throw error;
+            return data;
+        } catch (err) {
+            console.error("fetchOrg failed:", err);
+            return null;
+        }
     };
 
     const buildEmailData = (bookingData, org) => ({
-        booking_number: bookingData.booking_number || bookingData.id.slice(0, 8).toUpperCase(),
-        customer_name: `${bookingData.customer.first_name} ${bookingData.customer.last_name}`,
-        customer_phone: bookingData.customer.phone,
+        booking_number: bookingData.booking_number || bookingData.id?.slice(0, 8).toUpperCase() || "",
+        customer_name: bookingData.customer
+            ? `${bookingData.customer.first_name} ${bookingData.customer.last_name}`
+            : (bookingData.customer_name || "Gast"),
+        customer_phone: bookingData.customer?.phone ?? "",
         organization_name: org?.name || "RentCore",
         organization_email: org?.email,
         organization_phone: org?.phone,
-        bike_name: bookingData.bike.name,
-        start_date: new Date(bookingData.start_date).toLocaleDateString("de-DE"),
-        end_date: new Date(bookingData.end_date).toLocaleDateString("de-DE"),
-        total_days: daysDiff(bookingData.start_date, bookingData.end_date),
+        bike_name: bookingData.bike?.name || bookingData.booking_items?.[0]?.bike?.name || "Fahrrad",
+        start_date: bookingData.start_date ? fmtDate(bookingData.start_date) : "",
+        end_date: bookingData.end_date ? fmtDate(bookingData.end_date) : "",
+        total_days: bookingData.start_date && bookingData.end_date ? daysDiff(bookingData.start_date, bookingData.end_date) : 1,
         total_price: fmtCurrency(bookingData.total_price),
         status: bookingData.status,
     });
@@ -107,7 +164,7 @@ export function useBookings(orgId) {
 
     const sendPickupConfirmationEmail = async (bookingData) => {
         const org = await fetchOrg();
-        // Reuse booking_confirmation template with status=picked_up so the banner shows "Bestätigt"
+        // Reuse booking_confirmation template with status=picked_up so the banner shows "Bestaetigt"
         await supabase.functions.invoke('send-email', {
             body: {
                 type: "booking_confirmation",
@@ -120,34 +177,46 @@ export function useBookings(orgId) {
         });
     };
 
-    const sendReturnReminder = async (bookingData) => {
+    const sendReturnConfirmation = async (bookingData) => {
         const org = await fetchOrg();
         await supabase.functions.invoke('send-email', {
             body: {
-                type: "return_reminder",
+                type: "return_confirmation",
                 to: bookingData.customer.email,
                 data: buildEmailData(bookingData, org),
             }
         });
     };
 
-    const update = async (id, updates) => {
+    const update = async (id, updates, addOnsData) => {
+        const { selectedAddOns, bookingRow } = normalizeBookingPayload(updates);
         const { data, error } = await supabase
             .from("bookings")
-            .update(updates)
+            .update(bookingRow)
             .eq("id", id)
             .eq("organization_id", orgId)
             .select("*, bike:bikes(*), customer:customers(*)")
             .single();
         if (!error) {
-            setBookings(prev => prev.map(b => b.id === id ? data : b));
+            // Re-save add-ons if they were explicitly provided
+            if (selectedAddOns.length > 0 && addOnsData) {
+                await supabase.from("booking_addons").delete().eq("booking_id", id);
+                const totalDays = bookingRow.total_days
+                    || (bookingRow.start_date && bookingRow.end_date ? daysDiff(bookingRow.start_date, bookingRow.end_date) : null)
+                    || 1;
+                await saveBookingAddons(id, selectedAddOns, addOnsData, totalDays);
+                // Reload to get fresh booking_addons data
+                await load();
+            } else {
+                setBookings(prev => prev.map(b => b.id === id ? data : b));
+            }
 
             // Fire-and-forget emails on status transitions
             if (updates.status === "picked_up" && data.customer?.email) {
                 sendPickupConfirmationEmail(data).catch(err => console.error("Pickup email failed:", err));
             }
             if (updates.status === "returned" && data.customer?.email) {
-                sendReturnReminder(data).catch(err => console.error("Return email failed:", err));
+                sendReturnConfirmation(data).catch(err => console.error("Return email failed:", err));
             }
         } else {
             console.error("Booking update failed:", error);
@@ -172,5 +241,5 @@ export function useBookings(orgId) {
         return { error };
     };
 
-    return { bookings, loading, reload: load, create, update, remove, sendReturnReminder };
+    return { bookings, loading, reload: load, create, update, remove };
 }

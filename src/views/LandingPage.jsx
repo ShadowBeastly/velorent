@@ -14,6 +14,14 @@ export default function LandingPage({ onGetStarted, onLogin }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState("monthly"); // monthly | yearly
 
+  const scrollTo = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 96;
+    window.scrollTo({ top, behavior: 'smooth' });
+    setMobileMenuOpen(false);
+  };
+
   const features = [
     {
       icon: Calendar,
@@ -49,31 +57,30 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
   const pricing = [
     {
-      name: "Starter",
-      price: { monthly: 29, yearly: 290 },
+      name: "Basic",
+      price: { monthly: 29, yearly: 24 },
       description: "Perfekt für den Einstieg",
       features: [
-        "Bis zu 5 Fahrräder",
-        "1 Benutzer",
-        "Basis-Kalender",
-        "Kundenverwaltung",
-        "Community Support"
+        "Bis zu 20 Fahrräder",
+        "Buchungskalender",
+        "Rechnungen & Verträge",
+        "E-Mail Support"
       ],
       cta: "14 Tage testen",
       variant: "outline",
       highlighted: false
     },
     {
-      name: "Growth",
-      price: { monthly: 69, yearly: 690 },
+      name: "Pro",
+      price: { monthly: 59, yearly: 49 },
       description: "Für wachsende Verleihe",
       features: [
-        "Bis zu 25 Fahrräder",
-        "3 Benutzer",
-        "Online-Booking Widget",
-        "Erweiterte Statistiken",
-        "Rechnungs-Export",
-        "E-Mail Support"
+        "Bis zu 100 Fahrräder",
+        "Alle Basic-Features",
+        "Buchungs-Widget (Website)",
+        "Voucher & Rabattcodes",
+        "Branding & White-Label",
+        "Priorität-Support"
       ],
       cta: "14 Tage testen",
       variant: "primary",
@@ -81,35 +88,18 @@ export default function LandingPage({ onGetStarted, onLogin }) {
       badge: "BELIEBT"
     },
     {
-      name: "Pro",
-      price: { monthly: 149, yearly: 1490 },
+      name: "Unlimited",
+      price: { monthly: 99, yearly: 82 },
       description: "Für professionelle Anbieter",
       features: [
         "Unbegrenzte Fahrräder",
-        "Unbegrenzte Benutzer",
-        "White-Label Widget",
-        "Multi-Standort Support",
-        "Standard API Zugang",
-        "Schnellerer Support"
+        "Alle Pro-Features",
+        "Multi-Standort",
+        "API-Zugang",
+        "Dedizierter Account Manager"
       ],
       cta: "14 Tage testen",
       variant: "outline",
-      highlighted: false
-    },
-    {
-      name: "Enterprise",
-      price: { monthly: 249, yearly: 2490 },
-      description: "Für große Flotten & Ketten",
-      features: [
-        "Alles aus Pro",
-        "Priorisierter Email-Support",
-        "Onboarding Hilfe",
-        "Custom Integrationen (auf Anfrage)",
-        "SLA Vereinbarungen",
-        "Mehrmandantenfähig"
-      ],
-      cta: "Kontakt aufnehmen",
-      variant: "ghost",
       highlighted: false
     }
   ];
@@ -170,9 +160,9 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-white transition-colors">Features</a>
-              <a href="#pricing" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-white transition-colors">Preise</a>
-              <a href="#faq" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-white transition-colors">FAQ</a>
+              <button onClick={() => scrollTo('features')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-white transition-colors">Features</button>
+              <button onClick={() => scrollTo('pricing')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-white transition-colors">Preise</button>
+              <button onClick={() => scrollTo('faq')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-white transition-colors">FAQ</button>
             </div>
 
             {/* CTA Buttons */}
@@ -199,9 +189,9 @@ export default function LandingPage({ onGetStarted, onLogin }) {
         {mobileMenuOpen && (
           <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 py-4 px-4 absolute w-full shadow-xl">
             <div className="flex flex-col gap-4">
-              <a href="#features" className="text-slate-600 dark:text-slate-300 font-medium py-2">Features</a>
-              <a href="#pricing" className="text-slate-600 dark:text-slate-300 font-medium py-2">Preise</a>
-              <a href="#faq" className="text-slate-600 dark:text-slate-300 font-medium py-2">FAQ</a>
+              <button onClick={() => { scrollTo('features'); setMobileMenuOpen(false); }} className="text-slate-600 dark:text-slate-300 font-medium py-2 text-left">Features</button>
+              <button onClick={() => { scrollTo('pricing'); setMobileMenuOpen(false); }} className="text-slate-600 dark:text-slate-300 font-medium py-2 text-left">Preise</button>
+              <button onClick={() => { scrollTo('faq'); setMobileMenuOpen(false); }} className="text-slate-600 dark:text-slate-300 font-medium py-2 text-left">FAQ</button>
               <hr className="border-slate-200 dark:border-slate-700" />
               <Button variant="ghost" onClick={onLogin} className="w-full justify-start">Anmelden</Button>
               <Button variant="primary" onClick={onGetStarted} className="w-full">Jetzt starten</Button>
@@ -220,7 +210,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-heading font-bold text-slate-900 dark:text-white leading-[1.1] mb-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-heading font-bold text-slate-900 dark:text-white leading-[1.1] mb-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
               Buchungskalender. Rechnungen. Online-Widget. <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-violet-600">Alles in einer Software.</span>
             </h1>
@@ -241,7 +231,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               </Button>
             </div>
 
-            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-slate-500 dark:text-slate-400 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm text-slate-500 dark:text-slate-400 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-brand-500" />
                 <span>Keine Kreditkarte</span>
@@ -258,7 +248,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
             <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 animate-fade-in-up" style={{ animationDelay: '450ms' }}>
               <Check className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-              <span>Bereits von 12+ Fahrradverleihen in Deutschland genutzt</span>
+              <span>Keine Kreditkarte erforderlich · Kostenlos starten</span>
             </div>
           </div>
 
@@ -442,7 +432,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {pricing.map((plan, i) => (
               <Card
                 key={i}
@@ -468,12 +458,12 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                       {plan.price[billingCycle]}€
                     </span>
                     <span className="text-slate-500 dark:text-slate-400">
-                      /{billingCycle === "monthly" ? "Monat" : "Jahr"}
+                      /Monat
                     </span>
                   </div>
                   {billingCycle === "yearly" && (
                     <p className="text-xs text-emerald-500 mt-1 font-medium">
-                      ≈ {Math.round(plan.price.yearly / 12)}€/Monat · 2 Monate gratis
+                      {plan.price.yearly * 12}€/Jahr · 2 Monate gratis
                     </p>
                   )}
                 </div>
@@ -553,7 +543,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
       <section className="py-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-brand-900">
           <div className="absolute inset-0 bg-gradient-to-br from-brand-600 to-violet-900 opacity-90"></div>
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.svg')] opacity-20"></div>
         </div>
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
@@ -564,7 +554,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             Starten Sie noch heute mit RentCore und digitalisieren Sie Ihren Verleih in weniger als 5 Minuten.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="xl" className="bg-white text-brand-600 hover:bg-brand-50 shadow-xl border-none" onClick={onGetStarted}>
+            <Button size="xl" className="bg-white !text-brand-600 hover:bg-brand-50 shadow-xl border-none" onClick={onGetStarted}>
               Jetzt starten
             </Button>
             <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/10" onClick={() => { window.location.href = "mailto:info@rentcore.de?subject=Anfrage"; }}>
@@ -577,7 +567,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
       {/* Footer */}
       <footer className="bg-slate-950 text-slate-400 py-16 px-4 border-t border-slate-800">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-12">
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-600 to-violet-600 flex items-center justify-center">
@@ -597,20 +587,15 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             <div>
               <h4 className="text-white font-bold mb-6">Produkt</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-brand-400 transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-brand-400 transition-colors">Preise</a></li>
-                <li><a href="#" className="hover:text-brand-400 transition-colors">Showcase</a></li>
-                <li><a href="#" className="hover:text-brand-400 transition-colors">Changelog</a></li>
+                <li><button onClick={() => scrollTo('features')} className="hover:text-brand-400 transition-colors">Features</button></li>
+                <li><button onClick={() => scrollTo('pricing')} className="hover:text-brand-400 transition-colors">Preise</button></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-white font-bold mb-6">Ressourcen</h4>
+              <h4 className="text-white font-bold mb-6">Support</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-brand-400 transition-colors">Dokumentation</a></li>
-                <li><a href="#" className="hover:text-brand-400 transition-colors">API Reference</a></li>
-                <li><a href="#" className="hover:text-brand-400 transition-colors">Community</a></li>
-                <li><a href="#" className="hover:text-brand-400 transition-colors">Help Center</a></li>
+                <li><a href="mailto:info@rentcore.de" className="hover:text-brand-400 transition-colors">info@rentcore.de</a></li>
               </ul>
             </div>
 
@@ -620,7 +605,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 <li><Link href="/impressum" className="hover:text-brand-400 transition-colors">Impressum</Link></li>
                 <li><Link href="/datenschutz" className="hover:text-brand-400 transition-colors">Datenschutz</Link></li>
                 <li><Link href="/agb" className="hover:text-brand-400 transition-colors">AGB</Link></li>
-                <li><a href="#" className="hover:text-brand-400 transition-colors">Cookie Einstellungen</a></li>
+                <li><button onClick={() => { localStorage.removeItem('cookie_consent'); window.location.reload(); }} className="hover:text-brand-400 transition-colors">Cookie Einstellungen</button></li>
               </ul>
             </div>
           </div>

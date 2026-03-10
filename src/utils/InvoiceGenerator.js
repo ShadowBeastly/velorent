@@ -24,7 +24,10 @@ export const generateInvoice = (invoice, organization) => {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
-        return new Date(dateStr).toLocaleDateString('de-DE');
+        const d = typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+            ? new Date(dateStr + 'T00:00:00')
+            : new Date(dateStr);
+        return d.toLocaleDateString('de-DE');
     };
 
     // --- HEADER ---
@@ -119,7 +122,12 @@ export const generateInvoice = (invoice, organization) => {
     });
 
     // --- TOTALS ---
-    const finalY = doc.lastAutoTable.finalY + 10;
+    const pageHeight = doc.internal.pageSize.height;
+    let finalY = doc.lastAutoTable.finalY + 10;
+    if (finalY > pageHeight - 60) {
+        doc.addPage();
+        finalY = 20;
+    }
 
     doc.setFontSize(10);
     doc.setTextColor(grayColor);
@@ -143,19 +151,21 @@ export const generateInvoice = (invoice, organization) => {
     doc.setFont(undefined, 'normal');
 
     // --- FOOTER ---
-    const footerY = 270;
+    const footerY = pageHeight - 15;
     doc.setFontSize(8);
     doc.setTextColor('#94a3b8');
     doc.setDrawColor(226, 232, 240);
     doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
 
     const footerText = [
-        `${organization?.name || 'RentCore'} • ${organization?.address || ''}, ${organization?.city || ''}`,
+        [organization?.name || 'RentCore', organization?.address, organization?.city].filter(Boolean).join(', '),
         organization?.iban
             ? `Bankverbindung: ${organization.iban}${organization.bic ? ` • BIC ${organization.bic}` : ''}`
-            : '',
-        `USt-IdNr.: ${organization?.tax_id || ''} • ${organization?.registration_court || ''}`
-    ];
+            : null,
+        (organization?.tax_id || organization?.registration_court)
+            ? [organization.tax_id ? `USt-IdNr.: ${organization.tax_id}` : null, organization.registration_court].filter(Boolean).join(' • ')
+            : null
+    ].filter(Boolean);
 
     doc.text(footerText, pageWidth / 2, footerY, { align: 'center', lineHeightFactor: 1.5 });
 

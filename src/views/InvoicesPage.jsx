@@ -34,7 +34,7 @@ export default function InvoicesPage() {
             invoice.due_date < today;
         const effectiveStatus = isOverdue ? 'overdue' : invoice.status;
         const matchesFilter = filter === 'all' || effectiveStatus === filter;
-        const searchLower = searchTerm.toLowerCase();
+        const searchLower = searchTerm.trim().toLowerCase();
         const matchesSearch =
             invoice.invoice_number?.toLowerCase().includes(searchLower) ||
             invoice.customer?.first_name?.toLowerCase().includes(searchLower) ||

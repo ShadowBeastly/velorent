@@ -30,6 +30,7 @@ export default function CustomerModal({ customer, onSave, onDelete, onClose, dar
     }, [onClose]);
 
     const handleSave = async () => {
+        if (!form.first_name?.trim() || !form.last_name?.trim()) return;
         setSaving(true);
         try {
             await onSave(form);
@@ -55,8 +56,8 @@ export default function CustomerModal({ customer, onSave, onDelete, onClose, dar
                     </button>
                 </div>
 
-                <div className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                <div className="p-6 space-y-4 overflow-y-auto max-h-[60dvh]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Vorname</label>
                             <input type="text" value={form.first_name} onChange={(e) => setForm(f => ({ ...f, first_name: e.target.value }))} className={inputStyle} />
@@ -73,7 +74,7 @@ export default function CustomerModal({ customer, onSave, onDelete, onClose, dar
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Telefon</label>
                             <input type="tel" value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className={inputStyle} />
                         </div>
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Adresse</label>
                             <input type="text" value={form.address} onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))} className={inputStyle} />
                         </div>
@@ -85,11 +86,11 @@ export default function CustomerModal({ customer, onSave, onDelete, onClose, dar
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Stadt</label>
                             <input type="text" value={form.city} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} className={inputStyle} />
                         </div>
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Ausweis-Nr.</label>
                             <input type="text" value={form.id_number} onChange={(e) => setForm(f => ({ ...f, id_number: e.target.value }))} className={inputStyle} />
                         </div>
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Notizen</label>
                             <textarea value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={inputStyle} />
                         </div>

@@ -7,6 +7,7 @@ import BookingModal from "../components/bookings/BookingModal";
 import { fmtISO, fmtDate, daysDiff } from "../utils/formatters";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
+import { useToast } from "../components/ui/Toast";
 
 
 // --- DND Components ---
@@ -53,7 +54,8 @@ function DroppableCell({ id, date, bikeId, children, onClick, className }) {
 
 export default function CalendarPage() {
     const { darkMode } = useApp();
-    const { bikes, bookings, customers, maintenanceBlocks, pricingRules } = useData();
+    const { bikes, bookings, customers, maintenanceBlocks, pricingRules, addOns } = useData();
+    const { addToast } = useToast();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [showModal, setShowModal] = useState(false);
     const [editBooking, setEditBooking] = useState(null);
@@ -94,7 +96,7 @@ export default function CalendarPage() {
 
                     if (isCurrentMonth) {
                         const containerWidth = bodyContainerRef.current.offsetWidth;
-                        const resourceColWidth = 256; // w-64
+                        const resourceColWidth = bodyContainerRef.current.offsetWidth < 768 ? 128 : 256; // w-32 md:w-64
                         const todayIndex = now.getDate() - 1; // 0-indexed
 
                         // Calculate position of Today's column center relative to the start of the SCROLLABLE content
@@ -224,27 +226,30 @@ export default function CalendarPage() {
     const handleSave = async (bookingData) => {
         try {
             if (!bookingData.customer_id && bookingData.customer_name) {
-                const [first, ...rest] = bookingData.customer_name.split(" ");
+                const [first, ...rest] = bookingData.customer_name.trim().split(/\s+/);
                 const last = rest.join(" ") || "Kunde";
-                const newCustomer = await customers.create({
+                const { data: newCustomer, error: customerError } = await customers.create({
                     first_name: first,
                     last_name: last,
                     email: bookingData.customer_email,
-                    phone: bookingData.customer_phone
+                    phone: bookingData.customer_phone,
+                    address: bookingData.customer_address,
+                    id_number: bookingData.id_number,
                 });
+                if (customerError) throw customerError;
                 if (newCustomer) bookingData.customer_id = newCustomer.id;
             }
             if (editBooking) {
-                const { error } = await bookings.update(editBooking.id, bookingData);
+                const { error } = await bookings.update(editBooking.id, bookingData, addOns.addOns);
                 if (error) throw error;
             } else {
-                const { error } = await bookings.create(bookingData);
+                const { error } = await bookings.create(bookingData, addOns.addOns);
                 if (error) throw error;
             }
             setShowModal(false);
         } catch (error) {
             console.error("Booking Error:", error);
-            console.error("Fehler beim Speichern:", error.message);
+            addToast("Fehler beim Speichern der Buchung.", "error");
         }
     };
 
@@ -286,7 +291,7 @@ export default function CalendarPage() {
                 if (error) throw error;
             } catch (error) {
                 console.error("Move failed:", error);
-                console.error("Verschieben fehlgeschlagen:", error.message);
+                addToast("Verschieben fehlgeschlagen.", "error");
             }
         }
     };
@@ -301,7 +306,7 @@ export default function CalendarPage() {
 
     return (
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <div className="h-[calc(100vh-6rem)] flex flex-col space-y-4 pb-4">
+            <div className="h-[calc(100dvh-6rem)] flex flex-col space-y-4 pb-4">
                 {/* Pro Toolbar */}
                 <div className="premium-card p-3 flex flex-col lg:flex-row gap-4 justify-between items-center z-30 relative shadow-xl shadow-slate-200/50 dark:shadow-black/20">
                     <div className="flex items-center gap-4 w-full lg:w-auto">
@@ -349,6 +354,16 @@ export default function CalendarPage() {
                                 </button>
                             ))}
                         </div>
+                        {/* Mobile view switcher */}
+                        <select
+                            value={viewMode}
+                            onChange={(e) => setViewMode(e.target.value)}
+                            className={`md:hidden px-3 py-1.5 rounded-xl border text-xs font-bold outline-none ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-100 border-slate-200 text-slate-900"}`}
+                        >
+                            <option value="day">Tag</option>
+                            <option value="week">Woche</option>
+                            <option value="month">Monat</option>
+                        </select>
                     </div>
 
                     <div className="flex items-center gap-3 w-full lg:w-auto">
@@ -386,7 +401,7 @@ export default function CalendarPage() {
                 <div className="premium-card flex-1 overflow-hidden flex flex-col relative shadow-2xl shadow-slate-200/50 dark:shadow-black/40 border-0 ring-1 ring-slate-200 dark:ring-slate-700">
                     {/* Sticky Header Row */}
                     <div className={`flex border-b z-20 sticky top-0 backdrop-blur-xl ${darkMode ? "border-slate-800 bg-slate-900/90" : "border-slate-200 bg-white/90"}`}>
-                        <div className={`w-64 flex-shrink-0 p-4 font-bold text-xs uppercase tracking-wider border-r flex items-center justify-between ${darkMode ? "border-slate-800 text-slate-400" : "border-slate-200 text-slate-500"}`}>
+                        <div className={`w-32 md:w-64 flex-shrink-0 p-4 font-bold text-xs uppercase tracking-wider border-r flex items-center justify-between ${darkMode ? "border-slate-800 text-slate-400" : "border-slate-200 text-slate-500"}`}>
                             <span>Ressource</span>
                             <Settings className="w-4 h-4 opacity-30 pointer-events-none" title="Kalendereinstellungen (kommt bald)" />
                         </div>
@@ -433,7 +448,7 @@ export default function CalendarPage() {
                                 return (
                                     <div key={bike.id} className={`flex border-b last:border-b-0 ${darkMode ? "border-slate-800 hover:bg-slate-800/50" : "border-slate-100 hover:bg-white"} transition-colors group h-16`}>
                                         {/* Resource Column */}
-                                        <div className={`w-64 flex-shrink-0 px-4 border-r flex items-center gap-4 sticky left-0 z-10 backdrop-blur-md ${darkMode ? "bg-slate-900/95 border-slate-800" : "bg-white/95 border-slate-200"}`}>
+                                        <div className={`w-32 md:w-64 flex-shrink-0 px-2 md:px-4 border-r flex items-center gap-2 md:gap-4 sticky left-0 z-10 backdrop-blur-md ${darkMode ? "bg-slate-900/95 border-slate-800" : "bg-white/95 border-slate-200"}`}>
                                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold shadow-sm ${bike.category === 'E-Bike' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'}`}>
                                                 {bike.name.charAt(0)}
                                             </div>
@@ -534,31 +549,34 @@ export default function CalendarPage() {
                                                 })()}
                                             </div>
 
-                                            {/* Maintenance Blocks */}
-                                            {bikeMaintenance.map(block => {
-                                                const start = new Date(block.start_date);
-                                                const end = new Date(block.end_date || block.start_date);
-                                                const effectiveStart = start < viewStart ? viewStart : start;
-                                                const effectiveEnd = end > viewEnd ? viewEnd : end;
-                                                if (effectiveStart > viewEnd || effectiveEnd < viewStart) return null;
-                                                const startIndex = daysDiff(viewStartStr, fmtISO(effectiveStart)) - 1;
-                                                const duration = daysDiff(fmtISO(effectiveStart), fmtISO(effectiveEnd));
-                                                return (
-                                                    <div key={`maint-${block.id}`}
-                                                        className="absolute bg-red-500/20 border border-red-500/40 border-dashed rounded-lg flex items-center gap-1 px-2 text-red-500 dark:text-red-400 text-[10px] font-semibold z-[5] pointer-events-none"
-                                                        style={{
-                                                            gridColumnStart: startIndex + 1,
-                                                            gridColumnEnd: `span ${duration}`,
-                                                            top: 0, bottom: 0,
-                                                            backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(239,68,68,0.08) 6px, rgba(239,68,68,0.08) 12px)'
-                                                        }}
-                                                        title={`Wartung: ${block.description || block.type} (${fmtDate(block.start_date)} – ${fmtDate(block.end_date || block.start_date)})`}
-                                                    >
-                                                        <Wrench className="w-3 h-3 flex-shrink-0" />
-                                                        <span className="truncate">{block.description || 'Wartung'}</span>
-                                                    </div>
-                                                );
-                                            })}
+                                            {/* Maintenance Blocks — rendered in a grid overlay like bookings */}
+                                            {bikeMaintenance.length > 0 && (
+                                                <div className="absolute inset-y-0 left-0 right-0 grid items-stretch pointer-events-none z-[5]" style={{ gridTemplateColumns: gridCols }}>
+                                                    {bikeMaintenance.map(block => {
+                                                        const start = new Date(block.start_date);
+                                                        const end = new Date(block.end_date || block.start_date);
+                                                        const effectiveStart = start < viewStart ? viewStart : start;
+                                                        const effectiveEnd = end > viewEnd ? viewEnd : end;
+                                                        if (effectiveStart > viewEnd || effectiveEnd < viewStart) return null;
+                                                        const startIndex = daysDiff(viewStartStr, fmtISO(effectiveStart)) - 1;
+                                                        const duration = daysDiff(fmtISO(effectiveStart), fmtISO(effectiveEnd));
+                                                        return (
+                                                            <div key={`maint-${block.id}`}
+                                                                className="bg-red-500/20 border border-red-500/40 border-dashed rounded-lg flex items-center gap-1 px-2 text-red-500 dark:text-red-400 text-[10px] font-semibold pointer-events-none"
+                                                                style={{
+                                                                    gridColumnStart: startIndex + 1,
+                                                                    gridColumnEnd: `span ${duration}`,
+                                                                    backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(239,68,68,0.08) 6px, rgba(239,68,68,0.08) 12px)'
+                                                                }}
+                                                                title={`Wartung: ${block.description || block.type} (${fmtDate(block.start_date)} – ${fmtDate(block.end_date || block.start_date)})`}
+                                                            >
+                                                                <Wrench className="w-3 h-3 flex-shrink-0" />
+                                                                <span className="truncate">{block.description || 'Wartung'}</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 );
@@ -585,11 +603,12 @@ export default function CalendarPage() {
                         customers={customers.customers}
                         existingBookings={bookings.bookings}
                         pricingRules={pricingRules?.rules || []}
+                        addOns={addOns.addOns}
                         onSave={handleSave}
                         onDelete={async (id) => {
                             const { error } = await bookings.remove(id);
                             if (error) {
-                                console.error("Fehler beim Stornieren:", error.message);
+                                addToast("Fehler beim Stornieren.", "error");
                             } else {
                                 setShowModal(false);
                             }

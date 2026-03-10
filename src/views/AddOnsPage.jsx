@@ -51,21 +51,24 @@ export default function AddOnsPage() {
         if (editAddOn) {
             const { error } = await addOns.update(editAddOn.id, payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
+            addToast("Zubehör gespeichert.", "success");
         } else {
             const { error } = await addOns.create(payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
+            addToast("Zubehör erstellt.", "success");
         }
         setShowForm(false);
     };
 
     const handleDelete = async (id) => {
         const { error } = await addOns.remove(id);
-        if (error) addToast("Fehler: " + error.message, "error");
+        if (error) { addToast("Fehler: " + error.message, "error"); return; }
         setConfirmDeleteId(null);
     };
 
     const toggleActive = async (addon) => {
-        await addOns.update(addon.id, { is_active: !addon.is_active });
+        const { error } = await addOns.update(addon.id, { is_active: !addon.is_active });
+        if (error) addToast("Fehler beim Aktualisieren: " + error.message, "error");
     };
 
     return (
@@ -98,7 +101,7 @@ export default function AddOnsPage() {
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${darkMode ? "bg-violet-900/30 text-violet-400" : "bg-violet-100 text-violet-600"}`}>
                                     <Package className="w-5 h-5" />
                                 </div>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                     <button onClick={() => openEdit(addon)} className={`p-1.5 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
                                         <Edit className="w-3.5 h-3.5" />
                                     </button>
@@ -165,14 +168,14 @@ export default function AddOnsPage() {
             {/* Modal */}
             {showForm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className={`w-full max-w-md rounded-2xl border p-6 ${cardStyle} shadow-2xl`}>
-                        <h2 className="text-xl font-bold mb-6">{editAddOn ? "Zubehör bearbeiten" : "Neues Zubehör"}</h2>
-                        <div className="space-y-4">
+                    <div className={`w-full max-w-md rounded-2xl border ${cardStyle} shadow-2xl max-h-[90dvh] flex flex-col`}>
+                        <h2 className="text-xl font-bold p-6 pb-0 mb-0">{editAddOn ? "Zubehör bearbeiten" : "Neues Zubehör"}</h2>
+                        <div className="space-y-4 p-6 overflow-y-auto">
                             <div>
                                 <label className="text-sm font-medium mb-1 block">Name *</label>
                                 <input className={inputStyle} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="z.B. Helm, Schloss, Kindersitz..." />
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-sm font-medium mb-1 block">Preis/Tag (€)</label>
                                     <input type="number" className={inputStyle} value={form.price_per_day} onChange={e => setForm({ ...form, price_per_day: e.target.value })} placeholder="5.00" />
@@ -191,7 +194,7 @@ export default function AddOnsPage() {
                                 <span className="text-sm font-medium">Sofort aktiv</span>
                             </label>
                         </div>
-                        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
                             <button onClick={() => setShowForm(false)} className={`px-4 py-2 rounded-xl text-sm font-medium ${darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"}`}>Abbrechen</button>
                             <button onClick={handleSave} disabled={!form.name} className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-lg shadow-brand-500/20">
                                 {editAddOn ? "Speichern" : "Erstellen"}

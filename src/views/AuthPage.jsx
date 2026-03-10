@@ -2,26 +2,31 @@
 import { useState, useEffect } from "react";
 import { Bike, Loader2, XCircle, CheckCircle, Shield, Globe, Users } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useI18n } from "../utils/i18n";
 
 export default function AuthPage({ initialMode = "login" }) {
     const auth = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { t } = useI18n();
-    const [mode, setMode] = useState(initialMode);
+
+    // Detect password-reset redirect from Supabase email link
+    const urlMode = searchParams.get("mode");
+    const [mode, setMode] = useState(urlMode === "update-password" ? "update-password" : initialMode);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
     const [fullName, setFullName] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
     useEffect(() => {
-        if (auth.user) {
+        if (auth.user && mode !== "update-password") {
             router.push("/app");
         }
-    }, [auth.user, router]);
+    }, [auth.user, router, mode]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -35,6 +40,10 @@ export default function AuthPage({ initialMode = "login" }) {
             } else if (mode === "forgot") {
                 await auth.resetPassword(email);
                 setSuccess(t("auth.resetSent"));
+            } else if (mode === "update-password") {
+                await auth.updatePassword(newPassword);
+                setSuccess("Passwort erfolgreich geändert. Du wirst weitergeleitet...");
+                setTimeout(() => router.push("/app"), 2000);
             } else {
                 await auth.signUp(email, password, fullName);
                 setSuccess(t("auth.registerSuccess"));
@@ -67,60 +76,80 @@ export default function AuthPage({ initialMode = "login" }) {
                 {/* Auth Card */}
                 <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-8">
                     <h2 className="text-xl font-semibold text-white mb-6">
-                        {mode === "login" ? t("auth.login") : mode === "forgot" ? t("auth.resetTitle") : t("auth.register")}
+                        {mode === "login" ? t("auth.login")
+                            : mode === "forgot" ? t("auth.resetTitle")
+                            : mode === "update-password" ? "Neues Passwort setzen"
+                            : t("auth.register")}
                     </h2>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        {mode === "register" && (
+                        {mode === "update-password" ? (
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">{t("auth.name")}</label>
-                                <input
-                                    type="text"
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
-                                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
-                                    placeholder="Max Mustermann"
-                                    required
-                                />
-                            </div>
-                        )}
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("auth.email")}</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
-                                placeholder="max@example.com"
-                                required
-                            />
-                        </div>
-
-                        {mode !== "forgot" && (
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="block text-sm font-medium text-slate-300">{t("auth.password")}</label>
-                                    {mode === "login" && (
-                                        <button
-                                            type="button"
-                                            onClick={() => { setMode("forgot"); setError(""); setSuccess(""); }}
-                                            className="text-xs text-orange-500 hover:text-orange-400 transition-colors"
-                                        >
-                                            {t("auth.forgotPassword")}
-                                        </button>
-                                    )}
-                                </div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">Neues Passwort</label>
                                 <input
                                     type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
                                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
-                                    placeholder="••••••••"
+                                    placeholder="Mindestens 6 Zeichen"
                                     required
                                     minLength={6}
                                 />
                             </div>
+                        ) : (
+                            <>
+                                {mode === "register" && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-300 mb-2">{t("auth.name")}</label>
+                                        <input
+                                            type="text"
+                                            value={fullName}
+                                            onChange={(e) => setFullName(e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
+                                            placeholder="Max Mustermann"
+                                            required
+                                        />
+                                    </div>
+                                )}
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300 mb-2">{t("auth.email")}</label>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
+                                        placeholder="max@example.com"
+                                        required
+                                    />
+                                </div>
+
+                                {mode !== "forgot" && (
+                                    <div>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="block text-sm font-medium text-slate-300">{t("auth.password")}</label>
+                                            {mode === "login" && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setMode("forgot"); setError(""); setSuccess(""); }}
+                                                    className="text-xs text-orange-500 hover:text-orange-400 transition-colors"
+                                                >
+                                                    {t("auth.forgotPassword")}
+                                                </button>
+                                            )}
+                                        </div>
+                                        <input
+                                            type="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-colors"
+                                            placeholder="••••••••"
+                                            required
+                                            minLength={6}
+                                        />
+                                    </div>
+                                )}
+                            </>
                         )}
 
                         {error && (
@@ -143,32 +172,37 @@ export default function AuthPage({ initialMode = "login" }) {
                             className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading && <Loader2 className="w-5 h-5 animate-spin" />}
-                            {mode === "login" ? t("auth.login") : mode === "forgot" ? t("auth.sendLink") : t("auth.register")}
+                            {mode === "login" ? t("auth.login")
+                                : mode === "forgot" ? t("auth.sendLink")
+                                : mode === "update-password" ? "Passwort speichern"
+                                : t("auth.register")}
                         </button>
                     </form>
 
-                    <div className="mt-6 text-center">
-                        {mode === "forgot" ? (
-                            <button
-                                type="button"
-                                onClick={() => { setMode("login"); setError(""); setSuccess(""); }}
-                                className="text-sm text-orange-500 hover:text-orange-400 font-medium transition-colors"
-                            >
-                                {t("auth.backToLogin")}
-                            </button>
-                        ) : (
-                            <p className="text-sm text-slate-400">
-                                {mode === "login" ? t("auth.noAccount") : t("auth.hasAccount")}
+                    {mode !== "update-password" && (
+                        <div className="mt-6 text-center">
+                            {mode === "forgot" ? (
                                 <button
                                     type="button"
-                                    onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); setSuccess(""); }}
-                                    className="ml-2 text-orange-500 hover:text-orange-400 font-medium transition-colors"
+                                    onClick={() => { setMode("login"); setError(""); setSuccess(""); }}
+                                    className="text-sm text-orange-500 hover:text-orange-400 font-medium transition-colors"
                                 >
-                                    {mode === "login" ? t("auth.registerNow") : t("auth.login")}
+                                    {t("auth.backToLogin")}
                                 </button>
-                            </p>
-                        )}
-                    </div>
+                            ) : (
+                                <p className="text-sm text-slate-400">
+                                    {mode === "login" ? t("auth.noAccount") : t("auth.hasAccount")}
+                                    <button
+                                        type="button"
+                                        onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); setSuccess(""); }}
+                                        className="ml-2 text-orange-500 hover:text-orange-400 font-medium transition-colors"
+                                    >
+                                        {mode === "login" ? t("auth.registerNow") : t("auth.login")}
+                                    </button>
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Features */}

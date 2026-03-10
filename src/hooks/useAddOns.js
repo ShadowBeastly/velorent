@@ -9,16 +9,22 @@ export function useAddOns(orgId) {
     const load = useCallback(async () => {
         if (!orgId) { setLoading(false); return; }
         setLoading(true);
-        const { data } = await supabase
-            .from("add_ons")
-            .select("*")
-            .eq("organization_id", orgId)
-            .order("name", { ascending: true });
-        setAddOns(data || []);
-        setLoading(false);
+        try {
+            const { data, error } = await supabase
+                .from("add_ons")
+                .select("*")
+                .eq("organization_id", orgId)
+                .order("name", { ascending: true });
+            if (error) throw error;
+            setAddOns(data || []);
+        } catch (err) {
+            console.error("Failed to load addons:", err);
+            setAddOns([]);
+        } finally {
+            setLoading(false);
+        }
     }, [orgId]);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { load(); }, [load]);
 
     const create = async (addOn) => {
@@ -27,7 +33,7 @@ export function useAddOns(orgId) {
             .insert({ ...addOn, organization_id: orgId })
             .select()
             .single();
-        if (!error) setAddOns(prev => [...prev, data]);
+        if (!error) setAddOns(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
         return { data, error };
     };
 

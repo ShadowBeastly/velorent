@@ -67,16 +67,18 @@ export default function CategoriesPage() {
         if (editCategory) {
             const { error } = await bikeCategories.update(editCategory.id, payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
+            addToast("Kategorie gespeichert.", "success");
         } else {
             const { error } = await bikeCategories.create(payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
+            addToast("Kategorie erstellt.", "success");
         }
         setShowForm(false);
     };
 
     const handleDelete = async (id) => {
         const { error } = await bikeCategories.remove(id);
-        if (error) addToast("Fehler: " + error.message, "error");
+        if (error) { addToast("Fehler: " + error.message, "error"); return; }
         setConfirmDeleteId(null);
     };
 
@@ -122,7 +124,7 @@ export default function CategoriesPage() {
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                     <button onClick={() => openEdit(cat)} className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
                                         <Edit className="w-4 h-4" />
                                     </button>
@@ -180,9 +182,9 @@ export default function CategoriesPage() {
             {/* Modal */}
             {showForm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className={`w-full max-w-lg rounded-2xl border p-6 ${cardStyle} shadow-2xl`}>
-                        <h2 className="text-xl font-bold mb-6">{editCategory ? "Kategorie bearbeiten" : "Neue Kategorie"}</h2>
-                        <div className="space-y-4">
+                    <div className={`w-full max-w-lg rounded-2xl border ${cardStyle} shadow-2xl max-h-[90dvh] flex flex-col`}>
+                        <h2 className="text-xl font-bold p-6 pb-0 mb-0">{editCategory ? "Kategorie bearbeiten" : "Neue Kategorie"}</h2>
+                        <div className="space-y-4 p-6 overflow-y-auto">
                             <div>
                                 <label className="text-sm font-medium mb-1 block">Name *</label>
                                 <input className={inputStyle} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="z.B. E-Bike, MTB, City..." />
@@ -195,7 +197,7 @@ export default function CategoriesPage() {
                                 <label className="text-sm font-medium mb-1 block">Bild-URL</label>
                                 <input className={inputStyle} value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-sm font-medium mb-1 block">Tagespreis (€)</label>
                                     <input type="number" className={inputStyle} value={form.default_price_per_day} onChange={e => setForm({ ...form, default_price_per_day: e.target.value })} placeholder="35.00" />
@@ -218,7 +220,7 @@ export default function CategoriesPage() {
                                 <input type="number" className={inputStyle} value={form.sort_order} onChange={e => setForm({ ...form, sort_order: e.target.value })} />
                             </div>
                         </div>
-                        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
                             <button onClick={() => setShowForm(false)} className={`px-4 py-2 rounded-xl text-sm font-medium ${darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"}`}>
                                 Abbrechen
                             </button>

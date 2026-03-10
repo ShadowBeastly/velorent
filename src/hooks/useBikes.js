@@ -9,16 +9,22 @@ export function useBikes(orgId) {
     const load = useCallback(async () => {
         if (!orgId) { setLoading(false); return; }
         setLoading(true);
-        const { data } = await supabase
-            .from("bikes")
-            .select("*")
-            .eq("organization_id", orgId)
-            .order("created_at", { ascending: true });
-        setBikes(data || []);
-        setLoading(false);
+        try {
+            const { data, error } = await supabase
+                .from("bikes")
+                .select("*")
+                .eq("organization_id", orgId)
+                .order("created_at", { ascending: true });
+            if (error) throw error;
+            setBikes(data || []);
+        } catch (err) {
+            console.error("Failed to load bikes:", err);
+            setBikes([]);
+        } finally {
+            setLoading(false);
+        }
     }, [orgId]);
 
-    // eslint-disable-next-line
     useEffect(() => { load(); }, [load]);
 
     const create = async (bike) => {

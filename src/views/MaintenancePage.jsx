@@ -68,18 +68,26 @@ export default function MaintenancePage() {
     const handleSave = async () => {
         const payload = { ...form, cost: form.cost ? Number(form.cost) : null };
         if (editBlock) {
+            const wasCompleted = editBlock.status !== "completed" && payload.status === "completed";
             const { error } = await maintenanceBlocks.update(editBlock.id, payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
+            // Auto-reset bike to "available" when maintenance is marked completed
+            if (wasCompleted && payload.bike_id) {
+                const { error: bikeError } = await bikes.update(payload.bike_id, { status: "available" });
+                if (bikeError) addToast("Warnung: Fahrrad-Status konnte nicht zurückgesetzt werden.", "error");
+            }
+            addToast("Wartungsblock gespeichert.", "success");
         } else {
             const { error } = await maintenanceBlocks.create(payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
+            addToast("Wartungsblock erstellt.", "success");
         }
         setShowForm(false);
     };
 
     const handleDelete = async (id) => {
         const { error } = await maintenanceBlocks.remove(id);
-        if (error) addToast("Fehler: " + error.message, "error");
+        if (error) { addToast("Fehler: " + error.message, "error"); return; }
         setConfirmDeleteId(null);
     };
 
@@ -198,7 +206,7 @@ export default function MaintenancePage() {
             {/* Modal */}
             {showForm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className={`w-full max-w-lg rounded-2xl border p-6 ${cardStyle} shadow-2xl`}>
+                    <div className={`w-full max-w-lg rounded-2xl border p-6 ${cardStyle} shadow-2xl max-h-[90dvh] overflow-y-auto`}>
                         <h2 className="text-xl font-bold mb-6">{editBlock ? "Wartungsblock bearbeiten" : "Neuer Wartungsblock"}</h2>
                         <div className="space-y-4">
                             <div>
@@ -208,7 +216,7 @@ export default function MaintenancePage() {
                                     {bikes.bikes.map(b => <option key={b.id} value={b.id}>{b.name} ({b.category})</option>)}
                                 </select>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-sm font-medium mb-1 block">Typ</label>
                                     <select className={inputStyle} value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
@@ -226,7 +234,7 @@ export default function MaintenancePage() {
                                 <label className="text-sm font-medium mb-1 block">Beschreibung</label>
                                 <textarea className={inputStyle} rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Was wird gemacht..." />
                             </div>
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label className="text-sm font-medium mb-1 block">Von</label>
                                     <input type="date" className={inputStyle} value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} />

@@ -8,7 +8,7 @@ export function useInvoices(organizationId) {
     const [error, setError] = useState(null);
 
     const fetchInvoices = useCallback(async () => {
-        if (!organizationId) return;
+        if (!organizationId) { setLoading(false); return; }
         try {
             setLoading(true);
             const { data, error } = await supabase
@@ -22,6 +22,7 @@ export function useInvoices(organizationId) {
                 .order("created_at", { ascending: false });
 
             if (error) throw error;
+            setError(null);
             setInvoices(data || []);
         } catch (err) {
             console.error("Error fetching invoices:", err);
@@ -58,7 +59,7 @@ export function useInvoices(organizationId) {
                 .update(updates)
                 .eq("id", id)
                 .eq("organization_id", organizationId)
-                .select()
+                .select(`*, customer:customers(first_name, last_name, email), booking:bookings(booking_number)`)
                 .single();
 
             if (error) throw error;

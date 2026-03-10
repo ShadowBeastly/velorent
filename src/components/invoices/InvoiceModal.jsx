@@ -39,11 +39,12 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
     }, [onClose]);
 
     useEffect(() => {
-        if (invoice) return; // editing existing invoice, keep its number
+        if (invoice || !org?.id) return; // editing existing invoice or org not loaded yet
         const fetchNextNumber = async () => {
             const { data } = await supabase
                 .from("invoices")
                 .select("invoice_number")
+                .eq("organization_id", org.id)
                 .order("created_at", { ascending: false })
                 .limit(1)
                 .single();
@@ -57,7 +58,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
             }
         };
         fetchNextNumber();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [invoice, org?.id]);
 
     const calculateTotals = () => {
         const subtotal = formData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
@@ -115,6 +116,10 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
         if (!printRef.current) return;
         const content = printRef.current.innerHTML;
         const printWindow = window.open("", "", "height=800,width=800");
+        if (!printWindow) {
+            alert("Popup wurde vom Browser blockiert. Bitte Popups erlauben.");
+            return;
+        }
         printWindow.document.write("<html><head><title>Rechnung " + formData.invoice_number + "</title>");
         printWindow.document.write("<style>body{font-family:sans-serif;padding:40px;color:#333;} .header{display:flex;justify-content:space-between;margin-bottom:40px;border-bottom:2px solid #eee;padding-bottom:20px;} h1{margin:0;font-size:28px;} .meta{text-align:right;} table{width:100%;border-collapse:collapse;margin-bottom:30px;} th{text-align:left;border-bottom:2px solid #eee;padding:10px;} td{padding:10px;border-bottom:1px solid #eee;} .totals{float:right;width:300px;} .row{display:flex;justify-content:space-between;margin-bottom:5px;} .total-row{font-weight:bold;font-size:18px;border-top:2px solid #333;padding-top:10px;margin-top:10px;}</style>");
         printWindow.document.write("</head><body>");
@@ -140,7 +145,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                     <h2 id="invoice-modal-title" className={`font-semibold text-lg ${darkMode ? "text-white" : "text-slate-900"}`}>
                         {invoice ? "Rechnung bearbeiten" : "Neue Rechnung"}
                     </h2>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <button onClick={handleDownload} className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2">
                             <Download className="w-4 h-4" /> PDF
                         </button>
@@ -153,11 +158,11 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                     </div>
                 </div>
 
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
                     {/* Form Side */}
-                    <div className={`w-1/2 p-6 overflow-y-auto border-r ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                    <div className={`w-full md:w-1/2 p-4 md:p-6 overflow-y-auto border-b md:border-b-0 md:border-r ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Rechnungs-Nr.</label>
                                     <input
@@ -180,6 +185,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                 </div>
                             </div>
 
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Status</label>
                                 <select
@@ -192,6 +198,19 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                     <option value="paid">Bezahlt</option>
                                     <option value="cancelled">Storniert</option>
                                 </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">MwSt. (%)</label>
+                                <select
+                                    value={formData.tax_rate}
+                                    onChange={e => setFormData({ ...formData, tax_rate: Number(e.target.value) })}
+                                    className={`w-full p-2 rounded border ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200"}`}
+                                >
+                                    <option value={0}>0%</option>
+                                    <option value={7}>7%</option>
+                                    <option value={19}>19%</option>
+                                </select>
+                            </div>
                             </div>
 
                             <div>
@@ -226,27 +245,27 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                             <div className="space-y-2">
                                 <label className="block text-sm font-medium">Positionen</label>
                                 {formData.items.map((item, idx) => (
-                                    <div key={idx} className="flex gap-2 items-start">
+                                    <div key={idx} className="flex flex-col sm:flex-row gap-2 items-start">
                                         <input
                                             type="text"
                                             placeholder="Beschreibung"
                                             value={item.description}
                                             onChange={e => handleItemChange(idx, "description", e.target.value)}
-                                            className={`flex-1 p-2 rounded border ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200"}`}
+                                            className={`w-full sm:flex-1 p-2 rounded border ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200"}`}
                                         />
                                         <input
                                             type="number"
                                             placeholder="Menge"
                                             value={item.quantity}
                                             onChange={e => handleItemChange(idx, "quantity", Number(e.target.value))}
-                                            className={`w-20 p-2 rounded border ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200"}`}
+                                            className={`w-full sm:w-20 p-2 rounded border ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200"}`}
                                         />
                                         <input
                                             type="number"
                                             placeholder="Preis"
                                             value={item.unit_price}
                                             onChange={e => handleItemChange(idx, "unit_price", Number(e.target.value))}
-                                            className={`w-24 p-2 rounded border ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200"}`}
+                                            className={`w-full sm:w-24 p-2 rounded border ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200"}`}
                                         />
                                         <button type="button" onClick={() => removeItem(idx)} aria-label="Position löschen" className="p-2 text-red-500 hover:bg-red-50 rounded">
                                             <Trash2 className="w-4 h-4" />
@@ -277,7 +296,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                     </div>
 
                     {/* Preview Side */}
-                    <div className="w-1/2 bg-white text-slate-900 p-8 overflow-y-auto">
+                    <div className="hidden md:block w-full md:w-1/2 bg-white text-slate-900 p-4 md:p-8 overflow-y-auto">
                         <div ref={printRef} className="max-w-md mx-auto text-sm">
                             <div className="header">
                                 <div>
@@ -286,8 +305,8 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                 </div>
                                 <div className="meta">
                                     <strong>{org?.name || "RentCore"}</strong><br />
-                                    Musterstraße 1<br />
-                                    12345 Musterstadt
+                                    {org?.address && <>{org.address}<br /></>}
+                                    {[org?.postal_code, org?.city].filter(Boolean).join(" ")}
                                 </div>
                             </div>
 

@@ -9,17 +9,23 @@ export function usePricingRules(orgId) {
     const load = useCallback(async () => {
         if (!orgId) { setLoading(false); return; }
         setLoading(true);
-        const { data } = await supabase
-            .from("pricing_rules")
-            .select("*")
-            .eq("organization_id", orgId)
-            .order("priority", { ascending: false })
-            .order("created_at", { ascending: false });
-        setRules(data || []);
-        setLoading(false);
+        try {
+            const { data, error } = await supabase
+                .from("pricing_rules")
+                .select("*")
+                .eq("organization_id", orgId)
+                .order("priority", { ascending: false })
+                .order("created_at", { ascending: false });
+            if (error) throw error;
+            setRules(data || []);
+        } catch (err) {
+            console.error("Failed to load pricing rules:", err);
+            setRules([]);
+        } finally {
+            setLoading(false);
+        }
     }, [orgId]);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { load(); }, [load]);
 
     const create = async (rule) => {

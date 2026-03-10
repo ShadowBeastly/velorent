@@ -1,10 +1,10 @@
-import { Bike, Home, Calendar, FileText, Users, Settings, Layers, Wrench, Tag, Package, Euro } from "lucide-react";
+import { Bike, Home, Calendar, FileText, Receipt, Users, Settings, Layers, Wrench, Tag, Package, Euro } from "lucide-react";
 
 export const NAVIGATION_ITEMS = [
     { id: "dashboard", labelKey: "nav.dashboard", icon: Home, path: "/app" },
     { id: "calendar", labelKey: "nav.calendar", icon: Calendar, path: "/app/calendar" },
     { id: "bookings", labelKey: "nav.bookings", icon: FileText, path: "/app/bookings" },
-    { id: "invoices", labelKey: "nav.invoices", icon: FileText, path: "/app/invoices" },
+    { id: "invoices", labelKey: "nav.invoices", icon: Receipt, path: "/app/invoices" },
     { id: "fleet", labelKey: "nav.fleet", icon: Bike, path: "/app/fleet" },
     { id: "pricing", labelKey: "nav.pricing", icon: Euro, path: "/app/pricing" },
     { id: "categories", labelKey: "nav.categories", icon: Layers, path: "/app/categories" },

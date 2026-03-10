@@ -10,19 +10,14 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
     const [newDamage, setNewDamage] = useState("");
 
     const handleConfirm = () => {
-        /*
         const protocol = {
             type,
             date: new Date().toISOString(),
             batteryLevel,
             notes,
-            damages
+            damages,
         };
-        */
-        // In a real app, we would save this protocol to a separate table or JSON column
-        // For now, we append it to the notes
-        const updatedNotes = (booking.notes || "") + `\n\n[${type.toUpperCase()} PROTOCOL]\nBattery: ${batteryLevel}%\nDamages: ${damages.join(", ") || "None"}\nNotes: ${notes}`;
-        onConfirm(updatedNotes);
+        onConfirm(protocol);
     };
 
     const addDamage = () => {
@@ -74,7 +69,7 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
 
                     {/* Battery Level */}
                     <div>
-                        <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                        <label className="text-sm font-medium mb-2 flex items-center gap-2">
                             <Battery className="w-4 h-4 text-emerald-500" />
                             Akkustand (%)
                         </label>
@@ -94,7 +89,7 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
 
                     {/* Damages */}
                     <div>
-                        <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                        <label className="text-sm font-medium mb-2 flex items-center gap-2">
                             <AlertTriangle className="w-4 h-4 text-amber-500" />
                             Schäden / Mängel
                         </label>

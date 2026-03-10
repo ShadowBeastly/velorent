@@ -13,7 +13,7 @@ import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
 import { useOrganization } from "../context/OrgContext";
 
-const REVENUE_STATUSES = ["picked_up", "returned", "completed"];
+const REVENUE_STATUSES = ["picked_up", "returned"];
 
 const PERIODS = [
     { label: "7 Tage", value: "7d", days: 7 },
@@ -69,32 +69,32 @@ export default function DashboardPage() {
         [periodDays]
     );
 
-    // Revenue filtered by period
+    // Revenue filtered by period (use end_date — revenue is earned at return)
     const periodRevenue = useMemo(() =>
         bookings.bookings
-            .filter(b => REVENUE_STATUSES.includes(b.status) && b.start_date >= currentStart && b.start_date <= currentEnd)
+            .filter(b => REVENUE_STATUSES.includes(b.status) && b.end_date >= currentStart && b.end_date <= currentEnd)
             .reduce((sum, b) => sum + (b.total_price || 0), 0),
         [bookings.bookings, currentStart, currentEnd]
     );
 
     const prevRevenue = useMemo(() =>
         bookings.bookings
-            .filter(b => REVENUE_STATUSES.includes(b.status) && b.start_date >= prevStart && b.start_date <= prevEnd)
+            .filter(b => REVENUE_STATUSES.includes(b.status) && b.end_date >= prevStart && b.end_date <= prevEnd)
             .reduce((sum, b) => sum + (b.total_price || 0), 0),
         [bookings.bookings, prevStart, prevEnd]
     );
 
-    // Active bookings in period (picked_up with start_date in period)
+    // Active bookings in period (picked_up with rental span overlapping the period)
     const periodActiveBookings = useMemo(() =>
         bookings.bookings.filter(
-            b => b.status === "picked_up" && b.start_date >= currentStart && b.start_date <= currentEnd
+            b => b.status === "picked_up" && b.start_date <= currentEnd && b.end_date >= currentStart
         ).length,
         [bookings.bookings, currentStart, currentEnd]
     );
 
     const prevActiveBookings = useMemo(() =>
         bookings.bookings.filter(
-            b => b.status === "picked_up" && b.start_date >= prevStart && b.start_date <= prevEnd
+            b => b.status === "picked_up" && b.start_date <= prevEnd && b.end_date >= prevStart
         ).length,
         [bookings.bookings, prevStart, prevEnd]
     );
@@ -107,12 +107,15 @@ export default function DashboardPage() {
     const currentlyActive = bookings.bookings.filter(b => b.status === "picked_up").length;
     const utilization = Math.round((currentlyActive / (bikes.bikes.length || 1)) * 100);
 
-    // Activity Feed
-    const todaysActivity = useMemo(() => {
-        const pickups = bookings.bookings.filter(b => b.start_date === today && b.status === "reserved");
-        const returns = bookings.bookings.filter(b => b.end_date === today && b.status === "picked_up");
-        return [...pickups, ...returns].sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
-    }, [bookings.bookings, today]);
+    // Activity Feed — split into pickups and returns
+    const todayPickups = useMemo(() =>
+        bookings.bookings.filter(b => b.start_date === today && b.status === "reserved"),
+        [bookings.bookings, today]
+    );
+    const todayReturns = useMemo(() =>
+        bookings.bookings.filter(b => b.end_date === today && b.status === "picked_up"),
+        [bookings.bookings, today]
+    );
 
     // Overdue bookings with late fee calculation
     const overdueBookings = useMemo(() => {
@@ -135,10 +138,30 @@ export default function DashboardPage() {
         setHandoverType(type);
     };
 
-    const confirmHandover = async (updatedNotes) => {
+    const confirmHandover = async (protocol) => {
         if (!handoverBooking) return;
-        const newStatus = handoverType === "pickup" ? "picked_up" : "returned";
-        await bookings.update(handoverBooking.id, { status: newStatus, notes: updatedNotes });
+        const notesText = typeof protocol === 'string' ? protocol : [
+            protocol.notes,
+            protocol.damages?.length ? `Schäden: ${protocol.damages.join(", ")}` : null,
+            protocol.batteryLevel != null ? `Akku: ${protocol.batteryLevel}%` : null,
+        ].filter(Boolean).join("\n");
+
+        let updates;
+        if (handoverType === "pickup") {
+            updates = {
+                status: "picked_up",
+                pickup_notes: notesText,
+                pickup_protocol: typeof protocol === 'object' ? protocol : undefined,
+            };
+        } else {
+            updates = {
+                status: "returned",
+                return_notes: notesText,
+                return_protocol: typeof protocol === 'object' ? protocol : undefined,
+                deposit_status: protocol.damages?.length ? "held" : "refunded",
+            };
+        }
+        await bookings.update(handoverBooking.id, updates);
         setHandoverBooking(null);
         setHandoverType(null);
     };
@@ -148,7 +171,7 @@ export default function DashboardPage() {
     return (
         <div className="space-y-8 h-full flex flex-col pb-8">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
                         Willkommen zurück, {org.currentOrg?.name || "Admin"} 👋
@@ -157,14 +180,14 @@ export default function DashboardPage() {
                         Hier ist der Überblick über Ihre Fahrradvermietung für heute.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                     {/* Period filter pills */}
                     <div className={`flex items-center gap-1 p-1 rounded-xl ${darkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
                         {PERIODS.map(p => (
                             <button
                                 key={p.value}
                                 onClick={() => setPeriod(p.value)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                                     period === p.value
                                         ? 'bg-brand-500 text-white shadow-sm'
                                         : darkMode
@@ -176,7 +199,7 @@ export default function DashboardPage() {
                             </button>
                         ))}
                     </div>
-                    <button onClick={() => router.push('/app/calendar')} className="btn-primary shadow-lg shadow-brand-500/20">
+                    <button onClick={() => router.push('/app/calendar')} className="btn-primary shadow-lg shadow-brand-500/20 whitespace-nowrap">
                         + Neue Buchung
                     </button>
                 </div>
@@ -259,14 +282,34 @@ export default function DashboardPage() {
                 <div className="lg:col-span-2">
                     <RevenueChart bookings={bookings.bookings} darkMode={darkMode} />
                 </div>
-                <div className="lg:col-span-1 h-[400px]">
-                    <ActivityList
-                        title="Heute"
-                        items={todaysActivity}
-                        type="pickup"
-                        onAction={(b) => handleAction(b, b.status === 'reserved' ? 'pickup' : 'return')}
-                        darkMode={darkMode}
-                    />
+                <div className="lg:col-span-1 min-h-[300px] lg:h-[400px] flex flex-col gap-4 overflow-y-auto">
+                    {todayPickups.length > 0 && (
+                        <ActivityList
+                            title="Abholungen"
+                            items={todayPickups}
+                            type="pickup"
+                            onAction={(b) => handleAction(b, 'pickup')}
+                            darkMode={darkMode}
+                        />
+                    )}
+                    {todayReturns.length > 0 && (
+                        <ActivityList
+                            title="Rückgaben"
+                            items={todayReturns}
+                            type="return"
+                            onAction={(b) => handleAction(b, 'return')}
+                            darkMode={darkMode}
+                        />
+                    )}
+                    {todayPickups.length === 0 && todayReturns.length === 0 && (
+                        <ActivityList
+                            title="Heute"
+                            items={[]}
+                            type="pickup"
+                            onAction={() => {}}
+                            darkMode={darkMode}
+                        />
+                    )}
                 </div>
             </div>
 

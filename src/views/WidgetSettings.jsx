@@ -53,8 +53,11 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
     return () => { mounted = false; };
   }, [orgId, supabase]);
 
+  const [saveStatus, setSaveStatus] = useState(null); // 'success' | 'error' | null
+
   const handleSave = async () => {
     setSaving(true);
+    setSaveStatus(null);
 
     const { error } = await supabase
       .from("public_booking_settings")
@@ -79,24 +82,28 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
       .eq("id", settings.id);
 
     setSaving(false);
-
-    if (!error) {
-      // Show success feedback
-    }
+    setSaveStatus(error ? 'error' : 'success');
+    if (!error) setTimeout(() => setSaveStatus(null), 3000);
   };
 
   const regenerateApiKey = async () => {
-    const bytes = new Uint8Array(32);
-    window.crypto.getRandomValues(bytes);
-    const newKey = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    try {
+      const bytes = new Uint8Array(32);
+      window.crypto.getRandomValues(bytes);
+      const newKey = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 
-    await supabase
-      .from("public_booking_settings")
-      .update({ public_api_key: newKey })
-      .eq("id", settings.id);
+      const { error } = await supabase
+        .from("public_booking_settings")
+        .update({ public_api_key: newKey })
+        .eq("id", settings.id);
 
-    setSettings(prev => ({ ...prev, public_api_key: newKey }));
-    setConfirmRegenerate(false);
+      if (error) throw error;
+      setSettings(prev => ({ ...prev, public_api_key: newKey }));
+      setConfirmRegenerate(false);
+    } catch (err) {
+      console.error("Error regenerating API key:", err);
+      setConfirmRegenerate(false);
+    }
   };
 
   const copyToClipboard = (text) => {
@@ -128,6 +135,16 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
         <div className="flex items-center justify-center h-32">
           <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
         </div>
+      </div>
+    );
+  }
+
+  if (!settings) {
+    return (
+      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
+        <p className={`text-sm text-center ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+          Widget-Einstellungen konnten nicht geladen werden.
+        </p>
       </div>
     );
   }
@@ -267,7 +284,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
           <h3 className="font-semibold">Design anpassen</h3>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
               Primärfarbe
@@ -390,7 +407,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { key: "require_email", label: "E-Mail Pflicht" },
             { key: "require_phone", label: "Telefon Pflicht" },
@@ -441,7 +458,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
                 AGB-Link
@@ -480,6 +497,8 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
           {saving && <Loader2 className="w-5 h-5 animate-spin" />}
           Einstellungen speichern
         </button>
+        {saveStatus === 'success' && <span className="text-emerald-500 text-sm font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" />Gespeichert</span>}
+        {saveStatus === 'error' && <span className="text-rose-500 text-sm font-medium flex items-center gap-1"><AlertCircle className="w-4 h-4" />Fehler beim Speichern</span>}
       </div>
     </div>
   );

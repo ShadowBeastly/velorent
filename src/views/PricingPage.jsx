@@ -165,7 +165,7 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
                     {/* Type */}
                     <div>
                         <label className={labelStyle}>Regeltyp</label>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             {RULE_TYPES.map(t => (
                                 <button
                                     key={t.value}
@@ -238,7 +238,7 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
                     {/* Modifier */}
                     <div>
                         <label className={labelStyle}>Preismodifikator</label>
-                        <div className="grid grid-cols-3 gap-2 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
                             {MODIFIER_TYPES.map(m => (
                                 <button
                                     key={m.value}
@@ -358,7 +358,7 @@ function PricingPreview({ pricingRules, bikes, darkMode }) {
     const scenarios = [
         { label: "3 Tage ab heute", start: fmt(today), end: fmt(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2)) },
         { label: "7 Tage im Juli", start: `${today.getFullYear()}-07-01`, end: `${today.getFullYear()}-07-07` },
-        { label: "2 Tage, Sa–So", start: fmt((() => { const d = new Date(today); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); return d; })()), end: fmt((() => { const d = new Date(today); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7) + 1); return d; })()) }
+        { label: "2 Tage, Sa–So", start: fmt((() => { const d = new Date(today); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7)); return d; })()), end: fmt((() => { const d = new Date(today); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7) + 1); return d; })()) }
     ];
 
     const cardStyle = darkMode ? "bg-slate-800/60 border-slate-700" : "bg-slate-50 border-slate-200";
@@ -427,13 +427,14 @@ export default function PricingPage() {
 
     const handleSave = async (data) => {
         try {
+            let result;
             if (editRule) {
-                await rulesCtx.update(editRule.id, data);
-                addToast("Preisregel aktualisiert.", "success");
+                result = await rulesCtx.update(editRule.id, data);
             } else {
-                await rulesCtx.create(data);
-                addToast("Preisregel erstellt.", "success");
+                result = await rulesCtx.create(data);
             }
+            if (result?.error) throw result.error;
+            addToast(editRule ? "Preisregel aktualisiert." : "Preisregel erstellt.", "success");
             setShowModal(false);
             setEditRule(null);
         } catch (err) {

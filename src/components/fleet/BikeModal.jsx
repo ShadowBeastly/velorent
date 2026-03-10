@@ -56,9 +56,9 @@ export default function BikeModal({ bike, onSave, onDelete, onClose, darkMode })
                     </button>
                 </div>
 
-                <div className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2">
+                <div className="p-6 space-y-4 overflow-y-auto max-h-[60dvh]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="sm:col-span-2">
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Name</label>
                             <input type="text" value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className={inputStyle} placeholder="City E-Bike Premium" />
                         </div>
@@ -82,6 +82,10 @@ export default function BikeModal({ bike, onSave, onDelete, onClose, darkMode })
                             <input type="number" value={form.price_per_day} onChange={(e) => setForm(f => ({ ...f, price_per_day: Number(e.target.value) }))} className={inputStyle} />
                         </div>
                         <div>
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Kaution (€)</label>
+                            <input type="number" value={form.deposit} onChange={(e) => setForm(f => ({ ...f, deposit: Number(e.target.value) }))} className={inputStyle} />
+                        </div>
+                        <div>
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Farbe</label>
                             <input type="text" value={form.color} onChange={(e) => setForm(f => ({ ...f, color: e.target.value }))} className={inputStyle} />
                         </div>
@@ -93,7 +97,7 @@ export default function BikeModal({ bike, onSave, onDelete, onClose, darkMode })
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Motor</label>
                             <input type="text" value={form.motor} onChange={(e) => setForm(f => ({ ...f, motor: e.target.value }))} className={inputStyle} />
                         </div>
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Rahmennummer</label>
                             <input type="text" value={form.frame_number} onChange={(e) => setForm(f => ({ ...f, frame_number: e.target.value }))} className={inputStyle} />
                         </div>

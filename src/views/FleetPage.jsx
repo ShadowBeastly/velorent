@@ -45,8 +45,10 @@ export default function FleetPage() {
 
     const handleSave = async (data) => {
         try {
-            if (editBike) await bikes.update(editBike.id, data);
-            else await bikes.create(data);
+            let result;
+            if (editBike) result = await bikes.update(editBike.id, data);
+            else result = await bikes.create(data);
+            if (result?.error) throw result.error;
             setShowModal(false);
         } catch (error) {
             console.error("Error saving bike:", error);
@@ -83,8 +85,8 @@ export default function FleetPage() {
                             <LayoutGrid className="w-4 h-4" />
                         </button>
                     </div>
-                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
-                    <div className="flex gap-2">
+                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+                    <div className="flex flex-wrap gap-2">
                         {["all", "available", "out", "maintenance"].map(s => (
                             <button
                                 key={s}
@@ -98,9 +100,9 @@ export default function FleetPage() {
                             </button>
                         ))}
                     </div>
-                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
+                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
                     <div className="flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-slate-400" />
+                        <Layers className="w-4 h-4 text-slate-400 hidden sm:block" />
                         <select
                             value={categoryFilter}
                             onChange={e => setCategoryFilter(e.target.value)}

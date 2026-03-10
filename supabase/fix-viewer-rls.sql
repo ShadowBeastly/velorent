@@ -134,3 +134,133 @@ DROP POLICY IF EXISTS "Members can delete invoices" ON invoices;
 CREATE POLICY "Members can delete invoices" ON invoices
     FOR DELETE
     USING (organization_id IN (SELECT get_user_write_org_ids()));
+
+-- =====================================================
+-- maintenance_logs
+-- =====================================================
+DROP POLICY IF EXISTS "Members can view maintenance" ON maintenance_logs;
+DROP POLICY IF EXISTS "Members can manage maintenance" ON maintenance_logs;
+CREATE POLICY "Members can view maintenance" ON maintenance_logs
+    FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can write maintenance" ON maintenance_logs;
+CREATE POLICY "Members can write maintenance" ON maintenance_logs
+    FOR INSERT WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
+DROP POLICY IF EXISTS "Members can update maintenance" ON maintenance_logs;
+CREATE POLICY "Members can update maintenance" ON maintenance_logs
+    FOR UPDATE
+    USING (organization_id IN (SELECT get_user_write_org_ids()))
+    WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
+DROP POLICY IF EXISTS "Members can delete maintenance" ON maintenance_logs;
+CREATE POLICY "Members can delete maintenance" ON maintenance_logs
+    FOR DELETE USING (organization_id IN (SELECT get_user_write_org_ids()));
+
+-- =====================================================
+-- add_ons
+-- =====================================================
+DROP POLICY IF EXISTS "Members can view add_ons" ON add_ons;
+DROP POLICY IF EXISTS "Members can manage add_ons" ON add_ons;
+CREATE POLICY "Members can view add_ons" ON add_ons
+    FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can write add_ons" ON add_ons;
+CREATE POLICY "Members can write add_ons" ON add_ons
+    FOR INSERT WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
+DROP POLICY IF EXISTS "Members can update add_ons" ON add_ons;
+CREATE POLICY "Members can update add_ons" ON add_ons
+    FOR UPDATE
+    USING (organization_id IN (SELECT get_user_write_org_ids()))
+    WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
+DROP POLICY IF EXISTS "Members can delete add_ons" ON add_ons;
+CREATE POLICY "Members can delete add_ons" ON add_ons
+    FOR DELETE USING (organization_id IN (SELECT get_user_write_org_ids()));
+
+-- =====================================================
+-- bike_categories
+-- =====================================================
+DROP POLICY IF EXISTS "Members can view bike_categories" ON bike_categories;
+DROP POLICY IF EXISTS "Members can manage bike_categories" ON bike_categories;
+CREATE POLICY "Members can view bike_categories" ON bike_categories
+    FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can write bike_categories" ON bike_categories;
+CREATE POLICY "Members can write bike_categories" ON bike_categories
+    FOR INSERT WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
+DROP POLICY IF EXISTS "Members can update bike_categories" ON bike_categories;
+CREATE POLICY "Members can update bike_categories" ON bike_categories
+    FOR UPDATE
+    USING (organization_id IN (SELECT get_user_write_org_ids()))
+    WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
+DROP POLICY IF EXISTS "Members can delete bike_categories" ON bike_categories;
+CREATE POLICY "Members can delete bike_categories" ON bike_categories
+    FOR DELETE USING (organization_id IN (SELECT get_user_write_org_ids()));
+
+-- =====================================================
+-- vouchers
+-- =====================================================
+DROP POLICY IF EXISTS "Members can view vouchers" ON vouchers;
+DROP POLICY IF EXISTS "Members can manage vouchers" ON vouchers;
+CREATE POLICY "Members can view vouchers" ON vouchers
+    FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
+DROP POLICY IF EXISTS "Members can write vouchers" ON vouchers;
+CREATE POLICY "Members can write vouchers" ON vouchers
+    FOR INSERT WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
+DROP POLICY IF EXISTS "Members can update vouchers" ON vouchers;
+CREATE POLICY "Members can update vouchers" ON vouchers
+    FOR UPDATE
+    USING (organization_id IN (SELECT get_user_write_org_ids()))
+    WITH CHECK (organization_id IN (SELECT get_user_write_org_ids()));
+DROP POLICY IF EXISTS "Members can delete vouchers" ON vouchers;
+CREATE POLICY "Members can delete vouchers" ON vouchers
+    FOR DELETE USING (organization_id IN (SELECT get_user_write_org_ids()));
+
+-- =====================================================
+-- booking_items (scoped via bookings)
+-- Only applied if the table exists (created by group-bookings.sql)
+-- =====================================================
+DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'booking_items') THEN
+        DROP POLICY IF EXISTS "Members can manage booking_items" ON booking_items;
+        DROP POLICY IF EXISTS "Members can view booking_items" ON booking_items;
+        CREATE POLICY "Members can view booking_items" ON booking_items
+            FOR SELECT USING (
+                booking_id IN (SELECT id FROM bookings WHERE organization_id IN (SELECT get_user_org_ids()))
+            );
+        DROP POLICY IF EXISTS "Members can write booking_items" ON booking_items;
+        CREATE POLICY "Members can write booking_items" ON booking_items
+            FOR INSERT WITH CHECK (
+                booking_id IN (SELECT id FROM bookings WHERE organization_id IN (SELECT get_user_write_org_ids()))
+            );
+        DROP POLICY IF EXISTS "Members can delete booking_items" ON booking_items;
+        CREATE POLICY "Members can delete booking_items" ON booking_items
+            FOR DELETE USING (
+                booking_id IN (SELECT id FROM bookings WHERE organization_id IN (SELECT get_user_write_org_ids()))
+            );
+    ELSE
+        RAISE NOTICE 'booking_items table not found — run group-bookings.sql first, then re-run this file.';
+    END IF;
+END $$;
+
+-- =====================================================
+-- booking_addons (scoped via bookings)
+-- Only applied if the table exists (created by booking-addons.sql)
+-- =====================================================
+DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'booking_addons') THEN
+        DROP POLICY IF EXISTS "Members can manage booking_addons" ON booking_addons;
+        DROP POLICY IF EXISTS "Members can view booking_addons" ON booking_addons;
+        CREATE POLICY "Members can view booking_addons" ON booking_addons
+            FOR SELECT USING (
+                booking_id IN (SELECT id FROM bookings WHERE organization_id IN (SELECT get_user_org_ids()))
+            );
+        DROP POLICY IF EXISTS "Members can write booking_addons" ON booking_addons;
+        CREATE POLICY "Members can write booking_addons" ON booking_addons
+            FOR INSERT WITH CHECK (
+                booking_id IN (SELECT id FROM bookings WHERE organization_id IN (SELECT get_user_write_org_ids()))
+            );
+        DROP POLICY IF EXISTS "Members can delete booking_addons" ON booking_addons;
+        CREATE POLICY "Members can delete booking_addons" ON booking_addons
+            FOR DELETE USING (
+                booking_id IN (SELECT id FROM bookings WHERE organization_id IN (SELECT get_user_write_org_ids()))
+            );
+    ELSE
+        RAISE NOTICE 'booking_addons table not found — run booking-addons.sql first, then re-run this file.';
+    END IF;
+END $$;

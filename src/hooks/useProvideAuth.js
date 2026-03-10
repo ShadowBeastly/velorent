@@ -9,38 +9,24 @@ export function useProvideAuth() {
     const [profile, setProfile] = useState(null);
 
     useEffect(() => {
-        // Check active session
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            if (session) {
-                const { data: { user: validatedUser } } = await supabase.auth.getUser();
-                if (validatedUser) {
-                    setSession(session);
-                    setUser(validatedUser);
-                    loadProfile(validatedUser.id);
-                } else {
-                    setSession(null);
-                    setUser(null);
-                    setLoading(false);
-                }
-            } else {
-                setSession(null);
-                setUser(null);
-                setLoading(false);
-            }
-        });
+        let mounted = true;
 
-        // Listen for changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (!mounted) return;
             setSession(session);
             setUser(session?.user ?? null);
-            if (session?.user) loadProfile(session.user.id);
-            else {
+            if (session?.user) {
+                await loadProfile(session.user.id);
+            } else {
                 setProfile(null);
                 setLoading(false);
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const loadProfile = async (userId) => {
@@ -53,9 +39,10 @@ export function useProvideAuth() {
 
             if (error && error.code !== 'PGRST116') {
                 console.error("Error loading profile:", error);
+                // Don't overwrite existing profile on transient errors
+            } else {
+                setProfile(data ?? null);
             }
-
-            setProfile(data);
         } catch (err) {
             console.error("Profile load error:", err);
         } finally {
@@ -102,6 +89,11 @@ export function useProvideAuth() {
         if (error) throw error;
     };
 
+    const updatePassword = async (newPassword) => {
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+    };
+
     return {
         user,
         session,
@@ -110,6 +102,7 @@ export function useProvideAuth() {
         signIn,
         signUp,
         signOut,
-        resetPassword
+        resetPassword,
+        updatePassword
     };
 }

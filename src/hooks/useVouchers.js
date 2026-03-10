@@ -9,16 +9,22 @@ export function useVouchers(orgId) {
     const load = useCallback(async () => {
         if (!orgId) { setLoading(false); return; }
         setLoading(true);
-        const { data } = await supabase
-            .from("vouchers")
-            .select("*")
-            .eq("organization_id", orgId)
-            .order("created_at", { ascending: false });
-        setVouchers(data || []);
-        setLoading(false);
+        try {
+            const { data, error } = await supabase
+                .from("vouchers")
+                .select("*")
+                .eq("organization_id", orgId)
+                .order("created_at", { ascending: false });
+            if (error) throw error;
+            setVouchers(data || []);
+        } catch (err) {
+            console.error("Failed to load vouchers:", err);
+            setVouchers([]);
+        } finally {
+            setLoading(false);
+        }
     }, [orgId]);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { load(); }, [load]);
 
     const create = async (voucher) => {
