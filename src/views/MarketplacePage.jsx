@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useApp } from "@/src/context/AppContext";
 import { useOrganization } from "@/src/context/OrgContext";
 import { supabase } from "@/src/utils/supabase";
-import { Store, CheckCircle, XCircle, Clock, Building2, Save, Loader2, ExternalLink } from "lucide-react";
+import { Store, CheckCircle, XCircle, Clock, Building2, Save, Loader2, ExternalLink, Ban } from "lucide-react";
 import CancellationPolicyVisualizer from "@/src/components/marketplace/CancellationPolicyVisualizer";
 
 function formatEur(n) {
@@ -26,6 +26,10 @@ export default function MarketplacePage() {
   const [stripeError, setStripeError] = useState("");
   const [agbModalOpen, setAgbModalOpen] = useState(false);
   const [agbAccepting, setAgbAccepting] = useState(false);
+  const [cancelModal, setCancelModal] = useState(null); // { booking_id, guest_name, start_date, total_price }
+  const [cancelType, setCancelType] = useState("free");
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   const card = darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200";
   const inputCls = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${darkMode ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400" : "bg-white border-slate-300 text-slate-900"}`;
@@ -47,7 +51,7 @@ export default function MarketplacePage() {
       const [{ data: orgData }, { data: hotelsData }, { data: bookingsData }] = await Promise.all([
         supabase.from("organizations").select("id, name, is_platform_provider, stripe_account_id, stripe_onboarding_complete, stripe_charges_enabled, provider_description, provider_address, provider_phone, agb_accepted_at").eq("id", currentOrg.id).single(),
         supabase.from("hotel_providers").select("distance_km, is_active, hotels(id, name, address, slug)").eq("organization_id", currentOrg.id).eq("is_active", true),
-        supabase.from("bookings").select("booking_number, total_price, platform_commission, status, created_at, guest_name, start_date, end_date, booking_source, hotels(name), bike:bikes(name)").eq("organization_id", currentOrg.id).eq("booking_source", "hotel_qr").order("created_at", { ascending: false }).limit(20),
+        supabase.from("bookings").select("id, booking_number, total_price, platform_commission, status, cancellation_status, created_at, guest_name, start_date, end_date, booking_source, hotels(name), bike:bikes(name)").eq("organization_id", currentOrg.id).eq("booking_source", "hotel_qr").order("created_at", { ascending: false }).limit(20),
       ]);
       setOrg(orgData);
       setHotels(hotelsData || []);
@@ -85,6 +89,33 @@ export default function MarketplacePage() {
     setOrg(o => ({ ...o, agb_accepted_at: now }));
     setAgbAccepting(false);
     setAgbModalOpen(false);
+  }
+
+  function openCancelModal(b) {
+    const hoursUntilStart = (new Date(b.start_date).getTime() - Date.now()) / 3600000;
+    const defaultType = hoursUntilStart > 24 ? "free" : hoursUntilStart > 0 ? "partial" : "no_show";
+    setCancelType(defaultType);
+    setCancelError("");
+    setCancelModal({ booking_id: b.id, guest_name: b.guest_name, start_date: b.start_date, total_price: b.total_price });
+  }
+
+  async function handleCancel() {
+    setCancelling(true);
+    setCancelError("");
+    try {
+      const res = await fetch("/api/stripe/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: cancelModal.booking_id, cancellation_type: cancelType }),
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      setBookings(bs => bs.map(b => b.id === cancelModal.booking_id ? { ...b, status: "cancelled", cancellation_status: cancelType } : b));
+      setCancelModal(null);
+    } catch (err) {
+      setCancelError(err.message);
+    }
+    setCancelling(false);
   }
 
   async function saveProfile() {
@@ -227,7 +258,7 @@ export default function MarketplacePage() {
             <table className="w-full text-sm">
               <thead className={`border-b ${darkMode ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50"}`}>
                 <tr>
-                  {["Datum", "Hotel", "Gast", "Fahrrad", "Zeitraum", "Betrag", "Provision", "Status"].map(h => (
+                  {["Datum", "Hotel", "Gast", "Fahrrad", "Zeitraum", "Betrag", "Provision", "Status", ""].map(h => (
                     <th key={h} className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{h}</th>
                   ))}
                 </tr>
@@ -244,6 +275,17 @@ export default function MarketplacePage() {
                     <td className="px-4 py-3 text-sm text-red-400">−{formatEur(b.platform_commission)}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[b.status] || "bg-slate-700 text-slate-400"}`}>{b.status}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {b.status !== "cancelled" && (
+                        <button
+                          onClick={() => openCancelModal(b)}
+                          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors"
+                          title="Stornieren"
+                        >
+                          <Ban className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -283,6 +325,43 @@ export default function MarketplacePage() {
         </div>
       </div>
     </div>
+
+    {/* Cancellation Modal */}
+    {cancelModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div className={`w-full max-w-md rounded-2xl shadow-2xl ${darkMode ? "bg-slate-800 text-white" : "bg-white text-slate-900"}`}>
+          <div className={`px-6 py-4 border-b ${darkMode ? "border-slate-700" : "border-slate-200"}`}>
+            <h2 className="text-lg font-bold">Buchung stornieren</h2>
+            <p className={`text-sm mt-0.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{cancelModal.guest_name} · {cancelModal.start_date}</p>
+          </div>
+          <div className="px-6 py-4 space-y-4">
+            <div className="space-y-2">
+              {[
+                { value: "free",     label: "Kostenlose Stornierung",     desc: "100 % Rückerstattung, keine Provision" },
+                { value: "partial",  label: "Teilstorno (<24h)",           desc: "50 % Rückerstattung, Provision auf Restbetrag" },
+                { value: "no_show",  label: "No-Show",                    desc: "Kein Refund, volle Provision" },
+              ].map(opt => (
+                <label key={opt.value} className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${cancelType === opt.value ? "border-indigo-500 bg-indigo-500/10" : darkMode ? "border-slate-700 hover:border-slate-600" : "border-slate-200 hover:border-slate-300"}`}>
+                  <input type="radio" name="cancelType" value={opt.value} checked={cancelType === opt.value} onChange={() => setCancelType(opt.value)} className="mt-0.5" />
+                  <div>
+                    <p className="font-medium text-sm">{opt.label}</p>
+                    <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{opt.desc}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+            {cancelError && <p className="text-sm text-red-400 flex items-center gap-1"><XCircle className="w-4 h-4" />{cancelError}</p>}
+          </div>
+          <div className={`px-6 py-4 border-t flex justify-end gap-3 ${darkMode ? "border-slate-700" : "border-slate-200"}`}>
+            <button onClick={() => setCancelModal(null)} className={`px-4 py-2 rounded-lg text-sm font-medium ${darkMode ? "text-slate-300 hover:text-white" : "text-slate-600 hover:text-slate-900"}`}>Abbrechen</button>
+            <button onClick={handleCancel} disabled={cancelling} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white rounded-lg text-sm font-semibold transition-colors">
+              {cancelling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}
+              {cancelling ? "Wird storniert..." : "Stornierung bestätigen"}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* AGB Modal */}
     {agbModalOpen && (
