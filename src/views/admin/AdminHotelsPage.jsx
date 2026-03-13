@@ -113,7 +113,7 @@ export default function AdminHotelsPage() {
   }
 
   function copyLink(slug) {
-    const url = `${window.location.origin}/hotel/${slug}`;
+    const url = `https://lociva.de/hotel/${slug}`;
     navigator.clipboard.writeText(url);
     setCopiedSlug(slug);
     setTimeout(() => setCopiedSlug(null), 2000);
