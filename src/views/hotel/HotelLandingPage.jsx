@@ -258,6 +258,19 @@ export default function HotelLandingPage({ slug }) {
     typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36)
   );
 
+  // ---- Stripe return: ?session_id= in URL → show confirmation ----
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("session_id")) {
+      setConfirmedBooking({ booking_number: null, total_price: null, deposit_amount: null });
+      setStep(4);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    if (params.get("cancelled")) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
   // ---- Fetch hotel data ----
   useEffect(() => {
     async function fetchHotel() {
@@ -314,35 +327,61 @@ export default function HotelLandingPage({ slug }) {
     if (!guestName.trim() || !guestEmail.trim()) return;
     setSubmitting(true);
     setSubmitError("");
-    try {
-      const { data, error } = await supabase.rpc("create_guest_booking", {
-        p_organization_id: selectedProvider.id,
-        p_bike_id: selectedBike.id,
-        p_hotel_id: hotelData.hotel.id,
-        p_start_date: startDate,
-        p_end_date: endDate,
-        p_guest_name: guestName.trim(),
-        p_guest_email: guestEmail.trim(),
-        p_guest_phone: guestPhone.trim() || null,
-        p_language: lang,
-      });
-      if (error || !data) {
-        // Dev fallback
-        if (process.env.NODE_ENV === "development" || slug === "demo") {
-          setConfirmedBooking({ booking_number: "RC-2026-" + Math.floor(1000 + Math.random() * 9000), total_price: totalPrice, deposit_amount: selectedBike.deposit });
-          trackEvent("booking_complete");
-          setStep(4);
-        } else {
-          setSubmitError(t.errorOccurred);
-        }
-      } else {
-        setConfirmedBooking(data);
-        trackEvent("booking_complete", { booking_id: data.booking_id });
+
+    // Demo / dev: direct RPC (no Stripe)
+    if (slug === "demo" || process.env.NODE_ENV === "development") {
+      try {
+        const { data, error } = await supabase.rpc("create_guest_booking", {
+          p_organization_id: selectedProvider.id,
+          p_bike_id: selectedBike.id,
+          p_hotel_id: hotelData.hotel.id,
+          p_start_date: startDate,
+          p_end_date: endDate,
+          p_guest_name: guestName.trim(),
+          p_guest_email: guestEmail.trim(),
+          p_guest_phone: guestPhone.trim() || null,
+          p_language: lang,
+        });
+        const booking = data ?? { booking_number: "DEMO-" + Math.floor(1000 + Math.random() * 9000), total_price: totalPrice, deposit_amount: selectedBike.deposit };
+        setConfirmedBooking(booking);
+        trackEvent("booking_complete");
         setStep(4);
+      } catch {
+        setSubmitError(t.errorOccurred);
+      } finally {
+        setSubmitting(false);
       }
+      return;
+    }
+
+    // Production: Stripe Checkout
+    try {
+      trackEvent("booking_start", { bike_id: selectedBike.id });
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bike_id:    selectedBike.id,
+          hotel_id:   hotelData.hotel.id,
+          org_id:     selectedProvider.id,
+          start_date: startDate,
+          end_date:   endDate,
+          guest_name:  guestName.trim(),
+          guest_email: guestEmail.trim(),
+          guest_phone: guestPhone.trim() || null,
+          lang,
+          hotel_slug: slug,
+        }),
+      });
+      const json = await res.json();
+      if (json.error || !json.url) {
+        setSubmitError(json.error || t.errorOccurred);
+        setSubmitting(false);
+        return;
+      }
+      window.location.href = json.url; // Redirect to Stripe Checkout
     } catch {
       setSubmitError(t.errorOccurred);
-    } finally {
       setSubmitting(false);
     }
   }
@@ -524,10 +563,12 @@ export default function HotelLandingPage({ slug }) {
             <h2 className="text-2xl font-bold text-white mb-2">{t.bookingConfirmed}</h2>
             <p className="text-slate-400 mb-6">{t.confirmationSent}</p>
             <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 text-left space-y-3 mb-6">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 text-sm">{t.bookingNumber}</span>
-                <span className="font-mono font-bold text-indigo-400">{confirmedBooking.booking_number}</span>
-              </div>
+              {confirmedBooking.booking_number && (
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-sm">{t.bookingNumber}</span>
+                  <span className="font-mono font-bold text-indigo-400">{confirmedBooking.booking_number}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-slate-400 text-sm">Fahrrad</span>
                 <span className="text-white font-medium">{selectedBike?.name}</span>

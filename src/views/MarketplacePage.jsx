@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useApp } from "@/src/context/AppContext";
 import { useOrganization } from "@/src/context/OrgContext";
 import { supabase } from "@/src/utils/supabase";
-import { Store, CheckCircle, XCircle, Clock, Building2, Save } from "lucide-react";
+import { Store, CheckCircle, XCircle, Clock, Building2, Save, Loader2, ExternalLink } from "lucide-react";
 import CancellationPolicyVisualizer from "@/src/components/marketplace/CancellationPolicyVisualizer";
 
 function formatEur(n) {
@@ -22,10 +22,21 @@ export default function MarketplacePage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [profile, setProfile] = useState({ provider_description: "", provider_address: "", provider_phone: "" });
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeError, setStripeError] = useState("");
 
   const card = darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200";
   const inputCls = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${darkMode ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400" : "bg-white border-slate-300 text-slate-900"}`;
   const labelCls = `block text-sm font-medium mb-1 ${darkMode ? "text-slate-300" : "text-slate-700"}`;
+
+  // Handle return from Stripe Express Onboarding
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("stripe_return") || params.get("stripe_refresh")) {
+      window.history.replaceState({}, "", window.location.pathname);
+      // Reload org data to pick up charges_enabled status
+    }
+  }, []);
 
   useEffect(() => {
     if (!currentOrg?.id) return;
@@ -46,6 +57,24 @@ export default function MarketplacePage() {
     }
     load();
   }, [currentOrg?.id]);
+
+  async function handleStripeOnboarding() {
+    setStripeLoading(true);
+    setStripeError("");
+    try {
+      const res = await fetch("/api/stripe/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ org_id: org.id, org_email: currentOrg.email }),
+      });
+      const json = await res.json();
+      if (json.error || !json.url) throw new Error(json.error || "Fehler beim Stripe-Onboarding");
+      window.location.href = json.url;
+    } catch (err) {
+      setStripeError(err.message);
+      setStripeLoading(false);
+    }
+  }
 
   async function saveProfile() {
     setSavingProfile(true);
@@ -102,8 +131,16 @@ export default function MarketplacePage() {
               <p className="text-sm text-yellow-300/80 mb-3">
                 Um Buchungen empfangen und automatische Auszahlungen erhalten zu können, schließen Sie bitte das Stripe-Onboarding ab.
               </p>
-              <button disabled className="px-4 py-2 bg-yellow-600/50 text-yellow-200 rounded-lg text-sm cursor-not-allowed">
-                Stripe-Onboarding starten (demnächst verfügbar)
+              {stripeError && (
+                <p className="text-sm text-red-400 mb-2 flex items-center gap-1"><XCircle className="w-4 h-4" />{stripeError}</p>
+              )}
+              <button
+                onClick={handleStripeOnboarding}
+                disabled={stripeLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-400 disabled:bg-yellow-700/50 text-slate-900 disabled:text-yellow-300 rounded-lg text-sm font-semibold transition-colors"
+              >
+                {stripeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+                {stripeLoading ? "Wird gestartet..." : org?.stripe_account_id ? "Onboarding fortsetzen →" : "Mit Stripe verbinden →"}
               </button>
             </div>
           ) : (

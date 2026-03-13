@@ -2,11 +2,11 @@
 // Deploy: supabase functions deploy stripe-webhook --no-verify-jwt
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@13.10.0?target=deno";
+import Stripe from "https://esm.sh/stripe@14?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
-  apiVersion: "2023-10-16"
+  apiVersion: "2024-06-20"
 });
 
 const supabase = createClient(
@@ -34,9 +34,44 @@ serve(async (req) => {
   try {
     switch (event.type) {
 
+      // ----------------------------------------------------------------
+      // Lociva: Guest booking payment completed
+      // ----------------------------------------------------------------
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        const meta = session.metadata ?? {};
 
+        // Lociva guest booking (has bike_id in metadata)
+        if (meta.bike_id && meta.org_id) {
+          const { data: booking, error: rpcErr } = await supabase.rpc("create_guest_booking", {
+            p_organization_id: meta.org_id,
+            p_bike_id:         meta.bike_id,
+            p_hotel_id:        meta.hotel_id || null,
+            p_start_date:      meta.start_date,
+            p_end_date:        meta.end_date,
+            p_guest_name:      meta.guest_name,
+            p_guest_email:     meta.guest_email,
+            p_guest_phone:     meta.guest_phone || null,
+            p_language:        meta.lang || "de",
+          });
+
+          if (rpcErr) {
+            console.error("create_guest_booking failed:", rpcErr);
+          } else {
+            const piId = typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : session.payment_intent?.id;
+            await supabase.from("bookings").update({
+              stripe_checkout_session_id: session.id,
+              stripe_payment_intent_id:   piId ?? null,
+              status: "confirmed",
+            }).eq("id", booking.booking_id);
+            console.log("Lociva booking created:", booking.booking_number);
+          }
+          break;
+        }
+
+        // Legacy RentCore: SaaS subscription checkout
         if (session.mode === "subscription" && session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string
@@ -127,6 +162,38 @@ serve(async (req) => {
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         console.log("Payment succeeded for customer:", invoice.customer);
+        break;
+      }
+
+      // ----------------------------------------------------------------
+      // Lociva: Provider Express account status changed
+      // ----------------------------------------------------------------
+      case "account.updated": {
+        const account = event.data.object as Stripe.Account;
+        await supabase.from("organizations").update({
+          stripe_charges_enabled:     account.charges_enabled,
+          stripe_payouts_enabled:     account.payouts_enabled,
+          stripe_onboarding_complete: account.details_submitted,
+        }).eq("stripe_account_id", account.id);
+        console.log("Provider account updated:", account.id, "charges:", account.charges_enabled);
+        break;
+      }
+
+      // ----------------------------------------------------------------
+      // Lociva: Refund processed → update cancellation_status
+      // ----------------------------------------------------------------
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const piId = typeof charge.payment_intent === "string"
+          ? charge.payment_intent
+          : charge.payment_intent?.id;
+        if (!piId) break;
+        const refundedRatio = charge.amount_refunded / charge.amount;
+        const cancellationStatus = refundedRatio >= 0.99 ? "free" : "partial";
+        await supabase.from("bookings").update({
+          cancellation_status: cancellationStatus,
+          status: "cancelled",
+        }).eq("stripe_payment_intent_id", piId);
         break;
       }
     }
