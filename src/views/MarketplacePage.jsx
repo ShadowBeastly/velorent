@@ -24,6 +24,8 @@ export default function MarketplacePage() {
   const [profile, setProfile] = useState({ provider_description: "", provider_address: "", provider_phone: "" });
   const [stripeLoading, setStripeLoading] = useState(false);
   const [stripeError, setStripeError] = useState("");
+  const [agbModalOpen, setAgbModalOpen] = useState(false);
+  const [agbAccepting, setAgbAccepting] = useState(false);
 
   const card = darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200";
   const inputCls = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${darkMode ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400" : "bg-white border-slate-300 text-slate-900"}`;
@@ -43,7 +45,7 @@ export default function MarketplacePage() {
     async function load() {
       setLoading(true);
       const [{ data: orgData }, { data: hotelsData }, { data: bookingsData }] = await Promise.all([
-        supabase.from("organizations").select("id, name, is_platform_provider, stripe_account_id, stripe_onboarding_complete, stripe_charges_enabled, provider_description, provider_address, provider_phone").eq("id", currentOrg.id).single(),
+        supabase.from("organizations").select("id, name, is_platform_provider, stripe_account_id, stripe_onboarding_complete, stripe_charges_enabled, provider_description, provider_address, provider_phone, agb_accepted_at").eq("id", currentOrg.id).single(),
         supabase.from("hotel_providers").select("distance_km, is_active, hotels(id, name, address, slug)").eq("organization_id", currentOrg.id).eq("is_active", true),
         supabase.from("bookings").select("booking_number, total_price, platform_commission, status, created_at, guest_name, start_date, end_date, booking_source, hotels(name), bike:bikes(name)").eq("organization_id", currentOrg.id).eq("booking_source", "hotel_qr").order("created_at", { ascending: false }).limit(20),
       ]);
@@ -74,6 +76,15 @@ export default function MarketplacePage() {
       setStripeError(err.message);
       setStripeLoading(false);
     }
+  }
+
+  async function acceptAgb() {
+    setAgbAccepting(true);
+    const now = new Date().toISOString();
+    await supabase.from("organizations").update({ agb_accepted_at: now }).eq("id", currentOrg.id);
+    setOrg(o => ({ ...o, agb_accepted_at: now }));
+    setAgbAccepting(false);
+    setAgbModalOpen(false);
   }
 
   async function saveProfile() {
@@ -156,6 +167,24 @@ export default function MarketplacePage() {
             </div>
           )}
         </div>
+
+        {/* AGB Banner */}
+        {org?.is_platform_provider && !org?.agb_accepted_at && (
+          <div className="rounded-xl p-4 border border-orange-700/50 bg-orange-900/20 mb-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="font-semibold text-orange-400 mb-1">Allgemeine Geschäftsbedingungen ausstehend</p>
+                <p className="text-sm text-orange-300/80">Um auf der Lociva Plattform sichtbar zu sein und Buchungen zu empfangen, müssen Sie unsere AGB akzeptieren.</p>
+              </div>
+              <button
+                onClick={() => setAgbModalOpen(true)}
+                className="flex-shrink-0 px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white rounded-lg text-sm font-semibold transition-colors"
+              >
+                AGB ansehen & akzeptieren
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Section 2: Linked Hotels */}
         <div className={`border rounded-xl p-5 mb-6 ${card}`}>
@@ -254,5 +283,68 @@ export default function MarketplacePage() {
         </div>
       </div>
     </div>
+
+    {/* AGB Modal */}
+    {agbModalOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div className={`w-full max-w-2xl max-h-[80vh] flex flex-col rounded-2xl shadow-2xl ${darkMode ? "bg-slate-800 text-white" : "bg-white text-slate-900"}`}>
+          <div className={`flex items-center justify-between px-6 py-4 border-b ${darkMode ? "border-slate-700" : "border-slate-200"}`}>
+            <h2 className="text-lg font-bold">Allgemeine Geschäftsbedingungen für Anbieter</h2>
+            <button onClick={() => setAgbModalOpen(false)} className={`text-xl leading-none ${darkMode ? "text-slate-400 hover:text-white" : "text-slate-400 hover:text-slate-800"}`}>✕</button>
+          </div>
+          <div className={`overflow-y-auto px-6 py-4 flex-1 text-sm space-y-4 ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
+            <p><strong>Stand: März 2026 · Lociva (funk-e.solutions, Christopher Funke)</strong></p>
+            <div>
+              <p className="font-semibold mb-1">1. Vermittlerrolle</p>
+              <p>Lociva ist ein Buchungsvermittler und schließt keine eigenen Miet- oder Leistungsverträge ab. Der Vertrag kommt ausschließlich zwischen dem Gast und dem Anbieter zustande. Lociva haftet nicht für die erbrachten Leistungen der Anbieter.</p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">2. Provisionsstruktur</p>
+              <p>Für jede über die Lociva-Plattform vermittelte Buchung wird eine Provision fällig, die automatisch über Stripe abgerechnet wird:</p>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                <li>Fahrräder / E-Bikes / Trekkingräder: 5 %</li>
+                <li>Kanu / SUP / Go-Kart / Klettern / Escape Room: 10 %</li>
+                <li>Geführte Touren / Weinverkostung / Wellness / Spa: 12 %</li>
+                <li>Heißluftballon / Segeln: 15 %</li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">3. Stripe Connect & Auszahlungen</p>
+              <p>Anbieter müssen ein Stripe Express-Konto einrichten und das KYC-Verfahren von Stripe abschließen. Auszahlungen erfolgen automatisch nach dem von Stripe festgelegten Auszahlungsplan (wöchentlich, montags). Lociva hat keinen Zugriff auf die Kontodaten der Anbieter.</p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">4. Stornierungsbedingungen</p>
+              <ul className="list-disc pl-4 space-y-0.5">
+                <li><strong>Mehr als 24h vor Beginn:</strong> Volle Rückerstattung an den Gast, keine Provision.</li>
+                <li><strong>Weniger als 24h vor Beginn:</strong> 50 % werden einbehalten, Provision auf den einbehaltenen Betrag.</li>
+                <li><strong>No-Show:</strong> Voller Betrag wird einbehalten, normale Provision.</li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">5. Haftpflichtversicherung</p>
+              <p>Der Anbieter verpflichtet sich, eine gültige Betriebshaftpflichtversicherung zu unterhalten, die alle über Lociva vermittelten Leistungen abdeckt.</p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">6. Verfügbarkeit & Eigenverantwortung</p>
+              <p>Der Anbieter ist selbst verantwortlich für die korrekte Pflege seiner Verfügbarkeiten. Doppelbuchungen oder nicht erfüllte Buchungen gehen zu Lasten des Anbieters.</p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">7. Datenschutz</p>
+              <p>Gastdaten (Name, E-Mail, Telefon) werden dem Anbieter ausschließlich zur Erfüllung der Buchung zur Verfügung gestellt und dürfen nicht für andere Zwecke genutzt werden.</p>
+            </div>
+          </div>
+          <div className={`px-6 py-4 border-t flex items-center justify-between gap-4 ${darkMode ? "border-slate-700" : "border-slate-200"}`}>
+            <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Mit dem Klick auf "AGB akzeptieren" bestätigen Sie, diese Bedingungen gelesen und akzeptiert zu haben.</p>
+            <button
+              onClick={acceptAgb}
+              disabled={agbAccepting}
+              className="flex-shrink-0 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 text-white rounded-lg text-sm font-semibold transition-colors"
+            >
+              {agbAccepting ? "Wird gespeichert..." : "AGB akzeptieren"}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   );
 }

@@ -67,6 +67,37 @@ serve(async (req) => {
               status: "confirmed",
             }).eq("id", booking.booking_id);
             console.log("Lociva booking created:", booking.booking_number);
+
+            // Send guest confirmation email
+            try {
+              const [{ data: bikeData }, { data: orgData }] = await Promise.all([
+                supabase.from("bikes").select("name").eq("id", meta.bike_id).single(),
+                supabase.from("organizations").select("name, provider_address, provider_phone").eq("id", meta.org_id).single(),
+              ]);
+              await supabase.functions.invoke("send-email", {
+                body: {
+                  type: "lociva_guest_confirmation",
+                  to: meta.guest_email,
+                  data: {
+                    guest_name:       meta.guest_name,
+                    booking_number:   booking.booking_number,
+                    bike_name:        bikeData?.name || "–",
+                    start_date:       meta.start_date,
+                    end_date:         meta.end_date,
+                    total_days:       meta.total_days,
+                    total_price:      `${meta.total_price} €`,
+                    provider_name:    orgData?.name || "",
+                    provider_address: orgData?.provider_address || "",
+                    provider_phone:   orgData?.provider_phone || "",
+                    lang:             meta.lang || "de",
+                  },
+                },
+              });
+              console.log("Confirmation email sent to:", meta.guest_email);
+            } catch (emailErr) {
+              console.error("Failed to send confirmation email:", emailErr);
+              // Non-fatal — booking was created successfully
+            }
           }
           break;
         }
