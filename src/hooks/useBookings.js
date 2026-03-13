@@ -140,7 +140,7 @@ export function useBookings(orgId) {
             ? `${bookingData.customer.first_name} ${bookingData.customer.last_name}`
             : (bookingData.customer_name || "Gast"),
         customer_phone: bookingData.customer?.phone ?? "",
-        organization_name: org?.name || "RentCore",
+        organization_name: org?.name || "Lociva",
         organization_email: org?.email,
         organization_phone: org?.phone,
         bike_name: bookingData.bike?.name || bookingData.booking_items?.[0]?.bike?.name || "Fahrrad",
@@ -224,17 +224,19 @@ export function useBookings(orgId) {
         return { data, error };
     };
 
-    const remove = async (id) => {
+    const remove = async (id, cancellationStatus = null) => {
         // Soft-delete: Set status to 'cancelled' instead of hard deleting
+        const updates = { status: 'cancelled' };
+        if (cancellationStatus) updates.cancellation_status = cancellationStatus;
+
         const { error } = await supabase
             .from("bookings")
-            .update({ status: 'cancelled' })
+            .update(updates)
             .eq("id", id)
             .eq("organization_id", orgId);
 
         if (!error) {
-            // Update local state: keep the booking but mark as cancelled
-            setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
+            setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled', ...(cancellationStatus ? { cancellation_status: cancellationStatus } : {}) } : b));
         } else {
             console.error("Booking cancellation failed:", error);
         }

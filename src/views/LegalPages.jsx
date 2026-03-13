@@ -32,7 +32,7 @@ function LegalPage({ title, icon: Icon, children, onBack }) {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-500">
-        © {new Date().getFullYear()} RentCore. Alle Rechte vorbehalten.
+        © {new Date().getFullYear()} Lociva. Alle Rechte vorbehalten.
       </footer>
     </div>
   );
@@ -47,7 +47,7 @@ export function Impressum({ onBack }) {
 
       <h2>Angaben gemäß § 5 TMG</h2>
       <p>
-        <strong>RentCore</strong><br />
+        <strong>Lociva</strong><br />
         {process.env.NEXT_PUBLIC_COMPANY_STREET || "Musterstraße 1"}<br />
         {process.env.NEXT_PUBLIC_COMPANY_CITY || "10115 Berlin"}<br />
         Deutschland
@@ -56,7 +56,7 @@ export function Impressum({ onBack }) {
       <h2>Kontakt</h2>
       <p>
         Telefon: {process.env.NEXT_PUBLIC_COMPANY_PHONE || "+49 30 12345678"}<br />
-        E-Mail: {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "info@rentcore.de"}
+        E-Mail: {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "info@lociva.de"}
       </p>
 
       <h2>Umsatzsteuer-ID</h2>
@@ -73,7 +73,7 @@ export function Impressum({ onBack }) {
 
       <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>
       <p>
-        {process.env.NEXT_PUBLIC_COMPANY_RESPONSIBLE || "Geschäftsführung RentCore"}<br />
+        {process.env.NEXT_PUBLIC_COMPANY_RESPONSIBLE || "Geschäftsführung Lociva"}<br />
         {process.env.NEXT_PUBLIC_COMPANY_STREET || "Musterstraße 1"},{" "}
         {process.env.NEXT_PUBLIC_COMPANY_CITY || "10115 Berlin"}
       </p>
@@ -179,18 +179,18 @@ export function Datenschutz({ onBack }) {
         Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website ist:
       </p>
       <p>
-        RentCore<br />
+        Lociva<br />
         {process.env.NEXT_PUBLIC_COMPANY_STREET || "Musterstraße 1"},{" "}
         {process.env.NEXT_PUBLIC_COMPANY_CITY || "10115 Berlin"}<br />
         Telefon: {process.env.NEXT_PUBLIC_COMPANY_PHONE || "+49 30 12345678"}<br />
-        E-Mail: {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "info@rentcore.de"}
+        E-Mail: {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "info@lociva.de"}
       </p>
 
       <h3>Datenschutzbeauftragter / Datenschutzkontakt</h3>
       <p>
         Bei Fragen zum Datenschutz wenden Sie sich bitte an:{" "}
-        <a href={`mailto:${process.env.NEXT_PUBLIC_COMPANY_EMAIL || "datenschutz@rentcore.de"}`}>
-          {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "datenschutz@rentcore.de"}
+        <a href={`mailto:${process.env.NEXT_PUBLIC_COMPANY_EMAIL || "datenschutz@lociva.de"}`}>
+          {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "datenschutz@lociva.de"}
         </a>
       </p>
 
@@ -284,7 +284,7 @@ export function AGB({ onBack }) {
       <h2>§ 1 Geltungsbereich</h2>
       <p>
         (1) Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der Software
-        &quot;RentCore&quot; (nachfolgend &quot;Software&quot; oder &quot;Dienst&quot;), die von RentCore
+        &quot;Lociva&quot; (nachfolgend &quot;Software&quot; oder &quot;Dienst&quot;), die von Lociva
         (nachfolgend &quot;Anbieter&quot;) bereitgestellt wird.
       </p>
       <p>

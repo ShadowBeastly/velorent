@@ -154,7 +154,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 <Bike className="w-6 h-6 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-heading font-bold text-slate-900 dark:text-white leading-none">RentCore</span>
+                <span className="text-xl font-heading font-bold text-slate-900 dark:text-white leading-none">Lociva</span>
               </div>
             </div>
 
@@ -216,7 +216,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             </h1>
 
             <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-              RentCore digitalisiert Ihren Fahrradverleih in weniger als 5 Minuten.
+              Lociva digitalisiert Ihren Fahrradverleih in weniger als 5 Minuten.
               Entwickelt für Hotels, Pensionen und Fahrradläden in Deutschland.
             </p>
 
@@ -265,7 +265,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 </div>
                 <div className="flex-1 mx-4">
                   <div className="bg-white dark:bg-slate-950 rounded-md px-3 py-1.5 text-xs text-slate-400 text-center font-mono border border-slate-200 dark:border-slate-800">
-                    rentcore.app/dashboard
+                    lociva.de/dashboard
                   </div>
                 </div>
               </div>
@@ -377,7 +377,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               <span className="text-brand-600">Nichts was Sie nicht brauchen.</span>
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">
-              RentCore wurde speziell für die Bedürfnisse moderner Fahrradverleihe entwickelt.
+              Lociva wurde speziell für die Bedürfnisse moderner Fahrradverleihe entwickelt.
               Kein unnötiger Ballast, nur leistungsstarke Tools.
             </p>
           </div>
@@ -480,7 +480,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 <Button
                   variant={plan.highlighted ? "primary" : "outline"}
                   className="w-full"
-                  onClick={plan.cta === "Kontakt aufnehmen" ? () => { window.location.href = "mailto:info@rentcore.de?subject=Anfrage"; } : onGetStarted}
+                  onClick={plan.cta === "Kontakt aufnehmen" ? () => { window.location.href = "mailto:info@lociva.de?subject=Anfrage"; } : onGetStarted}
                 >
                   {plan.cta}
                 </Button>
@@ -495,7 +495,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
       <section id="testimonials" className="hidden py-24 px-4 bg-slate-50 dark:bg-slate-950">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-slate-900 dark:text-white mb-16">
-            Für wen ist RentCore?
+            Für wen ist Lociva?
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -551,13 +551,13 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             Bereit für das nächste Level?
           </h2>
           <p className="text-xl text-brand-100 mb-12 max-w-2xl mx-auto">
-            Starten Sie noch heute mit RentCore und digitalisieren Sie Ihren Verleih in weniger als 5 Minuten.
+            Starten Sie noch heute mit Lociva und digitalisieren Sie Ihren Verleih in weniger als 5 Minuten.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="xl" className="bg-white !text-brand-600 hover:bg-brand-50 shadow-xl border-none" onClick={onGetStarted}>
               Jetzt starten
             </Button>
-            <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/10" onClick={() => { window.location.href = "mailto:info@rentcore.de?subject=Anfrage"; }}>
+            <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/10" onClick={() => { window.location.href = "mailto:info@lociva.de?subject=Anfrage"; }}>
               Kontakt aufnehmen
             </Button>
           </div>
@@ -573,7 +573,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-600 to-violet-600 flex items-center justify-center">
                   <Bike className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-white">RentCore</span>
+                <span className="text-xl font-bold text-white">Lociva</span>
               </div>
               <p className="text-sm leading-relaxed mb-6">
                 Die All-in-One Lösung für moderne Fahrradverleihe.
@@ -595,7 +595,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             <div>
               <h4 className="text-white font-bold mb-6">Support</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="mailto:info@rentcore.de" className="hover:text-brand-400 transition-colors">info@rentcore.de</a></li>
+                <li><a href="mailto:info@lociva.de" className="hover:text-brand-400 transition-colors">info@lociva.de</a></li>
               </ul>
             </div>
 
@@ -611,7 +611,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
           </div>
 
           <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-            <p>© {new Date().getFullYear()} RentCore. Alle Rechte vorbehalten.</p>
+            <p>© {new Date().getFullYear()} Lociva. Alle Rechte vorbehalten.</p>
             <div className="flex items-center gap-6">
               <span className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500"></div>

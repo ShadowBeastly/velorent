@@ -34,7 +34,7 @@ export const generateContract = (booking, organization) => {
     const [pr, pg, pb] = hexToRgb(primaryColorHex);
     doc.setTextColor(pr, pg, pb);
     doc.setFont(undefined, 'bold');
-    doc.text(organization?.name || 'RentCore Service', 20, 22);
+    doc.text(organization?.name || 'Lociva', 20, 22);
 
     doc.setFontSize(9);
     doc.setTextColor(grayColor);
@@ -295,7 +295,7 @@ export const generateContract = (booking, organization) => {
     doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
 
     const footerParts = [
-        organization?.name || 'RentCore',
+        organization?.name || 'Lociva',
         organization?.address ? `${organization.address}, ${organization.city || ''}` : '',
         organization?.iban ? `IBAN: ${organization.iban}${organization.bic ? ` | BIC: ${organization.bic}` : ''}` : '',
         organization?.tax_id ? `USt-IdNr.: ${organization.tax_id}` : '',

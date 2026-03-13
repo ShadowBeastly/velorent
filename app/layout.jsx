@@ -23,18 +23,18 @@ const outfit = Outfit({
 });
 
 export const metadata = {
-    title: "RentCore — Cloud-basierte Fahrradvermietung",
-    description: "Die All-in-One SaaS-Lösung für Fahrradvermietungen. Flottenmanagement, Online-Buchungen, Rechnungen und mehr.",
+    title: "Lociva — Lokale Aktivitäten für Hotelgäste",
+    description: "Der digitale Concierge für Hotels. Gäste buchen lokale Aktivitäten direkt via QR-Code — Fahrräder, Touren, Erlebnisse und mehr.",
     manifest: "/manifest.json",
-    themeColor: "#f97316",
+    themeColor: "#6366f1",
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
-        title: "RentCore",
+        title: "Lociva",
     },
     openGraph: {
-        title: "RentCore — Cloud-basierte Fahrradvermietung",
-        description: "Die All-in-One SaaS-Lösung für Fahrradvermietungen.",
+        title: "Lociva — Lokale Aktivitäten für Hotelgäste",
+        description: "Der digitale Concierge für Hotels. Gäste buchen lokale Aktivitäten direkt via QR-Code.",
         type: "website",
         locale: "de_DE",
     },

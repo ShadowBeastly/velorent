@@ -129,7 +129,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Willkommen bei RentCore!</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Willkommen bei Lociva!</h1>
           <p className="text-slate-400">Richten Sie Ihren Fahrradverleih in wenigen Schritten ein</p>
         </div>
 

@@ -863,7 +863,7 @@ export default function RentCoreBookingWidget({
           fontSize: "12px",
           color: "#94a3b8"
         }}>
-          Powered by RentCore
+          Powered by Lociva
         </div>
       )}
 

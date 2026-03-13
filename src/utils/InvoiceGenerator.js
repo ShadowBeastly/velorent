@@ -34,7 +34,7 @@ export const generateInvoice = (invoice, organization) => {
     // Organization Details (Left)
     doc.setFontSize(20);
     doc.setTextColor(primaryColor);
-    doc.text(organization?.name || 'RentCore Service', 20, 20);
+    doc.text(organization?.name || 'Lociva', 20, 20);
 
     doc.setFontSize(10);
     doc.setTextColor(grayColor);
@@ -158,7 +158,7 @@ export const generateInvoice = (invoice, organization) => {
     doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
 
     const footerText = [
-        [organization?.name || 'RentCore', organization?.address, organization?.city].filter(Boolean).join(', '),
+        [organization?.name || 'Lociva', organization?.address, organization?.city].filter(Boolean).join(', '),
         organization?.iban
             ? `Bankverbindung: ${organization.iban}${organization.bic ? ` • BIC ${organization.bic}` : ''}`
             : null,

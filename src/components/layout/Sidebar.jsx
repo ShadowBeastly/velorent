@@ -46,7 +46,7 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                     {showLabels && (
                         <div className="min-w-0 flex-1 animate-fade-in">
                             <h1 className="font-bold text-lg tracking-tight truncate font-sans">
-                                {org.currentOrg?.name || "RentCore"}
+                                {org.currentOrg?.name || "Lociva"}
                             </h1>
                             <p className={`text-xs truncate font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                                 Pro Cloud
@@ -57,7 +57,7 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                     {!showLabels && (
                         <div className="min-w-0 flex-1 animate-fade-in md:hidden">
                             <h1 className="font-bold text-lg tracking-tight truncate font-sans">
-                                {org.currentOrg?.name || "RentCore"}
+                                {org.currentOrg?.name || "Lociva"}
                             </h1>
                             <p className={`text-xs truncate font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                                 Pro Cloud
@@ -91,7 +91,13 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
 
                 {/* Navigation */}
                 <nav aria-label="Hauptnavigation" className="flex-1 px-3 space-y-1 overflow-y-auto py-2">
-                    {NAVIGATION_ITEMS.map(item => {
+                    {NAVIGATION_ITEMS.filter(item => {
+                        const adminItems = ["admin-hotels", "admin-providers", "admin-analytics"];
+                        if (adminItems.includes(item.id)) {
+                            return auth.profile?.role === "platform_admin";
+                        }
+                        return true;
+                    }).map(item => {
                         const isActive = item.path === "/app"
                             ? pathname === "/app" || pathname === "/app/"
                             : pathname.startsWith(item.path);

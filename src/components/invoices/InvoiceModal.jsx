@@ -304,7 +304,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                     <p className="text-slate-500">Nr. {formData.invoice_number}</p>
                                 </div>
                                 <div className="meta">
-                                    <strong>{org?.name || "RentCore"}</strong><br />
+                                    <strong>{org?.name || "Lociva"}</strong><br />
                                     {org?.address && <>{org.address}<br /></>}
                                     {[org?.postal_code, org?.city].filter(Boolean).join(" ")}
                                 </div>
