@@ -1,10 +1,62 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users } from "lucide-react";
+import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle } from "lucide-react";
 import { fmtISO, addDays, daysDiff, fmtCurrency } from "../../utils/formatters";
 import { STATUS } from "../../utils/constants";
 import ContractModal from "./ContractModal";
 import { calculateDynamicPrice } from "../../utils/calculatePrice";
+
+function getCancellationScenario(startDate) {
+    const now = new Date();
+    const start = new Date(startDate + "T00:00:00");
+    const hoursUntilStart = (start - now) / (1000 * 60 * 60);
+    if (hoursUntilStart < 0) return "no_show";
+    if (hoursUntilStart < 24) return "partial";
+    return "free";
+}
+
+const CANCEL_SCENARIO_META = {
+    free: {
+        label: "Kostenlose Stornierung",
+        sublabel: "Mehr als 24h vor Mietbeginn — voller Refund",
+        color: "border-green-600/50 bg-green-900/20",
+        badgeColor: "bg-green-700 text-green-100",
+        guestBack: (total) => total,
+        providerGets: () => 0,
+        platformGets: () => 0,
+        retained: () => 0,
+        stripeAction: "Refund (full)",
+        dbStatus: "free",
+    },
+    partial: {
+        label: "50% Stornierungsgebühr",
+        sublabel: "Weniger als 24h vor Mietbeginn",
+        color: "border-amber-600/50 bg-amber-900/20",
+        badgeColor: "bg-amber-700 text-amber-100",
+        guestBack: (total) => total * 0.5,
+        providerGets: (total) => Math.round(total * 0.5 * 0.95 * 100) / 100,
+        platformGets: (total) => Math.round(total * 0.5 * 0.05 * 100) / 100,
+        retained: (total) => total * 0.5,
+        stripeAction: "Partial Refund (50%)",
+        dbStatus: "partial",
+    },
+    no_show: {
+        label: "No-Show",
+        sublabel: "Mietbeginn überschritten — kein Refund",
+        color: "border-red-700/50 bg-red-900/20",
+        badgeColor: "bg-red-700 text-red-100",
+        guestBack: () => 0,
+        providerGets: (total) => Math.round(total * 0.95 * 100) / 100,
+        platformGets: (total) => Math.round(total * 0.05 * 100) / 100,
+        retained: (total) => total,
+        stripeAction: "Kein Refund",
+        dbStatus: "no_show",
+    },
+};
+
+function fmtEur(n) {
+    return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n || 0);
+}
 
 const STEPS = [
     { id: 1, label: "Zeitraum & Rad", icon: Calendar },
@@ -18,6 +70,9 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const [saving, setSaving] = useState(false);
     const [stepError, setStepError] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [showCancelBreakdown, setShowCancelBreakdown] = useState(false);
+
+    const isMarketplaceBooking = booking?.booking_source === "hotel_qr";
     const [customerSearch, setCustomerSearch] = useState("");
     const [isNewCustomer, setIsNewCustomer] = useState(false);
     const [showContract, setShowContract] = useState(false);
@@ -790,7 +845,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                             {stepError}
                         </div>
                     )}
-                    {confirmDelete && (
+                    {confirmDelete && !isMarketplaceBooking && (
                         <div className="px-3 py-2 bg-rose-500/10 border border-rose-500/20 rounded-lg text-sm flex items-center justify-between gap-3">
                             <span className="text-rose-600 font-medium">Buchung wirklich stornieren?</span>
                             <div className="flex gap-2">
@@ -799,11 +854,57 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                             </div>
                         </div>
                     )}
+                    {showCancelBreakdown && isMarketplaceBooking && (() => {
+                        const scenarioKey = getCancellationScenario(booking.start_date);
+                        const meta = CANCEL_SCENARIO_META[scenarioKey];
+                        const total = booking.total_price || 0;
+                        return (
+                            <div className={`rounded-xl border p-4 ${meta.color}`}>
+                                <div className="flex items-start justify-between mb-3">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                                            <span className="font-semibold text-sm">{meta.label}</span>
+                                            <span className={`px-2 py-0.5 rounded text-xs font-mono ${meta.badgeColor}`}>{meta.stripeAction}</span>
+                                        </div>
+                                        <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{meta.sublabel}</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2 text-center text-xs mb-3">
+                                    <div className={`rounded-lg py-2 px-1 ${darkMode ? "bg-slate-700/50" : "bg-white/60"}`}>
+                                        <div className={`font-bold text-base ${darkMode ? "text-white" : "text-slate-800"}`}>{fmtEur(meta.guestBack(total))}</div>
+                                        <div className={darkMode ? "text-slate-400" : "text-slate-500"}>Gast zurück</div>
+                                    </div>
+                                    <div className={`rounded-lg py-2 px-1 ${darkMode ? "bg-slate-700/50" : "bg-white/60"}`}>
+                                        <div className="font-bold text-base text-green-400">{fmtEur(meta.providerGets(total))}</div>
+                                        <div className={darkMode ? "text-slate-400" : "text-slate-500"}>Anbieter</div>
+                                    </div>
+                                    <div className={`rounded-lg py-2 px-1 ${darkMode ? "bg-slate-700/50" : "bg-white/60"}`}>
+                                        <div className="font-bold text-base text-blue-400">{fmtEur(meta.platformGets(total))}</div>
+                                        <div className={darkMode ? "text-slate-400" : "text-slate-500"}>Plattform</div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 justify-end">
+                                    <button onClick={() => setShowCancelBreakdown(false)} className={`px-3 py-1.5 rounded-lg text-sm ${darkMode ? "hover:bg-slate-700 text-slate-400" : "hover:bg-slate-100 text-slate-500"}`}>Abbrechen</button>
+                                    <button
+                                        onClick={() => { setShowCancelBreakdown(false); onDelete(booking.id, meta.dbStatus); }}
+                                        className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium"
+                                    >
+                                        Stornierung bestätigen
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })()}
                     <div className="flex justify-between items-center">
                         <div className="flex gap-2">
                             {booking && (
                                 <button
-                                    onClick={() => { if (booking.status !== "cancelled") setConfirmDelete(true); }}
+                                    onClick={() => {
+                                        if (booking.status === "cancelled") return;
+                                        if (isMarketplaceBooking) setShowCancelBreakdown(true);
+                                        else setConfirmDelete(true);
+                                    }}
                                     disabled={booking.status === "cancelled"}
                                     className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${booking.status === "cancelled"
                                         ? "text-slate-400 cursor-not-allowed"

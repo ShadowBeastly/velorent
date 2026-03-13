@@ -367,8 +367,8 @@ export default function BookingsPage() {
                     pricingRules={pricingRules?.rules || []}
                     addOns={addOns.addOns}
                     onSave={handleSave}
-                    onDelete={async (id) => {
-                        const { error } = await bookings.remove(id);
+                    onDelete={async (id, cancellationStatus) => {
+                        const { error } = await bookings.remove(id, cancellationStatus);
                         if (error) {
                             addToast("Fehler beim Stornieren: " + error.message, "error");
                         } else {

@@ -1,4 +1,4 @@
-import { Bike, Home, Calendar, FileText, Receipt, Users, Settings, Layers, Wrench, Tag, Package, Euro } from "lucide-react";
+import { Bike, Home, Calendar, FileText, Receipt, Users, Settings, Layers, Wrench, Tag, Package, Euro, Store, Building2, BarChart3 } from "lucide-react";
 
 export const NAVIGATION_ITEMS = [
     { id: "dashboard", labelKey: "nav.dashboard", icon: Home, path: "/app" },
@@ -12,5 +12,10 @@ export const NAVIGATION_ITEMS = [
     { id: "addons", labelKey: "nav.addons", icon: Package, path: "/app/addons" },
     { id: "vouchers", labelKey: "nav.vouchers", icon: Tag, path: "/app/vouchers" },
     { id: "customers", labelKey: "nav.customers", icon: Users, path: "/app/customers" },
-    { id: "settings", labelKey: "nav.settings", icon: Settings, path: "/app/settings" }
+    { id: "settings", labelKey: "nav.settings", icon: Settings, path: "/app/settings" },
+    { id: "marketplace", labelKey: "nav.marketplace", icon: Store, path: "/app/marketplace" },
+    { id: "hotel-stats", labelKey: "nav.hotelStats", icon: Building2, path: "/app/hotel-stats" },
+    { id: "admin-hotels", labelKey: "nav.adminHotels", icon: Building2, path: "/app/admin/hotels" },
+    { id: "admin-providers", labelKey: "nav.adminProviders", icon: Store, path: "/app/admin/providers" },
+    { id: "admin-analytics", labelKey: "nav.adminAnalytics", icon: BarChart3, path: "/app/admin/analytics" },
 ];

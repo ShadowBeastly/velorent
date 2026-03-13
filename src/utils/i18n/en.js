@@ -12,6 +12,11 @@ export default {
     "nav.addons": "Add-ons",
     "nav.maintenance": "Maintenance",
     "nav.vouchers": "Vouchers",
+    "nav.marketplace": "Marketplace",
+    "nav.hotelStats": "Hotel Dashboard",
+    "nav.adminHotels": "Hotels (Admin)",
+    "nav.adminProviders": "Providers (Admin)",
+    "nav.adminAnalytics": "Analytics (Admin)",
 
     // Common
     "common.save": "Save",
