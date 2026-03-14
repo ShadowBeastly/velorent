@@ -51,32 +51,33 @@ const templates = {
       ? `Buchungsbestätigung #${data.booking_number} – ${data.provider_name}`
       : `Booking Confirmation #${data.booking_number} – ${data.provider_name}`;
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
-<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;margin:0;padding:40px 20px;">
-  <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);">
-    <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:32px;text-align:center;">
-      <p style="color:rgba(255,255,255,.7);margin:0 0 8px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;">lociva.de</p>
-      <h1 style="color:white;margin:0;font-size:22px;">${de ? "Buchungsbestätigung" : "Booking Confirmation"}</h1>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F5FAF7;margin:0;padding:40px 20px;">
+  <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06);">
+    <div style="background:#1A7D5A;padding:32px;text-align:center;">
+      <p style="color:rgba(255,255,255,.6);margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:300;">LOCIVA</p>
+      <h1 style="color:white;margin:0;font-size:22px;font-weight:500;">${de ? "Buchungsbestätigung" : "Booking Confirmation"}</h1>
     </div>
     <div style="padding:32px;">
-      <p style="font-size:17px;color:#1e293b;margin:0 0 8px;">${de ? "Hallo" : "Hello"} ${data.guest_name},</p>
-      <p style="color:#475569;line-height:1.6;margin:0 0 24px;">${de ? `vielen Dank für Ihre Buchung bei <strong>${data.provider_name}</strong>! Ihre Zahlung wurde erfolgreich verarbeitet.` : `thank you for booking with <strong>${data.provider_name}</strong>! Your payment was processed successfully.`}</p>
-      <div style="background:#f8fafc;border-radius:12px;padding:24px;margin:0 0 24px;border:1px solid #e2e8f0;">
+      <p style="font-size:17px;color:#1E2D26;margin:0 0 8px;">${de ? "Hallo" : "Hello"} ${data.guest_name},</p>
+      <p style="color:#6B7280;line-height:1.6;margin:0 0 24px;">${de ? `vielen Dank für Ihre Buchung bei <strong style="color:#1E2D26;">${data.provider_name}</strong>! Ihre Zahlung wurde erfolgreich verarbeitet.` : `thank you for booking with <strong style="color:#1E2D26;">${data.provider_name}</strong>! Your payment was processed successfully.`}</p>
+      <div style="background:#F5FAF7;border-radius:12px;padding:24px;margin:0 0 24px;border:1px solid #D4EDE2;">
         <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:8px 0;color:#64748b;font-size:14px;">${de ? "Buchungsnummer" : "Booking #"}</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#6366f1;font-size:20px;">${data.booking_number}</td></tr>
-          <tr style="border-top:1px solid #e2e8f0;"><td style="padding:12px 0 8px;color:#64748b;font-size:14px;">${de ? "Artikel" : "Item"}</td><td style="padding:12px 0 8px;text-align:right;font-weight:500;color:#1e293b;">${data.bike_name}</td></tr>
-          <tr><td style="padding:8px 0;color:#64748b;font-size:14px;">${de ? "Zeitraum" : "Period"}</td><td style="padding:8px 0;text-align:right;color:#1e293b;">${data.start_date} – ${data.end_date}</td></tr>
-          <tr><td style="padding:8px 0;color:#64748b;font-size:14px;">${de ? "Dauer" : "Duration"}</td><td style="padding:8px 0;text-align:right;color:#1e293b;">${data.total_days} ${de ? (Number(data.total_days) === 1 ? "Tag" : "Tage") : (Number(data.total_days) === 1 ? "day" : "days")}</td></tr>
-          <tr style="border-top:1px solid #e2e8f0;"><td style="padding:16px 0 8px;color:#1e293b;font-weight:600;font-size:15px;">${de ? "Gesamtbetrag" : "Total"}</td><td style="padding:16px 0 8px;text-align:right;font-weight:700;color:#1e293b;font-size:20px;">${data.total_price}</td></tr>
+          <tr><td style="padding:8px 0;color:#6B7280;font-size:14px;">${de ? "Buchungsnummer" : "Booking #"}</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#1A7D5A;font-size:20px;">${data.booking_number}</td></tr>
+          <tr style="border-top:1px solid #D4EDE2;"><td style="padding:12px 0 8px;color:#6B7280;font-size:14px;">${de ? "Artikel" : "Item"}</td><td style="padding:12px 0 8px;text-align:right;font-weight:500;color:#1E2D26;">${data.bike_name}</td></tr>
+          <tr><td style="padding:8px 0;color:#6B7280;font-size:14px;">${de ? "Zeitraum" : "Period"}</td><td style="padding:8px 0;text-align:right;color:#1E2D26;">${data.start_date} – ${data.end_date}</td></tr>
+          <tr><td style="padding:8px 0;color:#6B7280;font-size:14px;">${de ? "Dauer" : "Duration"}</td><td style="padding:8px 0;text-align:right;color:#1E2D26;">${data.total_days} ${de ? (Number(data.total_days) === 1 ? "Tag" : "Tage") : (Number(data.total_days) === 1 ? "day" : "days")}</td></tr>
+          <tr style="border-top:1px solid #D4EDE2;"><td style="padding:16px 0 8px;color:#1E2D26;font-weight:600;font-size:15px;">${de ? "Gesamtbetrag" : "Total"}</td><td style="padding:16px 0 8px;text-align:right;font-weight:700;color:#1E2D26;font-size:20px;">${data.total_price}</td></tr>
         </table>
       </div>
       <div style="text-align:center;margin:0 0 24px;">
-        <span style="display:inline-block;background:#dcfce7;color:#16a34a;padding:8px 20px;border-radius:20px;font-weight:600;font-size:14px;">✓ ${de ? "Zahlung bestätigt" : "Payment confirmed"}</span>
+        <span style="display:inline-block;background:#D4EDE2;color:#1A7D5A;padding:8px 20px;border-radius:20px;font-weight:600;font-size:14px;">✓ ${de ? "Zahlung bestätigt" : "Payment confirmed"}</span>
       </div>
-      ${data.provider_address ? `<div style="background:#eff6ff;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="margin:0;color:#1e40af;font-weight:600;font-size:14px;">📍 ${de ? "Abholung" : "Pickup"}</p><p style="margin:6px 0 0;color:#3b82f6;font-size:14px;">${data.provider_name}<br>${data.provider_address}${data.provider_phone ? `<br>${data.provider_phone}` : ""}</p></div>` : ""}
-      <p style="color:#94a3b8;font-size:13px;margin:0;">${de ? "Bei Fragen wenden Sie sich direkt an den Anbieter oder an info@lociva.de." : "For questions, contact the provider directly or email info@lociva.de."}</p>
+      ${data.provider_address ? `<div style="background:#D4EDE2;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="margin:0;color:#1E2D26;font-weight:600;font-size:14px;">📍 ${de ? "Abholung" : "Pickup"}</p><p style="margin:6px 0 0;color:#1A7D5A;font-size:14px;">${data.provider_name}<br>${data.provider_address}${data.provider_phone ? `<br>${data.provider_phone}` : ""}</p></div>` : ""}
+      <p style="color:#6B7280;font-size:13px;margin:0;">${de ? "Bei Fragen wenden Sie sich direkt an den Anbieter oder an info@lociva.de." : "For questions, contact the provider directly or email info@lociva.de."}</p>
     </div>
-    <div style="background:#f8fafc;padding:20px;text-align:center;border-top:1px solid #e2e8f0;">
-      <p style="color:#94a3b8;font-size:11px;margin:0;">Lociva · lociva.de<br>${de ? "Diese E-Mail wurde automatisch versendet." : "This email was sent automatically."}</p>
+    <div style="background:#F5FAF7;padding:24px;text-align:center;border-top:1px solid #D4EDE2;">
+      <p style="color:#1A7D5A;font-size:12px;letter-spacing:.06em;font-weight:300;margin:0 0 4px;">LOCIVA</p>
+      <p style="color:#6B7280;font-size:11px;margin:0;">${de ? "Lokale Erlebnisse. Einfach. Hier." : "Local experiences, one scan away."} · lociva.de</p>
     </div>
   </div>
 </body></html>`;

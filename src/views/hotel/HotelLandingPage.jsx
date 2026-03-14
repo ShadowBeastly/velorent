@@ -129,6 +129,17 @@ function todayISO() {
 
 const CATEGORY_EMOJI = { "E-Bike": "⚡", Mountainbike: "🏔️", "City-Bike": "🏙️", Trekking: "🌿" };
 
+// Brand tokens
+const C = {
+  primary:   "#1A7D5A",
+  light:     "#3BAA82",
+  tint:      "#D4EDE2",
+  dark:      "#1E2D26",
+  bg:        "#F5FAF7",
+  neutral:   "#6B7280",
+  success:   "#10B981",
+};
+
 // ============================================================
 // STEP INDICATOR
 // ============================================================
@@ -143,12 +154,17 @@ function StepIndicator({ current, t }) {
         return (
           <div key={idx} className="flex items-center gap-2">
             <div className="flex flex-col items-center gap-1">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${done ? "bg-green-500 text-white" : active ? "bg-indigo-600 text-white" : "bg-slate-700 text-slate-400"}`}>
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all text-white"
+                style={{ background: done ? C.success : active ? C.primary : "#D4EDE2", color: done || active ? "white" : C.neutral }}
+              >
                 {done ? "✓" : idx}
               </div>
-              <span className={`text-xs ${active ? "text-indigo-400" : "text-slate-500"}`}>{label}</span>
+              <span className="text-xs" style={{ color: active ? C.primary : C.neutral }}>{label}</span>
             </div>
-            {i < steps.length - 1 && <div className={`w-8 h-px mb-4 ${done ? "bg-green-500" : "bg-slate-700"}`} />}
+            {i < steps.length - 1 && (
+              <div className="w-8 h-px mb-4" style={{ background: done ? C.success : C.tint }} />
+            )}
           </div>
         );
       })}
@@ -161,26 +177,34 @@ function StepIndicator({ current, t }) {
 // ============================================================
 function BikeCard({ bike, onSelect, t }) {
   return (
-    <div className="bg-slate-800 rounded-xl overflow-hidden flex-shrink-0 w-52 border border-slate-700 hover:border-indigo-500 transition-colors">
+    <div
+      className="rounded-xl overflow-hidden flex-shrink-0 w-52 border transition-colors"
+      style={{ background: "white", borderColor: C.tint }}
+      onMouseEnter={e => e.currentTarget.style.borderColor = C.primary}
+      onMouseLeave={e => e.currentTarget.style.borderColor = C.tint}
+    >
       {bike.image_url ? (
         <img src={bike.image_url} alt={bike.name} className="w-full h-40 object-cover" />
       ) : (
-        <div className="w-full h-40 bg-slate-700 rounded-t-xl flex flex-col items-center justify-center gap-2">
+        <div className="w-full h-40 rounded-t-xl flex flex-col items-center justify-center gap-2" style={{ background: C.tint }}>
           <span className="text-5xl">{CATEGORY_EMOJI[bike.category] || "🚲"}</span>
-          <span className="text-xs text-slate-400 font-medium">{bike.category}</span>
+          <span className="text-xs font-medium" style={{ color: C.primary }}>{bike.category}</span>
         </div>
       )}
       <div className="p-3">
         <div className="flex items-start justify-between gap-1 mb-1">
-          <h4 className="font-semibold text-white text-sm leading-tight">{bike.name}</h4>
-          <span className="text-xs bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">{bike.category}</span>
+          <h4 className="font-semibold text-sm leading-tight" style={{ color: C.dark }}>{bike.name}</h4>
+          <span className="text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0" style={{ background: C.tint, color: C.primary }}>{bike.category}</span>
         </div>
-        <p className="text-indigo-400 font-bold text-base mb-3">
-          {formatEur(bike.price_per_day)} <span className="text-slate-400 font-normal text-xs">{t.perDay}</span>
+        <p className="font-bold text-base mb-3" style={{ color: C.primary }}>
+          {formatEur(bike.price_per_day)} <span className="font-normal text-xs" style={{ color: C.neutral }}>{t.perDay}</span>
         </p>
         <button
           onClick={() => onSelect(bike)}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium py-2 rounded-lg transition-colors"
+          className="w-full text-white text-sm font-medium py-2 rounded-lg transition-colors"
+          style={{ background: C.primary }}
+          onMouseEnter={e => e.currentTarget.style.background = C.light}
+          onMouseLeave={e => e.currentTarget.style.background = C.primary}
         >
           {t.selectBike}
         </button>
@@ -194,29 +218,29 @@ function BikeCard({ bike, onSelect, t }) {
 // ============================================================
 function ProviderCard({ provider, onSelectBike, t }) {
   return (
-    <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700 mb-4">
+    <div className="rounded-xl p-4 border mb-4" style={{ background: "white", borderColor: C.tint }}>
       <div className="mb-3">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="font-bold text-white text-base">{provider.name}</h3>
+          <h3 className="font-bold text-base" style={{ color: C.dark }}>{provider.name}</h3>
           {provider.distance_km && (
-            <span className="text-xs text-slate-400 bg-slate-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+            <span className="text-xs px-2 py-0.5 rounded-full whitespace-nowrap" style={{ color: C.neutral, background: C.tint }}>
               {provider.distance_km} {t.km}
             </span>
           )}
         </div>
         {provider.provider_description && (
-          <p className="text-slate-400 text-sm mb-1">{provider.provider_description}</p>
+          <p className="text-sm mb-1" style={{ color: C.neutral }}>{provider.provider_description}</p>
         )}
         {provider.provider_address && (
-          <p className="text-slate-500 text-xs">📍 {provider.provider_address}</p>
+          <p className="text-xs" style={{ color: C.neutral }}>📍 {provider.provider_address}</p>
         )}
         {provider.provider_phone && (
-          <p className="text-slate-500 text-xs">📞 {provider.provider_phone}</p>
+          <p className="text-xs" style={{ color: C.neutral }}>📞 {provider.provider_phone}</p>
         )}
       </div>
       {provider.bikes && provider.bikes.length > 0 ? (
         <>
-          <p className="text-xs text-slate-400 mb-2">{provider.bikes.length} {t.availableBikes}</p>
+          <p className="text-xs mb-2" style={{ color: C.neutral }}>{provider.bikes.length} {t.availableBikes}</p>
           <div className="flex gap-3 overflow-x-auto pb-2">
             {provider.bikes.map((bike) => (
               <BikeCard key={bike.id} bike={bike} onSelect={onSelectBike} t={t} />
@@ -224,7 +248,7 @@ function ProviderCard({ provider, onSelectBike, t }) {
           </div>
         </>
       ) : (
-        <p className="text-slate-500 text-sm italic">Keine Fahrräder verfügbar</p>
+        <p className="text-sm italic" style={{ color: C.neutral }}>Keine Fahrräder verfügbar</p>
       )}
     </div>
   );
@@ -392,22 +416,28 @@ export default function HotelLandingPage({ slug }) {
     setGuestPhone(""); setConfirmedBooking(null); setSubmitError("");
   }
 
+  // Shared input class
+  const inputCls = "w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none";
+  const inputStyle = { background: "white", borderColor: C.tint, color: C.dark };
+
   // ---- Render ----
   if (loading) return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: C.bg }}>
       <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-400">{t.loading}</p>
+        <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: C.tint, borderTopColor: "transparent" }}>
+          <style>{`.animate-spin { border-top-color: transparent !important; border-color: ${C.primary}; border-top-color: transparent; }`}</style>
+        </div>
+        <p style={{ color: C.neutral }}>{t.loading}</p>
       </div>
     </div>
   );
 
   if (notFound || !hotelData) return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: C.bg }}>
       <div className="text-center">
         <div className="text-6xl mb-4">🔍</div>
-        <h1 className="text-2xl font-bold text-white mb-2">{t.notFound}</h1>
-        <p className="text-slate-400">Bitte überprüfen Sie den QR-Code und versuchen Sie es erneut.</p>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: C.dark }}>{t.notFound}</h1>
+        <p style={{ color: C.neutral }}>Bitte überprüfen Sie den QR-Code und versuchen Sie es erneut.</p>
       </div>
     </div>
   );
@@ -415,18 +445,19 @@ export default function HotelLandingPage({ slug }) {
   const { hotel, providers } = hotelData;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen" style={{ background: C.bg, color: C.dark }}>
       {/* Header */}
-      <header className="bg-slate-800 border-b border-slate-700 sticky top-0 z-10">
+      <header className="sticky top-0 z-10" style={{ background: "white", borderBottom: `1px solid ${C.tint}` }}>
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-400">{t.subtitle}</p>
-            <h1 className="font-bold text-white text-base leading-tight">{hotel.name}</h1>
+            <p className="text-xs" style={{ color: C.neutral }}>{t.subtitle}</p>
+            <h1 className="font-bold text-base leading-tight" style={{ color: C.dark }}>{hotel.name}</h1>
           </div>
-          <div className="flex bg-slate-700 rounded-lg p-0.5">
+          <div className="flex rounded-lg p-0.5" style={{ background: C.tint }}>
             {["de", "en"].map((l) => (
               <button key={l} onClick={() => setLang(l)}
-                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${lang === l ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"}`}>
+                className="px-2 py-1 rounded-md text-xs font-medium transition-colors"
+                style={{ background: lang === l ? C.primary : "transparent", color: lang === l ? "white" : C.neutral }}>
                 {l === "de" ? "🇩🇪 DE" : "🇬🇧 EN"}
               </button>
             ))}
@@ -440,12 +471,12 @@ export default function HotelLandingPage({ slug }) {
         {/* STEP 1 — Bike Listing */}
         {step === 1 && (
           <div className="pt-6">
-            <h2 className="text-xl font-bold text-white mb-1">{t.title}</h2>
-            {hotel.address && <p className="text-slate-400 text-sm mb-6">📍 {hotel.address}</p>}
+            <h2 className="text-xl font-bold mb-1" style={{ color: C.dark }}>{t.title}</h2>
+            {hotel.address && <p className="text-sm mb-6" style={{ color: C.neutral }}>📍 {hotel.address}</p>}
             {!providers || providers.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-5xl mb-4">🚲</div>
-                <p className="text-slate-400">{t.noProviders}</p>
+                <p style={{ color: C.neutral }}>{t.noProviders}</p>
               </div>
             ) : providers.map((provider) => (
               <ProviderCard key={provider.id} provider={provider}
@@ -457,60 +488,66 @@ export default function HotelLandingPage({ slug }) {
         {/* STEP 2 — Date Picker */}
         {step === 2 && selectedBike && (
           <div className="pt-4">
-            <div className="bg-slate-800 rounded-xl p-4 mb-6 border border-slate-700 flex gap-3 items-center">
-              <div className="w-16 h-16 bg-slate-700 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
+            <div className="rounded-xl p-4 mb-6 border flex gap-3 items-center" style={{ background: "white", borderColor: C.tint }}>
+              <div className="w-16 h-16 rounded-lg flex items-center justify-center text-2xl flex-shrink-0" style={{ background: C.tint }}>
                 {selectedBike.image_url
                   ? <img src={selectedBike.image_url} alt={selectedBike.name} className="w-full h-full rounded-lg object-cover" />
                   : CATEGORY_EMOJI[selectedBike.category] || "🚲"}
               </div>
               <div>
-                <p className="font-bold text-white">{selectedBike.name}</p>
-                <p className="text-slate-400 text-sm">{selectedBike.category}</p>
-                <p className="text-indigo-400 font-semibold">{formatEur(selectedBike.price_per_day)} {t.perDay}</p>
+                <p className="font-bold" style={{ color: C.dark }}>{selectedBike.name}</p>
+                <p className="text-sm" style={{ color: C.neutral }}>{selectedBike.category}</p>
+                <p className="font-semibold" style={{ color: C.primary }}>{formatEur(selectedBike.price_per_day)} {t.perDay}</p>
               </div>
             </div>
 
-            <h2 className="text-lg font-bold text-white mb-4">{t.selectDates}</h2>
+            <h2 className="text-lg font-bold mb-4" style={{ color: C.dark }}>{t.selectDates}</h2>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
-                <label className="block text-sm text-slate-400 mb-1">{t.from}</label>
+                <label className="block text-sm mb-1" style={{ color: C.neutral }}>{t.from}</label>
                 <input type="date" min={todayISO()} value={startDate}
                   onChange={(e) => { setStartDate(e.target.value); if (endDate && e.target.value > endDate) setEndDate(""); }}
-                  className="w-full bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
+                  className={inputCls} style={inputStyle} />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">{t.to}</label>
+                <label className="block text-sm mb-1" style={{ color: C.neutral }}>{t.to}</label>
                 <input type="date" min={startDate || todayISO()} value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
+                  className={inputCls} style={inputStyle} />
               </div>
             </div>
 
             {totalDays > 0 && (
-              <div className="bg-slate-800 rounded-xl p-4 mb-6 border border-slate-700 space-y-2">
+              <div className="rounded-xl p-4 mb-6 border space-y-2" style={{ background: "white", borderColor: C.tint }}>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">{totalDays} {t.days} × {formatEur(selectedBike.price_per_day)}</span>
-                  <span className="text-white font-semibold">{formatEur(totalPrice)}</span>
+                  <span style={{ color: C.neutral }}>{totalDays} {t.days} × {formatEur(selectedBike.price_per_day)}</span>
+                  <span className="font-semibold" style={{ color: C.dark }}>{formatEur(totalPrice)}</span>
                 </div>
                 {selectedBike.deposit > 0 && (
                   <>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">{t.deposit}</span>
-                      <span className="text-yellow-400">{formatEur(selectedBike.deposit)}</span>
+                      <span style={{ color: C.neutral }}>{t.deposit}</span>
+                      <span className="text-amber-600">{formatEur(selectedBike.deposit)}</span>
                     </div>
-                    <p className="text-xs text-slate-500">{t.depositInfo}</p>
+                    <p className="text-xs" style={{ color: C.neutral }}>{t.depositInfo}</p>
                   </>
                 )}
-                <div className="border-t border-slate-700 pt-2 flex justify-between">
-                  <span className="font-semibold text-white">{t.totalPrice}</span>
-                  <span className="font-bold text-indigo-400 text-lg">{formatEur(totalPrice)}</span>
+                <div className="pt-2 flex justify-between" style={{ borderTop: `1px solid ${C.tint}` }}>
+                  <span className="font-semibold" style={{ color: C.dark }}>{t.totalPrice}</span>
+                  <span className="font-bold text-lg" style={{ color: C.primary }}>{formatEur(totalPrice)}</span>
                 </div>
               </div>
             )}
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="flex-1 border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 py-3 rounded-xl font-medium transition-colors">{t.back}</button>
-              <button onClick={() => setStep(3)} disabled={totalDays < 1} className="flex-grow bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-700 disabled:text-slate-500 text-white py-3 rounded-xl font-semibold transition-colors">{t.bookNow}</button>
+              <button onClick={() => setStep(1)} className="flex-1 py-3 rounded-xl font-medium transition-colors border" style={{ borderColor: C.tint, color: C.neutral }}>
+                {t.back}
+              </button>
+              <button onClick={() => setStep(3)} disabled={totalDays < 1}
+                className="flex-grow py-3 rounded-xl font-semibold text-white transition-colors disabled:opacity-40"
+                style={{ background: C.primary }}>
+                {t.bookNow}
+              </button>
             </div>
           </div>
         )}
@@ -518,11 +555,11 @@ export default function HotelLandingPage({ slug }) {
         {/* STEP 3 — Contact */}
         {step === 3 && (
           <div className="pt-4">
-            <h2 className="text-lg font-bold text-white mb-2">{t.yourDetails}</h2>
-            <div className="bg-slate-800 rounded-xl p-3 mb-5 border border-slate-700 text-sm">
-              <p className="text-slate-300"><span className="text-slate-500">Fahrrad:</span> {selectedBike?.name}</p>
-              <p className="text-slate-300"><span className="text-slate-500">Zeitraum:</span> {startDate} – {endDate} ({totalDays} {t.days})</p>
-              <p className="text-indigo-400 font-semibold">{t.totalPrice}: {formatEur(totalPrice)}</p>
+            <h2 className="text-lg font-bold mb-2" style={{ color: C.dark }}>{t.yourDetails}</h2>
+            <div className="rounded-xl p-3 mb-5 border text-sm" style={{ background: "white", borderColor: C.tint }}>
+              <p style={{ color: C.dark }}><span style={{ color: C.neutral }}>Fahrrad: </span>{selectedBike?.name}</p>
+              <p style={{ color: C.dark }}><span style={{ color: C.neutral }}>Zeitraum: </span>{startDate} – {endDate} ({totalDays} {t.days})</p>
+              <p className="font-semibold" style={{ color: C.primary }}>{t.totalPrice}: {formatEur(totalPrice)}</p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               {[
@@ -531,18 +568,22 @@ export default function HotelLandingPage({ slug }) {
                 { label: t.phone, key: "guestPhone", type: "tel", required: false, value: guestPhone, setter: setGuestPhone, placeholder: "+49 170 1234567" },
               ].map(({ label, key, type, required, value, setter, placeholder }) => (
                 <div key={key}>
-                  <label className="block text-sm text-slate-400 mb-1">{label}{required ? " *" : ""}</label>
+                  <label className="block text-sm mb-1" style={{ color: C.neutral }}>{label}{required ? " *" : ""}</label>
                   <input type={type} required={required} value={value} onChange={(e) => setter(e.target.value)}
                     placeholder={placeholder}
-                    className="w-full bg-slate-800 border border-slate-600 text-white rounded-lg px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none placeholder-slate-600" />
+                    className={inputCls} style={inputStyle} />
                 </div>
               ))}
               {submitError && (
-                <div className="bg-red-900/40 border border-red-700 text-red-300 rounded-lg p-3 text-sm">{submitError}</div>
+                <div className="rounded-lg p-3 text-sm" style={{ background: "#FEE2E2", border: "1px solid #DC3545", color: "#DC3545" }}>{submitError}</div>
               )}
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setStep(2)} className="flex-1 border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 py-3 rounded-xl font-medium transition-colors">{t.back}</button>
-                <button type="submit" disabled={submitting} className="flex-grow bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-700 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2">
+                <button type="button" onClick={() => setStep(2)} className="flex-1 py-3 rounded-xl font-medium border transition-colors" style={{ borderColor: C.tint, color: C.neutral }}>
+                  {t.back}
+                </button>
+                <button type="submit" disabled={submitting}
+                  className="flex-grow py-3 rounded-xl font-semibold text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={{ background: C.primary }}>
                   {submitting
                     ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.processing}</>
                     : t.toPayment}
@@ -555,63 +596,63 @@ export default function HotelLandingPage({ slug }) {
         {/* STEP 4 — Confirmed */}
         {step === 4 && confirmedBooking && (
           <div className="pt-8 text-center">
-            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: C.tint }}>
+              <svg className="w-10 h-10" style={{ color: C.primary }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">{t.bookingConfirmed}</h2>
-            <p className="text-slate-400 mb-6">{t.confirmationSent}</p>
-            <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 text-left space-y-3 mb-6">
+            <h2 className="text-2xl font-bold mb-2" style={{ color: C.dark }}>{t.bookingConfirmed}</h2>
+            <p className="mb-6" style={{ color: C.neutral }}>{t.confirmationSent}</p>
+            <div className="rounded-xl p-5 border text-left space-y-3 mb-6" style={{ background: "white", borderColor: C.tint }}>
               {confirmedBooking.booking_number && (
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-sm">{t.bookingNumber}</span>
-                  <span className="font-mono font-bold text-indigo-400">{confirmedBooking.booking_number}</span>
+                  <span className="text-sm" style={{ color: C.neutral }}>{t.bookingNumber}</span>
+                  <span className="font-mono font-bold" style={{ color: C.primary }}>{confirmedBooking.booking_number}</span>
                 </div>
               )}
               <div className="flex justify-between items-center">
-                <span className="text-slate-400 text-sm">Fahrrad</span>
-                <span className="text-white font-medium">{selectedBike?.name}</span>
+                <span className="text-sm" style={{ color: C.neutral }}>Fahrrad</span>
+                <span className="font-medium" style={{ color: C.dark }}>{selectedBike?.name}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-400 text-sm">Zeitraum</span>
-                <span className="text-white text-sm">{startDate} – {endDate}</span>
+                <span className="text-sm" style={{ color: C.neutral }}>Zeitraum</span>
+                <span className="text-sm" style={{ color: C.dark }}>{startDate} – {endDate}</span>
               </div>
-              <div className="border-t border-slate-700 pt-3 flex justify-between items-center">
-                <span className="text-white font-semibold">{t.totalPrice}</span>
-                <span className="text-indigo-400 font-bold text-xl">{formatEur(confirmedBooking.total_price)}</span>
+              <div className="pt-3 flex justify-between items-center" style={{ borderTop: `1px solid ${C.tint}` }}>
+                <span className="font-semibold" style={{ color: C.dark }}>{t.totalPrice}</span>
+                <span className="font-bold text-xl" style={{ color: C.primary }}>{formatEur(confirmedBooking.total_price)}</span>
               </div>
               {confirmedBooking.deposit_amount > 0 && (
-                <div className="bg-yellow-900/30 border border-yellow-700/50 rounded-lg p-3">
-                  <p className="text-yellow-300 text-sm font-bold">{t.deposit}: {formatEur(confirmedBooking.deposit_amount)}</p>
-                  <p className="text-yellow-400/70 text-xs mt-1">{t.depositInfo}</p>
+                <div className="rounded-lg p-3" style={{ background: "#FFFBEB", border: "1px solid #F59E0B" }}>
+                  <p className="text-sm font-bold text-amber-700">{t.deposit}: {formatEur(confirmedBooking.deposit_amount)}</p>
+                  <p className="text-xs mt-1 text-amber-600">{t.depositInfo}</p>
                 </div>
               )}
             </div>
             {selectedProvider && (
-              <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-left mb-6">
-                <p className="text-slate-400 text-xs mb-1">{t.pickupAt}</p>
-                <p className="font-bold text-white">{selectedProvider.name}</p>
+              <div className="rounded-xl p-4 border text-left mb-6" style={{ background: "white", borderColor: C.tint }}>
+                <p className="text-xs mb-1" style={{ color: C.neutral }}>{t.pickupAt}</p>
+                <p className="font-bold" style={{ color: C.dark }}>{selectedProvider.name}</p>
                 {selectedProvider.provider_address && (
                   <>
-                    <p className="text-slate-400 text-sm mt-1">📍 {selectedProvider.provider_address}</p>
+                    <p className="text-sm mt-1" style={{ color: C.neutral }}>📍 {selectedProvider.provider_address}</p>
                     <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedProvider.provider_address)}`}
                       target="_blank" rel="noopener noreferrer"
-                      className="text-indigo-400 text-sm hover:text-indigo-300 mt-2 inline-block">
+                      className="text-sm mt-2 inline-block" style={{ color: C.primary }}>
                       In Google Maps öffnen →
                     </a>
                   </>
                 )}
               </div>
             )}
-            <button onClick={handleReset} className="w-full border border-slate-600 text-slate-300 hover:text-white hover:border-slate-400 py-3 rounded-xl font-medium transition-colors">
+            <button onClick={handleReset} className="w-full py-3 rounded-xl font-medium border transition-colors" style={{ borderColor: C.tint, color: C.neutral }}>
               {t.bookAnother}
             </button>
           </div>
         )}
 
         <div className="mt-12 text-center">
-          <p className="text-slate-600 text-xs">{t.poweredBy}</p>
+          <p className="text-xs" style={{ color: C.neutral }}>{t.poweredBy}</p>
         </div>
       </div>
     </div>

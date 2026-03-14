@@ -32,7 +32,7 @@ export default function MarketplacePage() {
   const [cancelError, setCancelError] = useState("");
 
   const card = darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200";
-  const inputCls = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${darkMode ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400" : "bg-white border-slate-300 text-slate-900"}`;
+  const inputCls = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-[#1A7D5A] ${darkMode ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400" : "bg-white border-slate-300 text-slate-900"}`;
   const labelCls = `block text-sm font-medium mb-1 ${darkMode ? "text-slate-300" : "text-slate-700"}`;
 
   // Handle return from Stripe Express Onboarding
@@ -143,7 +143,7 @@ export default function MarketplacePage() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Store className={`w-7 h-7 ${darkMode ? "text-indigo-400" : "text-indigo-600"}`} />
+          <Store className={`w-7 h-7 ${darkMode ? "text-[#1A7D5A]" : "text-[#1A7D5A]"}`} />
           <div>
             <h1 className="text-2xl font-bold">Marktplatz</h1>
             <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Lociva Buchungsplattform für Hotelgäste</p>
@@ -162,7 +162,7 @@ export default function MarketplacePage() {
               <p className={`text-sm mb-3 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                 Ihr Betrieb ist noch nicht auf der Lociva Buchungsplattform registriert. Kontaktieren Sie uns, um Hotelgäste in Ihrer Region zu erreichen.
               </p>
-              <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Kontakt: <span className="text-indigo-400">info@lociva.de</span></p>
+              <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Kontakt: <span className="text-[#1A7D5A]">info@lociva.de</span></p>
             </div>
           ) : !org?.stripe_charges_enabled ? (
             <div className="rounded-xl p-4 border border-yellow-700/50 bg-yellow-900/20">
@@ -317,7 +317,7 @@ export default function MarketplacePage() {
                 <input className={inputCls} value={profile.provider_phone} onChange={(e) => setProfile(p => ({ ...p, provider_phone: e.target.value }))} placeholder="+49 6195 123456" />
               </div>
             </div>
-            <button onClick={saveProfile} disabled={savingProfile} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            <button onClick={saveProfile} disabled={savingProfile} className="flex items-center gap-2 bg-[#1A7D5A] hover:bg-[#3BAA82] disabled:bg-[#1E2D26]/40 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
               {profileSaved ? <CheckCircle className="w-4 h-4 text-green-300" /> : <Save className="w-4 h-4" />}
               {savingProfile ? "Speichern..." : profileSaved ? "Gespeichert!" : "Profil speichern"}
             </button>
@@ -417,7 +417,7 @@ export default function MarketplacePage() {
             <button
               onClick={acceptAgb}
               disabled={agbAccepting}
-              className="flex-shrink-0 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 text-white rounded-lg text-sm font-semibold transition-colors"
+              className="flex-shrink-0 px-5 py-2.5 bg-[#1A7D5A] hover:bg-[#3BAA82] disabled:bg-[#1E2D26]/40 text-white rounded-lg text-sm font-semibold transition-colors"
             >
               {agbAccepting ? "Wird gespeichert..." : "AGB akzeptieren"}
             </button>
