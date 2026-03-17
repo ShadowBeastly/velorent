@@ -46,7 +46,7 @@ const PLANS = [
         key: "unlimited",
         label: "Unlimited",
         icon: Rocket,
-        gradient: "from-orange-500 to-amber-500",
+        gradient: "from-[#1A7D5A] to-[#3BAA82]",
         monthlyPrice: "99",
         yearlyPrice: "82",
         features: [
@@ -174,6 +174,10 @@ export default function SettingsPage() {
             if (error) throw new Error(error.message || "Unbekannter Fehler");
             if (!data?.url) throw new Error("Keine Checkout-URL erhalten");
 
+            const TRUSTED_PREFIXES = ["https://checkout.stripe.com/", "https://connect.stripe.com/"];
+            if (!TRUSTED_PREFIXES.some(prefix => data.url.startsWith(prefix))) {
+                throw new Error("Ungültige Checkout-URL");
+            }
             window.location.href = data.url;
         } catch (err) {
             console.error("Checkout error:", err);
@@ -195,7 +199,7 @@ export default function SettingsPage() {
             {/* Company Settings */}
             <div className={`rounded-2xl border p-6 ${cardStyle}`}>
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1A7D5A] to-[#3BAA82] flex items-center justify-center">
                         <Building className="w-5 h-5 text-white" />
                     </div>
                     <div>
@@ -252,7 +256,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex items-center gap-3 mt-6">
-                    <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2">
+                    <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2">
                         {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                         Speichern
                     </button>
@@ -591,7 +595,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex items-center gap-3 mt-6">
-                    <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2">
+                    <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2">
                         {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                         Speichern
                     </button>

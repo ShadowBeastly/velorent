@@ -83,7 +83,7 @@ export default function CustomersPage() {
                     </button>
                     <button
                         onClick={() => { setEditCustomer(null); setShowModal(true); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 whitespace-nowrap"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg whitespace-nowrap"
                     >
                         <Plus className="w-4 h-4" />
                         <span className="hidden sm:inline">Neuer Kunde</span>
@@ -94,7 +94,7 @@ export default function CustomersPage() {
             {/* Content */}
             {customers.loading ? (
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-[#1A7D5A]" />
                 </div>
             ) : viewMode === "table" ? (
                 // TABLE VIEW
@@ -116,7 +116,7 @@ export default function CustomersPage() {
                                     <tr key={c.id} className={`transition-colors ${tableRowStyle}`}>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white text-xs font-bold">
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1A7D5A] to-[#3BAA82] flex items-center justify-center text-white text-xs font-bold">
                                                     {(c.first_name || c.last_name || "?").charAt(0)}
                                                 </div>
                                                 <div className="font-medium">{c.first_name} {c.last_name}</div>
@@ -151,7 +151,7 @@ export default function CustomersPage() {
                                                 {c.total_bookings || 0}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-right font-medium text-orange-500">
+                                        <td className="px-6 py-4 text-right font-medium text-[#1A7D5A]">
                                             {fmtCurrency(c.total_revenue || 0)}
                                         </td>
                                         <td className="px-6 py-4 text-right">
@@ -180,7 +180,7 @@ export default function CustomersPage() {
                         <div key={c.id} className={`rounded-2xl border p-5 ${cardStyle}`}>
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white text-lg font-bold">
+                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1A7D5A] to-[#3BAA82] flex items-center justify-center text-white text-lg font-bold">
                                         {(c.first_name || c.last_name || "?").charAt(0)}
                                     </div>
                                     <div>
@@ -212,7 +212,7 @@ export default function CustomersPage() {
 
                             <div className={`flex items-center justify-between mt-4 pt-4 border-t ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
                                 <span className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Gesamtumsatz</span>
-                                <span className="font-semibold text-orange-500">{fmtCurrency(c.total_revenue || 0)}</span>
+                                <span className="font-semibold text-[#1A7D5A]">{fmtCurrency(c.total_revenue || 0)}</span>
                             </div>
                         </div>
                     ))}

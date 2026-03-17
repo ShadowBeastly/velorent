@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rentcore-v1';
+const CACHE_NAME = 'lociva-v1';
 const OFFLINE_URL = '/offline.html';
 
 self.addEventListener('install', (event) => {

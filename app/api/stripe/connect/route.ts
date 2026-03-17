@@ -6,6 +6,8 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 
+const ALLOWED_ORIGINS = ["https://lociva.de", "https://www.lociva.de", "http://localhost:3000"];
+
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies();
   const supabase = createServerClient(
@@ -19,7 +21,8 @@ export async function POST(req: NextRequest) {
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "https://lociva.de";
+  const requestOrigin = req.headers.get("origin") || "";
+  const origin = ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
 
   const { data, error } = await supabase.functions.invoke("stripe-connect", {
     body: { ...body, origin },

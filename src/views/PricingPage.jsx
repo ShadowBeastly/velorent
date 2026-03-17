@@ -126,7 +126,7 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
     };
 
     const modalBg = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
-    const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors text-sm ${darkMode ? "bg-slate-800 border-slate-700 focus:border-brand-500 text-white" : "bg-white border-slate-300 focus:border-brand-500"}`;
+    const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors text-sm ${darkMode ? "bg-slate-800 border-slate-700 focus:border-[#1A7D5A] text-white" : "bg-white border-slate-300 focus:border-[#1A7D5A]"}`;
     const labelStyle = `block text-xs font-semibold uppercase tracking-wide mb-1.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`;
 
     return (
@@ -136,7 +136,7 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
                 <div className={`flex items-center justify-between px-6 py-4 border-b ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-brand-500/10 rounded-lg">
-                            <Tag className="w-5 h-5 text-brand-500" />
+                            <Tag className="w-5 h-5 text-[#1A7D5A]" />
                         </div>
                         <h3 className="font-semibold text-base">
                             {rule ? "Preisregel bearbeiten" : "Neue Preisregel"}
@@ -172,7 +172,7 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
                                     type="button"
                                     onClick={() => set({ type: t.value })}
                                     className={`p-3 rounded-xl border text-left transition-all ${form.type === t.value
-                                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                                        ? "border-[#1A7D5A] bg-[#1A7D5A]/10 ring-1 ring-[#1A7D5A]"
                                         : darkMode ? "border-slate-700 hover:border-slate-600 bg-slate-800" : "border-slate-200 hover:border-slate-300"
                                     }`}
                                 >
@@ -224,7 +224,7 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
                                         type="button"
                                         onClick={() => toggleWeekday(day)}
                                         className={`w-10 h-10 rounded-lg text-xs font-semibold border transition-all ${(form.days_of_week || []).includes(day)
-                                            ? "bg-brand-500 text-white border-brand-500"
+                                            ? "bg-[#3BAA82] text-white border-[#1A7D5A]"
                                             : darkMode ? "bg-slate-800 border-slate-700 text-slate-400" : "bg-white border-slate-200 text-slate-500"
                                         }`}
                                     >
@@ -245,7 +245,7 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
                                     type="button"
                                     onClick={() => set({ modifier_type: m.value })}
                                     className={`p-2.5 rounded-lg border text-left transition-all ${form.modifier_type === m.value
-                                        ? "border-brand-500 bg-brand-500/10 ring-1 ring-brand-500"
+                                        ? "border-[#1A7D5A] bg-[#1A7D5A]/10 ring-1 ring-[#1A7D5A]"
                                         : darkMode ? "border-slate-700 hover:border-slate-600 bg-slate-800" : "border-slate-200 hover:border-slate-300"
                                     }`}
                                 >
@@ -333,7 +333,7 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-brand-500/25 disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#1A7D5A] text-white rounded-lg text-sm font-medium shadow-lg shadow-[#1A7D5A]/25 disabled:opacity-50"
                     >
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                         Speichern
@@ -366,7 +366,7 @@ function PricingPreview({ pricingRules, bikes, darkMode }) {
     return (
         <div className={`rounded-2xl border p-5 ${cardStyle}`}>
             <h3 className={`text-sm font-semibold mb-4 flex items-center gap-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                <TrendingUp className="w-4 h-4 text-brand-500" />
+                <TrendingUp className="w-4 h-4 text-[#1A7D5A]" />
                 Vorschau — {sampleBike.name} ({fmtCurrency(sampleBike.price_per_day)}/Tag Basispreis)
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -380,7 +380,7 @@ function PricingPreview({ pricingRules, bikes, darkMode }) {
                         <div key={i} className={`p-4 rounded-xl border ${darkMode ? "bg-slate-900 border-slate-700" : "bg-white border-slate-200"}`}>
                             <div className={`text-xs font-medium mb-2 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{sc.label}</div>
                             <div className="flex items-baseline gap-1 mb-1">
-                                <span className="text-lg font-bold text-brand-500">{fmtCurrency(final)}</span>
+                                <span className="text-lg font-bold text-[#1A7D5A]">{fmtCurrency(final)}</span>
                                 {Math.abs(diff) > 0.01 && (
                                     <span className={`text-xs font-medium ${diff > 0 ? "text-amber-500" : "text-emerald-500"}`}>
                                         ({diff > 0 ? "+" : ""}{fmtCurrency(diff)})
@@ -469,7 +469,7 @@ export default function PricingPage() {
             <div className={`rounded-2xl border p-4 ${cardStyle} flex items-center justify-between`}>
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-brand-500/10 rounded-xl">
-                        <Tag className="w-5 h-5 text-brand-500" />
+                        <Tag className="w-5 h-5 text-[#1A7D5A]" />
                     </div>
                     <div>
                         <h2 className="font-semibold text-base">Dynamische Preisgestaltung</h2>
@@ -480,7 +480,7 @@ export default function PricingPage() {
                 </div>
                 <button
                     onClick={() => { setEditRule(null); setShowModal(true); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-brand-500/25 whitespace-nowrap"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#1A7D5A] text-white rounded-lg text-sm font-medium shadow-lg shadow-[#1A7D5A]/25 whitespace-nowrap"
                 >
                     <Plus className="w-4 h-4" />
                     <span className="hidden sm:inline">Neue Regel</span>
@@ -495,7 +495,7 @@ export default function PricingPage() {
             {/* Rules Table */}
             {loading ? (
                 <div className="flex items-center justify-center h-48">
-                    <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-[#1A7D5A]" />
                 </div>
             ) : (
                 <div className={`rounded-2xl border overflow-hidden ${cardStyle}`}>
@@ -595,7 +595,7 @@ export default function PricingPage() {
                                 </p>
                                 <button
                                     onClick={() => { setEditRule(null); setShowModal(true); }}
-                                    className="mt-4 px-4 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-lg text-sm font-medium shadow-lg shadow-brand-500/25"
+                                    className="mt-4 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#1A7D5A] text-white rounded-lg text-sm font-medium shadow-lg shadow-[#1A7D5A]/25"
                                 >
                                     Erste Regel erstellen
                                 </button>

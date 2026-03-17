@@ -313,7 +313,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     };
 
     const modalBg = darkMode ? "bg-slate-900" : "bg-white";
-    const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${darkMode ? "bg-slate-800 border-slate-700 focus:border-orange-500 text-white" : "bg-white border-slate-300 focus:border-orange-500"}`;
+    const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${darkMode ? "bg-slate-800 border-slate-700 focus:border-[#1A7D5A] text-white" : "bg-white border-slate-300 focus:border-[#1A7D5A]"}`;
     const labelStyle = `block text-sm font-medium mb-1.5 ${darkMode ? "text-slate-300" : "text-slate-700"}`;
 
     // Escape key closes the modal
@@ -337,8 +337,8 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                 {/* Header */}
                 <div className={`flex items-center justify-between p-4 border-b ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-orange-500/10 rounded-lg">
-                            <Calendar className="w-5 h-5 text-orange-500" />
+                        <div className="p-2 bg-[#1A7D5A]/10 rounded-lg">
+                            <Calendar className="w-5 h-5 text-[#1A7D5A]" />
                         </div>
                         <div>
                             <h3 id="booking-modal-title" className="text-lg font-semibold">{booking ? "Buchung bearbeiten" : "Neue Buchung"}</h3>
@@ -371,13 +371,13 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                         const isDone = step > s.id;
                         return (
                             <div key={s.id} className="flex flex-col items-center gap-2 relative z-10">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${isActive ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30" :
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${isActive ? "bg-[#1A7D5A] text-white shadow-lg shadow-[#1A7D5A]/30" :
                                     isDone ? "bg-emerald-500 text-white" :
                                         darkMode ? "bg-slate-800 text-slate-500" : "bg-slate-200 text-slate-500"
                                     }`}>
                                     {isDone ? <CheckCircle className="w-5 h-5" /> : s.icon ? <s.icon className="w-4 h-4" /> : s.id}
                                 </div>
-                                <span className={`text-xs font-medium ${isActive ? "text-orange-500" : darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                <span className={`text-xs font-medium ${isActive ? "text-[#1A7D5A]" : darkMode ? "text-slate-500" : "text-slate-400"}`}>
                                     {s.label}
                                 </span>
                             </div>
@@ -425,16 +425,16 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         });
                                     }}
                                     className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all select-none ${isGroupBooking
-                                        ? "border-orange-500 bg-orange-500/10"
+                                        ? "border-[#1A7D5A] bg-[#1A7D5A]/10"
                                         : darkMode ? "border-slate-700 bg-slate-800 hover:border-slate-600" : "border-slate-200 bg-white hover:border-slate-300"
                                     }`}
                                 >
                                     <div className="flex items-center gap-2">
-                                        <Users className={`w-4 h-4 ${isGroupBooking ? "text-orange-500" : darkMode ? "text-slate-400" : "text-slate-500"}`} />
-                                        <span className={`text-sm font-medium ${isGroupBooking ? "text-orange-500" : ""}`}>Gruppenbuchung (mehrere Räder)</span>
+                                        <Users className={`w-4 h-4 ${isGroupBooking ? "text-[#1A7D5A]" : darkMode ? "text-slate-400" : "text-slate-500"}`} />
+                                        <span className={`text-sm font-medium ${isGroupBooking ? "text-[#1A7D5A]" : ""}`}>Gruppenbuchung (mehrere Räder)</span>
                                     </div>
                                     {/* Toggle switch */}
-                                    <div className={`w-10 h-5 rounded-full transition-colors flex items-center px-0.5 ${isGroupBooking ? "bg-orange-500 justify-end" : darkMode ? "bg-slate-700 justify-start" : "bg-slate-200 justify-start"}`}>
+                                    <div className={`w-10 h-5 rounded-full transition-colors flex items-center px-0.5 ${isGroupBooking ? "bg-[#1A7D5A] justify-end" : darkMode ? "bg-slate-700 justify-start" : "bg-slate-200 justify-start"}`}>
                                         <div className="w-4 h-4 rounded-full bg-white shadow" />
                                     </div>
                                 </div>
@@ -452,7 +452,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                                     key={bike.id}
                                                     onClick={() => updateFormWithPrice({ bike_id: bike.id })}
                                                     className={`p-3 rounded-xl border cursor-pointer transition-all ${isSelected
-                                                        ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500"
+                                                        ? "border-[#1A7D5A] bg-[#1A7D5A]/10 ring-1 ring-[#1A7D5A]"
                                                         : darkMode ? "border-slate-700 hover:border-slate-600 bg-slate-800" : "border-slate-200 hover:border-slate-300 bg-white"
                                                         }`}
                                                 >
@@ -461,7 +461,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                                             <div className="font-medium text-sm">{bike.name}</div>
                                                             <div className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{bike.category} • {bike.size}</div>
                                                         </div>
-                                                        <div className="font-semibold text-sm text-orange-500">{fmtCurrency(bike.price_per_day)}</div>
+                                                        <div className="font-semibold text-sm text-[#1A7D5A]">{fmtCurrency(bike.price_per_day)}</div>
                                                     </div>
                                                 </div>
                                             );
@@ -476,7 +476,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                     <label className={labelStyle}>
                                         Räder wählen
                                         {form.selectedBikes.length > 0 && (
-                                            <span className="ml-2 text-orange-500 font-normal">({form.selectedBikes.length} ausgewählt)</span>
+                                            <span className="ml-2 text-[#1A7D5A] font-normal">({form.selectedBikes.length} ausgewählt)</span>
                                         )}
                                     </label>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2">
@@ -490,13 +490,13 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                                     className={`p-3 rounded-xl border cursor-pointer transition-all ${hasConflict
                                                         ? "border-rose-400 bg-rose-500/10"
                                                         : isSelected
-                                                            ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500"
+                                                            ? "border-[#1A7D5A] bg-[#1A7D5A]/10 ring-1 ring-[#1A7D5A]"
                                                             : darkMode ? "border-slate-700 hover:border-slate-600 bg-slate-800" : "border-slate-200 hover:border-slate-300 bg-white"
                                                         }`}
                                                 >
                                                     <div className="flex justify-between items-start">
                                                         <div className="flex items-start gap-2">
-                                                            <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${isSelected ? "bg-orange-500 border-orange-500" : darkMode ? "border-slate-500" : "border-slate-300"}`}>
+                                                            <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${isSelected ? "bg-[#1A7D5A] border-[#1A7D5A]" : darkMode ? "border-slate-500" : "border-slate-300"}`}>
                                                                 {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
                                                             </div>
                                                             <div>
@@ -505,7 +505,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                                                 {hasConflict && <div className="text-xs text-rose-500 mt-0.5">Nicht verfügbar</div>}
                                                             </div>
                                                         </div>
-                                                        <div className="font-semibold text-sm text-orange-500">{fmtCurrency(bike.price_per_day)}</div>
+                                                        <div className="font-semibold text-sm text-[#1A7D5A]">{fmtCurrency(bike.price_per_day)}</div>
                                                     </div>
                                                 </div>
                                             );
@@ -513,7 +513,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                     </div>
                                     {form.selectedBikes.length > 0 && (
                                         <div className={`mt-3 p-2 rounded-lg text-sm font-medium text-right ${darkMode ? "bg-slate-800" : "bg-slate-50"}`}>
-                                            Gesamtpreis: <span className="text-orange-500">{fmtCurrency(calcGroupTotal(form.selectedBikes, form.start_date, form.end_date))}</span>
+                                            Gesamtpreis: <span className="text-[#1A7D5A]">{fmtCurrency(calcGroupTotal(form.selectedBikes, form.start_date, form.end_date))}</span>
                                         </div>
                                     )}
                                 </div>
@@ -556,7 +556,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                                 key={c.id}
                                                 onClick={() => handleCustomerSelect(c)}
                                                 className={`p-3 border-b last:border-b-0 cursor-pointer flex items-center justify-between ${form.customer_id === c.id
-                                                    ? "bg-orange-500/10"
+                                                    ? "bg-[#1A7D5A]/10"
                                                     : darkMode ? "hover:bg-slate-800" : "hover:bg-slate-50"
                                                     } ${darkMode ? "border-slate-700" : "border-slate-200"}`}
                                             >
@@ -564,7 +564,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                                     <div className="font-medium text-sm">{c.first_name} {c.last_name}</div>
                                                     <div className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{c.email}</div>
                                                 </div>
-                                                {form.customer_id === c.id && <CheckCircle className="w-4 h-4 text-orange-500" />}
+                                                {form.customer_id === c.id && <CheckCircle className="w-4 h-4 text-[#1A7D5A]" />}
                                             </div>
                                         )) : (
                                             <div className="p-4 text-center text-sm text-slate-500">Keine Kunden gefunden</div>
@@ -573,7 +573,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
 
                                     <button
                                         onClick={() => { setIsNewCustomer(true); setForm(f => ({ ...f, customer_id: "", customer_name: "", customer_email: "", customer_phone: "" })); }}
-                                        className="w-full py-2 border border-dashed rounded-lg text-sm font-medium text-slate-500 hover:text-orange-500 hover:border-orange-500 transition-colors flex items-center justify-center gap-2"
+                                        className="w-full py-2 border border-dashed rounded-lg text-sm font-medium text-slate-500 hover:text-[#1A7D5A] hover:border-[#1A7D5A] transition-colors flex items-center justify-center gap-2"
                                     >
                                         <Plus className="w-4 h-4" />
                                         Neuen Kunden anlegen
@@ -581,12 +581,12 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                 </div>
                             ) : (
                                 <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <div className="flex justify-between items-center bg-orange-50 p-3 rounded-lg border border-orange-100">
+                                    <div className="flex justify-between items-center bg-[#D4EDE2] p-3 rounded-lg border border-[#D4EDE2]">
                                         <div className="flex items-center gap-2">
-                                            <div className="p-1.5 bg-orange-500 rounded text-white"><User className="w-4 h-4" /></div>
-                                            <h4 className="font-semibold text-orange-900">Schnell-Check-in</h4>
+                                            <div className="p-1.5 bg-[#1A7D5A] rounded text-white"><User className="w-4 h-4" /></div>
+                                            <h4 className="font-semibold text-[#1A7D5A]">Schnell-Check-in</h4>
                                         </div>
-                                        <button onClick={() => setIsNewCustomer(false)} className="text-sm font-medium text-orange-600 hover:text-orange-700 hover:underline">
+                                        <button onClick={() => setIsNewCustomer(false)} className="text-sm font-medium text-[#1A7D5A] hover:text-[#1A7D5A] hover:underline">
                                             Zurück zur Suche
                                         </button>
                                     </div>
@@ -691,7 +691,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                             type="button"
                                             onClick={() => setForm(f => ({ ...f, status: key }))}
                                             className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${form.status === key
-                                                ? `${color} ring-2 ring-orange-500 ring-offset-2 ${darkMode ? "ring-offset-slate-900" : "ring-offset-white"}`
+                                                ? `${color} ring-2 ring-[#1A7D5A] ring-offset-2 ${darkMode ? "ring-offset-slate-900" : "ring-offset-white"}`
                                                 : darkMode ? "bg-slate-800 border-slate-700 text-slate-400" : "bg-slate-100 border-slate-200"
                                                 }`}
                                         >
@@ -719,12 +719,12 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                                     key={addon.id}
                                                     onClick={() => toggleAddOn(addon.id)}
                                                     className={`p-3 rounded-xl border cursor-pointer transition-all ${isSelected
-                                                        ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500"
+                                                        ? "border-[#1A7D5A] bg-[#1A7D5A]/10 ring-1 ring-[#1A7D5A]"
                                                         : darkMode ? "border-slate-700 bg-slate-800 hover:border-slate-600" : "border-slate-200 bg-white hover:border-slate-300"
                                                     }`}
                                                 >
                                                     <div className="flex items-start gap-2">
-                                                        <div className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center ${isSelected ? "bg-orange-500 border-orange-500" : darkMode ? "border-slate-500" : "border-slate-300"}`}>
+                                                        <div className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center ${isSelected ? "bg-[#1A7D5A] border-[#1A7D5A]" : darkMode ? "border-slate-500" : "border-slate-300"}`}>
                                                             {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
                                                         </div>
                                                         <div className="min-w-0">
@@ -740,7 +740,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                     </div>
                                     {form.selectedAddOns.length > 0 && (
                                         <div className={`mt-2 text-xs text-right ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                            Zubehör: <span className="font-medium text-orange-500">{fmtCurrency(addonTotal)}</span>
+                                            Zubehör: <span className="font-medium text-[#1A7D5A]">{fmtCurrency(addonTotal)}</span>
                                         </div>
                                     )}
                                 </div>
@@ -799,7 +799,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         <div>
                                             <div className="flex justify-between mb-1">
                                                 <span className="text-slate-500">Zubehör</span>
-                                                <span className="font-medium text-orange-500">{fmtCurrency(addonTotal)}</span>
+                                                <span className="font-medium text-[#1A7D5A]">{fmtCurrency(addonTotal)}</span>
                                             </div>
                                             <div className="space-y-0.5 pl-2">
                                                 {form.selectedAddOns.map(addonId => {
@@ -820,7 +820,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                     <div className="border-t my-2 pt-2 flex justify-between text-base">
                                         <span className="font-medium">Gesamtbetrag</span>
                                         <div className="text-right">
-                                            <span className="font-bold text-orange-500">{fmtCurrency(form.total_price)}</span>
+                                            <span className="font-bold text-[#1A7D5A]">{fmtCurrency(form.total_price)}</span>
                                             {!isGroupBooking && pricingResult && pricingResult.baseTotal !== pricingResult.totalPrice && (
                                                 <div className={`text-xs mt-0.5 ${pricingResult.totalPrice < pricingResult.baseTotal ? "text-emerald-500" : "text-amber-500"}`}>
                                                     {pricingResult.totalPrice < pricingResult.baseTotal
@@ -925,7 +925,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                         <button
                             onClick={step === 4 ? handleSave : handleNext}
                             disabled={saving}
-                            className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2 disabled:opacity-50"
+                            className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2 disabled:opacity-50"
                         >
                             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                             {step === 4 ? "Buchung speichern" : "Weiter"}

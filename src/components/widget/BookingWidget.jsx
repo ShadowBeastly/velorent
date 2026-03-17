@@ -13,6 +13,16 @@ const formatDateISO = (d) => d?.toISOString().slice(0, 10);
 const formatDate = (d) => d?.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
 const formatCurrency = (n) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n || 0);
 
+// ============ URL VALIDATION ============
+const isSafeUrl = (url) => {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" || u.protocol === "http:";
+  } catch {
+    return false;
+  }
+};
+
 // ============ CONFIG ============
 // Diese Werte werden beim Einbetten überschrieben
 const DEFAULT_SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
@@ -717,11 +727,11 @@ export default function RentCoreBookingWidget({
               <span style={{ fontSize: "14px", color: "#475569" }}>
                 Ich akzeptiere die{" "}
                 {settings?.terms_url ? (
-                  <a href={settings.terms_url} target="_blank" rel="noopener" style={{ color: settings?.primary_color || "#f97316" }}>AGB</a>
+                  <a href={isSafeUrl(settings.terms_url) ? settings.terms_url : "#"} target="_blank" rel="noopener" style={{ color: settings?.primary_color || "#f97316" }}>AGB</a>
                 ) : "AGB"}{" "}
                 und{" "}
                 {settings?.privacy_url ? (
-                  <a href={settings.privacy_url} target="_blank" rel="noopener" style={{ color: settings?.primary_color || "#f97316" }}>Datenschutzerklärung</a>
+                  <a href={isSafeUrl(settings.privacy_url) ? settings.privacy_url : "#"} target="_blank" rel="noopener" style={{ color: settings?.primary_color || "#f97316" }}>Datenschutzerklärung</a>
                 ) : "Datenschutzerklärung"}.
               </span>
             </label>

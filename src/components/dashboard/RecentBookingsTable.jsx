@@ -29,7 +29,7 @@ export default function RecentBookingsTable({ bookings, darkMode, onViewAll }) {
         <div className="premium-card p-6 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Neueste Buchungen</h3>
-                <button onClick={onViewAll} className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+                <button onClick={onViewAll} className="text-sm font-medium text-[#1A7D5A] hover:text-[#1A7D5A] dark:text-[#3BAA82]">
                     Alle anzeigen
                 </button>
             </div>

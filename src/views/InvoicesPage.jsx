@@ -146,7 +146,7 @@ export default function InvoicesPage() {
                     </button>
                     <button
                         onClick={() => { setEditInvoice(null); setShowModal(true); }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                        className="bg-[#1A7D5A] hover:bg-[#1A7D5A] text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
                     >
                         <Plus className="w-4 h-4" />
                         Rechnung erstellen
@@ -163,7 +163,7 @@ export default function InvoicesPage() {
                         placeholder="Suchen nach Nummer, Kunde..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-[#1A7D5A] outline-none transition-all dark:text-white"
                     />
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
@@ -179,7 +179,7 @@ export default function InvoicesPage() {
                             key={key}
                             onClick={() => setFilter(key)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${filter === key
-                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                                ? 'bg-[#D4EDE2] text-[#1A7D5A] dark:bg-[#1A7D5A]/20 dark:text-[#3BAA82]'
                                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                         >
@@ -193,7 +193,7 @@ export default function InvoicesPage() {
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden min-h-[400px]">
                 {loading ? (
                     <div className="flex items-center justify-center h-64">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A7D5A]"></div>
                     </div>
                 ) : (
                     <InvoiceList

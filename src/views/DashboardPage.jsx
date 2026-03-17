@@ -3,9 +3,13 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Bike, TrendingUp, Users, BarChart3, AlertTriangle } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
-import ActivityList from "../components/dashboard/ActivityList";
 import RevenueChart from "../components/dashboard/RevenueChart";
+import WeeklyCalendar from "../components/dashboard/WeeklyCalendar";
+import TodaySidebar from "../components/dashboard/TodaySidebar";
 import RecentBookingsTable from "../components/dashboard/RecentBookingsTable";
+import HotelBookingsCard from "../components/dashboard/HotelBookingsCard";
+import StripePayoutCard from "../components/dashboard/StripePayoutCard";
+import LocivaBadge from "../components/dashboard/LocivaBadge";
 import HandoverModal from "../components/dashboard/HandoverModal";
 import { fmtCurrency } from "../utils/formatters";
 import { calculateLateFee } from "../utils/calculateLateFee";
@@ -107,16 +111,6 @@ export default function DashboardPage() {
     const currentlyActive = bookings.bookings.filter(b => b.status === "picked_up").length;
     const utilization = Math.round((currentlyActive / (bikes.bikes.length || 1)) * 100);
 
-    // Activity Feed — split into pickups and returns
-    const todayPickups = useMemo(() =>
-        bookings.bookings.filter(b => b.start_date === today && b.status === "reserved"),
-        [bookings.bookings, today]
-    );
-    const todayReturns = useMemo(() =>
-        bookings.bookings.filter(b => b.end_date === today && b.status === "picked_up"),
-        [bookings.bookings, today]
-    );
-
     // Overdue bookings with late fee calculation
     const overdueBookings = useMemo(() => {
         const orgSettings = org.currentOrg;
@@ -173,9 +167,12 @@ export default function DashboardPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                        Willkommen zurück, {org.currentOrg?.name || "Admin"} 👋
-                    </h1>
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                            Willkommen zurück, {org.currentOrg?.name || "Admin"} 👋
+                        </h1>
+                        <LocivaBadge org={org.currentOrg} darkMode={darkMode} />
+                    </div>
                     <p className={`mt-1 text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                         Hier ist der Überblick über Ihre Fahrradvermietung für heute.
                     </p>
@@ -189,7 +186,7 @@ export default function DashboardPage() {
                                 onClick={() => setPeriod(p.value)}
                                 className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                                     period === p.value
-                                        ? 'bg-brand-500 text-white shadow-sm'
+                                        ? 'bg-[#3BAA82] text-white shadow-sm'
                                         : darkMode
                                             ? 'text-slate-400 hover:text-slate-200'
                                             : 'text-slate-500 hover:text-slate-700'
@@ -199,7 +196,7 @@ export default function DashboardPage() {
                             </button>
                         ))}
                     </div>
-                    <button onClick={() => router.push('/app/calendar')} className="btn-primary shadow-lg shadow-brand-500/20 whitespace-nowrap">
+                    <button onClick={() => router.push('/app/calendar')} className="btn-primary shadow-lg shadow-[#1A7D5A]/20 whitespace-nowrap">
                         + Neue Buchung
                     </button>
                 </div>
@@ -277,45 +274,44 @@ export default function DashboardPage() {
                 />
             </div>
 
-            {/* Middle Row: Chart + Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <RevenueChart bookings={bookings.bookings} darkMode={darkMode} />
-                </div>
-                <div className="lg:col-span-1 min-h-[300px] lg:h-[400px] flex flex-col gap-4 overflow-y-auto">
-                    {todayPickups.length > 0 && (
-                        <ActivityList
-                            title="Abholungen"
-                            items={todayPickups}
-                            type="pickup"
-                            onAction={(b) => handleAction(b, 'pickup')}
-                            darkMode={darkMode}
-                        />
-                    )}
-                    {todayReturns.length > 0 && (
-                        <ActivityList
-                            title="Rückgaben"
-                            items={todayReturns}
-                            type="return"
-                            onAction={(b) => handleAction(b, 'return')}
-                            darkMode={darkMode}
-                        />
-                    )}
-                    {todayPickups.length === 0 && todayReturns.length === 0 && (
-                        <ActivityList
-                            title="Heute"
-                            items={[]}
-                            type="pickup"
-                            onAction={() => {}}
-                            darkMode={darkMode}
-                        />
-                    )}
-                </div>
+            {/* Weekly Calendar + Today Sidebar */}
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
+                <WeeklyCalendar
+                    bikes={bikes.bikes}
+                    bookings={bookings.bookings}
+                    darkMode={darkMode}
+                    onBookingClick={() => router.push('/app/bookings')}
+                />
+                <TodaySidebar
+                    bookings={bookings.bookings}
+                    bikes={bikes.bikes}
+                    darkMode={darkMode}
+                    onAction={(b, type) => handleAction(b, type)}
+                />
+            </div>
+
+            {/* Revenue Chart (collapsed below calendar) */}
+            <div>
+                <RevenueChart bookings={bookings.bookings} darkMode={darkMode} />
             </div>
 
             {/* Bottom Row: Recent Bookings */}
             <div>
                 <RecentBookingsTable bookings={bookings.bookings} darkMode={darkMode} onViewAll={() => router.push('/app/bookings')} />
+            </div>
+
+            {/* Lociva Section: Hotel Bookings + Stripe Payouts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <HotelBookingsCard
+                    bookings={bookings.bookings}
+                    darkMode={darkMode}
+                    onViewAll={() => router.push('/app/bookings')}
+                />
+                <StripePayoutCard
+                    bookings={bookings.bookings}
+                    org={org.currentOrg}
+                    darkMode={darkMode}
+                />
             </div>
 
             {handoverBooking && (

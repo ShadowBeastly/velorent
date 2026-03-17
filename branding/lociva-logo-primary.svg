@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120">
+  <!-- LOCIVA Primary Logo: Versalien Light + Tagline -->
+  <!-- Usage: Website header, documents, print materials -->
+  <!-- Color: Waldgrün #1A7D5A on light backgrounds -->
+  
+  <text x="200" y="60" 
+    text-anchor="middle" 
+    font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" 
+    font-size="48" 
+    font-weight="300" 
+    letter-spacing="8" 
+    fill="#1A7D5A"
+    text-rendering="geometricPrecision">LOCIVA</text>
+  
+  <text x="200" y="88" 
+    text-anchor="middle" 
+    font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" 
+    font-size="13" 
+    font-weight="400" 
+    letter-spacing="0.5" 
+    fill="#1E2D26" 
+    opacity="0.45"
+    text-rendering="geometricPrecision">Local experiences, one scan away.</text>
+</svg>

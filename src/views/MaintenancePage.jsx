@@ -34,8 +34,8 @@ export default function MaintenancePage() {
 
     const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
     const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none text-sm transition-all ${darkMode
-        ? "bg-slate-800 border-slate-700 text-white focus:border-brand-500"
-        : "bg-slate-50 border-slate-200 text-slate-900 focus:border-brand-500 focus:bg-white"}`;
+        ? "bg-slate-800 border-slate-700 text-white focus:border-[#1A7D5A]"
+        : "bg-slate-50 border-slate-200 text-slate-900 focus:border-[#1A7D5A] focus:bg-white"}`;
 
     const filtered = useMemo(() => {
         return maintenanceBlocks.blocks.filter(b =>
@@ -102,7 +102,7 @@ export default function MaintenancePage() {
                             Wartungsblöcke, Reparaturen und Service-Termine verwalten
                         </p>
                     </div>
-                    <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl font-medium shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition-all">
+                    <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#1A7D5A] text-white rounded-xl font-medium shadow-lg shadow-[#1A7D5A]/25 hover:shadow-[#1A7D5A]/40 transition-all">
                         <Plus className="w-4 h-4" /> Neuer Wartungsblock
                     </button>
                 </div>
@@ -124,7 +124,7 @@ export default function MaintenancePage() {
             <div className={`rounded-2xl border overflow-hidden ${cardStyle}`}>
                 {maintenanceBlocks.loading ? (
                     <div className="flex items-center justify-center h-64">
-                        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+                        <Loader2 className="w-8 h-8 animate-spin text-[#1A7D5A]" />
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -255,7 +255,7 @@ export default function MaintenancePage() {
                         </div>
                         <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
                             <button onClick={() => setShowForm(false)} className={`px-4 py-2 rounded-xl text-sm font-medium ${darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"}`}>Abbrechen</button>
-                            <button onClick={handleSave} disabled={!form.bike_id} className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-lg shadow-brand-500/20">
+                            <button onClick={handleSave} disabled={!form.bike_id} className="px-5 py-2 bg-[#3BAA82] hover:bg-[#1A7D5A] text-white rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-lg shadow-[#1A7D5A]/20">
                                 {editBlock ? "Speichern" : "Erstellen"}
                             </button>
                         </div>

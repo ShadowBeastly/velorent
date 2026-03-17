@@ -120,12 +120,11 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
             alert("Popup wurde vom Browser blockiert. Bitte Popups erlauben.");
             return;
         }
-        printWindow.document.write("<html><head><title>Rechnung " + formData.invoice_number + "</title>");
-        printWindow.document.write("<style>body{font-family:sans-serif;padding:40px;color:#333;} .header{display:flex;justify-content:space-between;margin-bottom:40px;border-bottom:2px solid #eee;padding-bottom:20px;} h1{margin:0;font-size:28px;} .meta{text-align:right;} table{width:100%;border-collapse:collapse;margin-bottom:30px;} th{text-align:left;border-bottom:2px solid #eee;padding:10px;} td{padding:10px;border-bottom:1px solid #eee;} .totals{float:right;width:300px;} .row{display:flex;justify-content:space-between;margin-bottom:5px;} .total-row{font-weight:bold;font-size:18px;border-top:2px solid #333;padding-top:10px;margin-top:10px;}</style>");
-        printWindow.document.write("</head><body>");
-        printWindow.document.write(content);
-        printWindow.document.write("</body></html>");
-        printWindow.document.close();
+        printWindow.document.title = "Rechnung " + formData.invoice_number;
+        const styleEl = printWindow.document.createElement("style");
+        styleEl.textContent = "body{font-family:sans-serif;padding:40px;color:#333;} .header{display:flex;justify-content:space-between;margin-bottom:40px;border-bottom:2px solid #eee;padding-bottom:20px;} h1{margin:0;font-size:28px;} .meta{text-align:right;} table{width:100%;border-collapse:collapse;margin-bottom:30px;} th{text-align:left;border-bottom:2px solid #eee;padding:10px;} td{padding:10px;border-bottom:1px solid #eee;} .totals{float:right;width:300px;} .row{display:flex;justify-content:space-between;margin-bottom:5px;} .total-row{font-weight:bold;font-size:18px;border-top:2px solid #333;padding-top:10px;margin-top:10px;}";
+        printWindow.document.head.appendChild(styleEl);
+        printWindow.document.body.innerHTML = content;
         printWindow.print();
     };
 
@@ -146,7 +145,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                         {invoice ? "Rechnung bearbeiten" : "Neue Rechnung"}
                     </h2>
                     <div className="flex flex-wrap gap-2">
-                        <button onClick={handleDownload} className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2">
+                        <button onClick={handleDownload} className="px-4 py-2 bg-[#1A7D5A] text-white rounded-lg hover:bg-[#1A7D5A] flex items-center gap-2">
                             <Download className="w-4 h-4" /> PDF
                         </button>
                         <button onClick={handlePrint} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 flex items-center gap-2">
@@ -272,7 +271,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                         </button>
                                     </div>
                                 ))}
-                                <button type="button" onClick={addItem} className="text-sm text-orange-500 hover:underline flex items-center gap-1">
+                                <button type="button" onClick={addItem} className="text-sm text-[#1A7D5A] hover:underline flex items-center gap-1">
                                     <Plus className="w-3 h-3" /> Position hinzufügen
                                 </button>
                             </div>
@@ -288,7 +287,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                             </div>
 
                             <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-                                <button type="submit" className="w-full py-2 bg-orange-500 text-white rounded font-medium hover:bg-orange-600">
+                                <button type="submit" className="w-full py-2 bg-[#1A7D5A] text-white rounded font-medium hover:bg-[#1A7D5A]">
                                     Speichern
                                 </button>
                             </div>

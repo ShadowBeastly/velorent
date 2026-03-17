@@ -729,3 +729,207 @@ CREATE POLICY "Admins can manage pricing" ON pricing_rules
             WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
         )
     );
+
+-- =====================================================
+-- 15. LOCIVA MARKETPLACE EXTENSION
+-- =====================================================
+
+-- Helper: Platform Admin check
+CREATE OR REPLACE FUNCTION is_platform_admin()
+RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM profiles
+    WHERE id = auth.uid() AND role = 'platform_admin'
+  );
+$$;
+
+-- =====================================================
+-- 15a. REGIONS
+-- =====================================================
+CREATE TABLE IF NOT EXISTS regions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    scout_user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- =====================================================
+-- 15b. HOTELS
+-- =====================================================
+CREATE TABLE IF NOT EXISTS hotels (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    address TEXT,
+    latitude DECIMAL(9,6),
+    longitude DECIMAL(9,6),
+    contact_email TEXT,
+    contact_phone TEXT,
+    commission_pct DECIMAL(5,2) DEFAULT 0,
+    qr_code_url TEXT,
+    region_id UUID REFERENCES regions(id) ON DELETE SET NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_hotels_slug ON hotels(slug);
+CREATE INDEX IF NOT EXISTS idx_hotels_active ON hotels(is_active);
+CREATE INDEX IF NOT EXISTS idx_hotels_region_id ON hotels(region_id);
+
+DROP TRIGGER IF EXISTS hotels_updated_at ON hotels;
+CREATE TRIGGER hotels_updated_at BEFORE UPDATE ON hotels
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- =====================================================
+-- 15c. HOTEL_PROVIDERS (junction: hotel <-> organization)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS hotel_providers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    hotel_id UUID NOT NULL REFERENCES hotels(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    distance_km DECIMAL(6,2),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(hotel_id, organization_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_hotel_providers_hotel ON hotel_providers(hotel_id);
+CREATE INDEX IF NOT EXISTS idx_hotel_providers_org ON hotel_providers(organization_id);
+
+-- =====================================================
+-- 15d. HOTEL_USERS (hotel dashboard access)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS hotel_users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    hotel_id UUID NOT NULL REFERENCES hotels(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    role TEXT DEFAULT 'viewer' CHECK (role IN ('admin', 'viewer')),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(hotel_id, user_id)
+);
+
+-- =====================================================
+-- 15e. ANALYTICS_EVENTS
+-- =====================================================
+CREATE TABLE IF NOT EXISTS analytics_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    hotel_id UUID REFERENCES hotels(id) ON DELETE CASCADE,
+    event_type TEXT NOT NULL CHECK (event_type IN (
+        'qr_scan', 'page_view', 'booking_start',
+        'booking_complete', 'booking_cancelled'
+    )),
+    session_id TEXT,
+    provider_id UUID REFERENCES organizations(id) ON DELETE SET NULL,
+    bike_id UUID REFERENCES bikes(id) ON DELETE SET NULL,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_analytics_hotel_time ON analytics_events(hotel_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_analytics_event_type ON analytics_events(event_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_analytics_session ON analytics_events(session_id) WHERE session_id IS NOT NULL;
+
+-- =====================================================
+-- 15f. EXTEND organizations (Stripe Connect + provider)
+-- =====================================================
+ALTER TABLE organizations
+    ADD COLUMN IF NOT EXISTS stripe_account_id TEXT,
+    ADD COLUMN IF NOT EXISTS stripe_onboarding_complete BOOLEAN DEFAULT false,
+    ADD COLUMN IF NOT EXISTS stripe_charges_enabled BOOLEAN DEFAULT false,
+    ADD COLUMN IF NOT EXISTS stripe_payouts_enabled BOOLEAN DEFAULT false,
+    ADD COLUMN IF NOT EXISTS stripe_verified BOOLEAN DEFAULT false,
+    ADD COLUMN IF NOT EXISTS agb_accepted_at TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS is_platform_provider BOOLEAN DEFAULT false,
+    ADD COLUMN IF NOT EXISTS provider_description TEXT,
+    ADD COLUMN IF NOT EXISTS provider_address TEXT,
+    ADD COLUMN IF NOT EXISTS provider_latitude DECIMAL(9,6),
+    ADD COLUMN IF NOT EXISTS provider_longitude DECIMAL(9,6),
+    ADD COLUMN IF NOT EXISTS provider_phone TEXT,
+    ADD COLUMN IF NOT EXISTS provider_website TEXT,
+    ADD COLUMN IF NOT EXISTS provider_opening_hours JSONB DEFAULT '{}',
+    ADD COLUMN IF NOT EXISTS provider_photos JSONB DEFAULT '[]';
+
+CREATE INDEX IF NOT EXISTS idx_orgs_platform_provider ON organizations(is_platform_provider);
+
+-- =====================================================
+-- 15g. EXTEND bookings (marketplace fields)
+-- =====================================================
+ALTER TABLE bookings
+    ADD COLUMN IF NOT EXISTS hotel_id UUID REFERENCES hotels(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT,
+    ADD COLUMN IF NOT EXISTS stripe_checkout_session_id TEXT,
+    ADD COLUMN IF NOT EXISTS stripe_transfer_id TEXT,
+    ADD COLUMN IF NOT EXISTS stripe_provider_account_id TEXT,
+    ADD COLUMN IF NOT EXISTS platform_commission DECIMAL(10,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS hotel_commission DECIMAL(10,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS booking_source TEXT DEFAULT 'direct'
+        CHECK (booking_source IN ('hotel_qr', 'direct', 'widget', 'admin')),
+    ADD COLUMN IF NOT EXISTS guest_email TEXT,
+    ADD COLUMN IF NOT EXISTS guest_phone TEXT,
+    ADD COLUMN IF NOT EXISTS guest_name TEXT,
+    ADD COLUMN IF NOT EXISTS guest_language TEXT DEFAULT 'de',
+    ADD COLUMN IF NOT EXISTS cancellation_status TEXT DEFAULT 'none'
+        CHECK (cancellation_status IN ('none', 'free', 'partial', 'no_show'));
+
+CREATE INDEX IF NOT EXISTS idx_bookings_hotel_id ON bookings(hotel_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_stripe_pi ON bookings(stripe_payment_intent_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_source ON bookings(booking_source);
+
+-- =====================================================
+-- 15h. RLS for Lociva tables
+-- =====================================================
+ALTER TABLE hotels ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hotel_providers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE regions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hotel_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
+
+-- hotels: public read active, admin write
+DROP POLICY IF EXISTS "hotels_public_select" ON hotels;
+CREATE POLICY "hotels_public_select" ON hotels
+    FOR SELECT USING (is_active = true);
+DROP POLICY IF EXISTS "hotels_admin_all" ON hotels;
+CREATE POLICY "hotels_admin_all" ON hotels
+    FOR ALL USING (is_platform_admin()) WITH CHECK (is_platform_admin());
+
+-- hotel_providers: public read active, admin write
+DROP POLICY IF EXISTS "hotel_providers_public_select" ON hotel_providers;
+CREATE POLICY "hotel_providers_public_select" ON hotel_providers
+    FOR SELECT USING (is_active = true);
+DROP POLICY IF EXISTS "hotel_providers_admin_all" ON hotel_providers;
+CREATE POLICY "hotel_providers_admin_all" ON hotel_providers
+    FOR ALL USING (is_platform_admin()) WITH CHECK (is_platform_admin());
+
+-- regions: authenticated read, admin write
+DROP POLICY IF EXISTS "regions_auth_select" ON regions;
+CREATE POLICY "regions_auth_select" ON regions
+    FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "regions_admin_all" ON regions;
+CREATE POLICY "regions_admin_all" ON regions
+    FOR ALL USING (is_platform_admin()) WITH CHECK (is_platform_admin());
+
+-- hotel_users: own records + admin
+DROP POLICY IF EXISTS "hotel_users_own_select" ON hotel_users;
+CREATE POLICY "hotel_users_own_select" ON hotel_users
+    FOR SELECT TO authenticated USING (user_id = auth.uid() OR is_platform_admin());
+DROP POLICY IF EXISTS "hotel_users_admin_all" ON hotel_users;
+CREATE POLICY "hotel_users_admin_all" ON hotel_users
+    FOR ALL USING (is_platform_admin()) WITH CHECK (is_platform_admin());
+
+-- analytics_events: anyone insert, hotel users + admin read, admin delete
+DROP POLICY IF EXISTS "analytics_events_insert_all" ON analytics_events;
+CREATE POLICY "analytics_events_insert_all" ON analytics_events
+    FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "analytics_events_select" ON analytics_events;
+CREATE POLICY "analytics_events_select" ON analytics_events
+    FOR SELECT TO authenticated USING (
+        is_platform_admin()
+        OR EXISTS (
+            SELECT 1 FROM hotel_users hu
+            WHERE hu.user_id = auth.uid() AND hu.hotel_id = analytics_events.hotel_id
+        )
+    );
+DROP POLICY IF EXISTS "analytics_events_admin_delete" ON analytics_events;
+CREATE POLICY "analytics_events_admin_delete" ON analytics_events
+    FOR DELETE USING (is_platform_admin());

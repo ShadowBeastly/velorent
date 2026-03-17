@@ -15,25 +15,47 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = [
+  "https://lociva.de",
+  "https://www.lociva.de",
+  "https://rentcore.de",
+  "http://localhost:3000",
+];
+
+function buildCors(req: Request) {
+  const origin = req.headers.get("origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
+    "Vary": "Origin",
+  };
+}
 
 serve(async (req) => {
+  const CORS = buildCors(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
+  // Auth check: require service-role JWT or internal secret
+  const authHeader = req.headers.get("authorization") || "";
+  const internalSecret = req.headers.get("x-internal-secret") || "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const functionSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") || "";
+  const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  const isAuthorized =
+    (bearerToken && bearerToken === serviceRoleKey) ||
+    (functionSecret && internalSecret === functionSecret);
+  if (!isAuthorized) {
+    return Response.json({ error: "Unauthorized" }, { status: 401, headers: CORS });
+  }
+
   try {
-    const { booking_id, cancellation_type } = await req.json();
-    // cancellation_type: "free" | "partial" | "no_show"
-    if (!booking_id || !cancellation_type) {
-      return Response.json({ error: "booking_id and cancellation_type required" }, { status: 400, headers: CORS });
-    }
-    if (!["free", "partial", "no_show"].includes(cancellation_type)) {
-      return Response.json({ error: "Invalid cancellation_type" }, { status: 400, headers: CORS });
+    const { booking_id } = await req.json();
+    if (!booking_id) {
+      return Response.json({ error: "booking_id required" }, { status: 400, headers: CORS });
     }
 
-    // Fetch booking
+    // Fetch booking (start_date used to compute cancellation tier server-side)
     const { data: booking, error: bookingErr } = await supabase
       .from("bookings")
       .select("id, status, cancellation_status, stripe_payment_intent_id, total_price, platform_commission, start_date")
@@ -42,6 +64,19 @@ serve(async (req) => {
 
     if (bookingErr || !booking) {
       return Response.json({ error: "Booking not found" }, { status: 404, headers: CORS });
+    }
+
+    // Compute cancellation tier from start_date server-side
+    const now = new Date();
+    const startDate = new Date(booking.start_date);
+    const hoursUntilStart = (startDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+    let cancellation_type: "free" | "partial" | "no_show";
+    if (hoursUntilStart > 24) {
+      cancellation_type = "free";
+    } else if (hoursUntilStart > 0) {
+      cancellation_type = "partial";
+    } else {
+      cancellation_type = "no_show";
     }
 
     if (booking.status === "cancelled") {
@@ -105,6 +140,6 @@ serve(async (req) => {
 
   } catch (err) {
     console.error("stripe-cancel error:", err);
-    return Response.json({ error: (err as Error).message }, { status: 500, headers: CORS });
+    return Response.json({ error: "Internal error" }, { status: 500, headers: CORS });
   }
 });

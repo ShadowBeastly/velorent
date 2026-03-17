@@ -23,8 +23,9 @@ const nextConfig = {
                             // Supabase REST + realtime WebSocket
                             "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
                             "font-src 'self' data:",
-                            // Disallow embedding this app in foreign frames
-                            "frame-ancestors 'none'"
+                            // Allow embedding only from same origin and lociva.de (booking widget iframe support).
+                            // X-Frame-Options is set to SAMEORIGIN below for consistency.
+                            "frame-ancestors 'self' https://lociva.de https://www.lociva.de"
                         ].join("; ")
                     }
                 ]

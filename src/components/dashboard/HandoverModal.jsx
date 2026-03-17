@@ -81,7 +81,7 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
                                 step="5"
                                 value={batteryLevel}
                                 onChange={(e) => setBatteryLevel(parseInt(e.target.value))}
-                                className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                                className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#1A7D5A]"
                             />
                             <span className="font-mono font-bold w-12 text-right">{batteryLevel}%</span>
                         </div>
@@ -147,7 +147,7 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
                     </button>
                     <button
                         onClick={handleConfirm}
-                        className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2"
+                        className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2"
                     >
                         <CheckCircle className="w-4 h-4" />
                         {isPickup ? "Übergabe bestätigen" : "Rücknahme bestätigen"}

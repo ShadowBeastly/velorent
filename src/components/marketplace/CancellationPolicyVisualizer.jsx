@@ -134,7 +134,6 @@ export default function CancellationPolicyVisualizer({ darkMode }) {
   const result = scenario.calc(bookingValue);
 
   const card = darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200";
-  const bg = darkMode ? "bg-slate-900" : "bg-slate-50";
 
   return (
     <div className={`border rounded-xl p-5 ${card}`}>
@@ -152,7 +151,7 @@ export default function CancellationPolicyVisualizer({ darkMode }) {
           step={5}
           value={bookingValue}
           onChange={(e) => setBookingValue(Number(e.target.value))}
-          className="flex-1 accent-indigo-500"
+          className="flex-1 accent-[#1A7D5A]"
         />
         <span className="font-bold text-base w-16 text-right">{bookingValue} €</span>
       </div>

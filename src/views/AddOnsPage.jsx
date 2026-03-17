@@ -19,8 +19,8 @@ export default function AddOnsPage() {
 
     const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
     const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none text-sm transition-all ${darkMode
-        ? "bg-slate-800 border-slate-700 text-white focus:border-brand-500"
-        : "bg-slate-50 border-slate-200 text-slate-900 focus:border-brand-500 focus:bg-white"}`;
+        ? "bg-slate-800 border-slate-700 text-white focus:border-[#1A7D5A]"
+        : "bg-slate-50 border-slate-200 text-slate-900 focus:border-[#1A7D5A] focus:bg-white"}`;
 
     const openNew = () => {
         setEditAddOn(null);
@@ -82,7 +82,7 @@ export default function AddOnsPage() {
                             Extras wie Helm, Schloss oder Kindersitz verwalten
                         </p>
                     </div>
-                    <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl font-medium shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition-all">
+                    <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#1A7D5A] text-white rounded-xl font-medium shadow-lg shadow-[#1A7D5A]/25 hover:shadow-[#1A7D5A]/40 transition-all">
                         <Plus className="w-4 h-4" /> Neues Zubehör
                     </button>
                 </div>
@@ -91,7 +91,7 @@ export default function AddOnsPage() {
             {/* Grid */}
             {addOns.loading ? (
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-[#1A7D5A]" />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -190,13 +190,13 @@ export default function AddOnsPage() {
                                 <input type="number" className={inputStyle} value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} placeholder="Leer = unbegrenzt" />
                             </div>
                             <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} className="w-4 h-4 rounded text-brand-500" />
+                                <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} className="w-4 h-4 rounded text-[#1A7D5A]" />
                                 <span className="text-sm font-medium">Sofort aktiv</span>
                             </label>
                         </div>
                         <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
                             <button onClick={() => setShowForm(false)} className={`px-4 py-2 rounded-xl text-sm font-medium ${darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"}`}>Abbrechen</button>
-                            <button onClick={handleSave} disabled={!form.name} className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-lg shadow-brand-500/20">
+                            <button onClick={handleSave} disabled={!form.name} className="px-5 py-2 bg-[#3BAA82] hover:bg-[#1A7D5A] text-white rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-lg shadow-[#1A7D5A]/20">
                                 {editAddOn ? "Speichern" : "Erstellen"}
                             </button>
                         </div>

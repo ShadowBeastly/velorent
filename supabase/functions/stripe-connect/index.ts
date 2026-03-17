@@ -12,17 +12,51 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = [
+  "https://lociva.de",
+  "https://www.lociva.de",
+  "https://rentcore.de",
+  "http://localhost:3000",
+];
+
+function buildCors(req: Request) {
+  const origin = req.headers.get("origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Vary": "Origin",
+  };
+}
 
 serve(async (req) => {
+  const CORS = buildCors(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
     const { org_id, org_email, origin } = await req.json();
-    if (!org_id) return Response.json({ error: "org_id required" }, { status: 400 });
+    if (!org_id) return Response.json({ error: "org_id required" }, { status: 400, headers: CORS });
+
+    // Ownership check: caller must be owner or admin of org_id
+    const authHeader = req.headers.get("authorization") || "";
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401, headers: CORS });
+    }
+    const { data: membership, error: memberError } = await supabase
+      .from("organization_members")
+      .select("role")
+      .eq("organization_id", org_id)
+      .eq("user_id", user.id)
+      .single();
+    if (memberError || !membership || !["owner", "admin"].includes(membership.role)) {
+      return Response.json({ error: "Forbidden: owner or admin role required" }, { status: 403, headers: CORS });
+    }
 
     // 1. Check if org already has a Stripe account
     const { data: org } = await supabase

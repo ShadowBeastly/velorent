@@ -32,3 +32,16 @@ nul
 
 # Supabase CLI temp files
 supabase/.temp/
+
+# Separate Next.js project (funk-e.solutions website)
+funk-e.solution/
+
+# Non-code documents
+docs/
+*.docx
+*.xlsx
+Designs Rentcore/
+
+# Agents skill data
+.agents/skills/*/data/
+.agents/skills/*/scripts/__pycache__/

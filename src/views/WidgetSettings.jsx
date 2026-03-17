@@ -16,7 +16,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
   const [confirmRegenerate, setConfirmRegenerate] = useState(false);
 
   const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
-  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${darkMode ? "bg-slate-800 border-slate-700 text-white focus:border-orange-500" : "bg-white border-slate-300 focus:border-orange-500"
+  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${darkMode ? "bg-slate-800 border-slate-700 text-white focus:border-[#1A7D5A]" : "bg-white border-slate-300 focus:border-[#1A7D5A]"
     }`;
 
   // Load settings
@@ -133,7 +133,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
     return (
       <div className={`rounded-2xl border p-6 ${cardStyle}`}>
         <div className="flex items-center justify-center h-32">
-          <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-[#1A7D5A]" />
         </div>
       </div>
     );
@@ -199,7 +199,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
       {/* API Key */}
       <div className={`rounded-2xl border p-6 ${cardStyle}`}>
         <div className="flex items-center gap-3 mb-4">
-          <Code className="w-5 h-5 text-orange-500" />
+          <Code className="w-5 h-5 text-[#1A7D5A]" />
           <h3 className="font-semibold">API-Schlüssel</h3>
         </div>
 
@@ -250,7 +250,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
       {/* Embed Code */}
       <div className={`rounded-2xl border p-6 ${cardStyle}`}>
         <div className="flex items-center gap-3 mb-4">
-          <Link className="w-5 h-5 text-orange-500" />
+          <Link className="w-5 h-5 text-[#1A7D5A]" />
           <h3 className="font-semibold">Einbettungscode</h3>
         </div>
 
@@ -266,7 +266,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
           </pre>
           <button
             onClick={() => copyToClipboard(generateEmbedCode())}
-            className="absolute top-2 right-2 p-2 rounded bg-orange-500 text-white hover:bg-orange-600"
+            className="absolute top-2 right-2 p-2 rounded bg-[#1A7D5A] text-white hover:bg-[#1A7D5A]"
           >
             <Copy className="w-4 h-4" />
           </button>
@@ -280,7 +280,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
       {/* Styling */}
       <div className={`rounded-2xl border p-6 ${cardStyle}`}>
         <div className="flex items-center gap-3 mb-6">
-          <Palette className="w-5 h-5 text-orange-500" />
+          <Palette className="w-5 h-5 text-[#1A7D5A]" />
           <h3 className="font-semibold">Design anpassen</h3>
         </div>
 
@@ -364,7 +364,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
       {/* Buchungsregeln */}
       <div className={`rounded-2xl border p-6 ${cardStyle}`}>
         <div className="flex items-center gap-3 mb-6">
-          <Settings className="w-5 h-5 text-orange-500" />
+          <Settings className="w-5 h-5 text-[#1A7D5A]" />
           <h3 className="font-semibold">Buchungsregeln</h3>
         </div>
 
@@ -419,7 +419,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
                 type="checkbox"
                 checked={settings[key] || false}
                 onChange={(e) => setSettings(prev => ({ ...prev, [key]: e.target.checked }))}
-                className="w-5 h-5 rounded accent-orange-500"
+                className="w-5 h-5 rounded accent-[#1A7D5A]"
               />
               <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{label}</span>
             </label>
@@ -492,7 +492,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-semibold shadow-lg shadow-orange-500/25 flex items-center gap-2"
+          className="px-6 py-3 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-xl font-semibold shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2"
         >
           {saving && <Loader2 className="w-5 h-5 animate-spin" />}
           Einstellungen speichern

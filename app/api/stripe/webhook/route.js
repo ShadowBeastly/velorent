@@ -1,0 +1,267 @@
+// app/api/stripe/webhook/route.js
+// Handles Stripe webhooks on Vercel (Next.js App Router).
+// Events: checkout.session.completed, account.updated, charge.refunded
+//
+// Configure in Stripe Dashboard → Webhooks → Endpoint URL:
+//   https://lociva.de/api/stripe/webhook
+// Events to listen for:
+//   checkout.session.completed, account.updated, charge.refunded
+
+import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
+
+// Lazy-initialize to avoid build-time crash when env vars are missing
+let _stripe;
+function getStripe() {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2024-06-20",
+    });
+  }
+  return _stripe;
+}
+
+let _supabase;
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+  }
+  return _supabase;
+}
+
+// Next.js App Router: disable body parsing so we get the raw body for signature verification
+export const runtime = "nodejs";
+
+export async function POST(req) {
+  const stripe = getStripe();
+  const supabase = getSupabase();
+
+  const body = await req.text();
+  const signature = req.headers.get("stripe-signature");
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err.message);
+    return new Response("Webhook signature verification failed", { status: 400 });
+  }
+
+  console.log("Received Stripe event:", event.type);
+
+  try {
+    switch (event.type) {
+      // ---------------------------------------------------------------
+      // Guest booking payment completed
+      // ---------------------------------------------------------------
+      case "checkout.session.completed": {
+        const session = event.data.object;
+        const meta = session.metadata ?? {};
+
+        // Lociva guest booking (has bike_id + org_id in metadata)
+        if (meta.bike_id && meta.org_id) {
+          // Idempotency check: skip if booking already exists for this session
+          const { data: existingBooking } = await supabase
+            .from("bookings")
+            .select("id, booking_number")
+            .eq("stripe_checkout_session_id", session.id)
+            .maybeSingle();
+          if (existingBooking) {
+            console.log("Duplicate webhook — booking already exists:", existingBooking.booking_number);
+            return Response.json({ received: true });
+          }
+
+          const { data: booking, error: rpcErr } = await supabase.rpc(
+            "create_guest_booking",
+            {
+              p_organization_id: meta.org_id,
+              p_bike_id: meta.bike_id,
+              p_hotel_id: meta.hotel_id || null,
+              p_start_date: meta.start_date,
+              p_end_date: meta.end_date,
+              p_guest_name: meta.guest_name,
+              p_guest_email: meta.guest_email,
+              p_guest_phone: meta.guest_phone || null,
+              p_language: meta.lang || "de",
+            }
+          );
+
+          if (rpcErr) {
+            console.error("create_guest_booking failed:", rpcErr);
+            break;
+          }
+
+          // Attach Stripe IDs and confirm
+          const piId =
+            typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : session.payment_intent?.id;
+
+          await supabase
+            .from("bookings")
+            .update({
+              stripe_checkout_session_id: session.id,
+              stripe_payment_intent_id: piId ?? null,
+              status: "confirmed",
+            })
+            .eq("id", booking.booking_id);
+
+          console.log("Lociva booking created:", booking.booking_number);
+
+          // Send guest confirmation email with cancellation token link (non-fatal)
+          try {
+            const [{ data: bikeData }, { data: orgData }, { data: bookingRow }] =
+              await Promise.all([
+                supabase
+                  .from("bikes")
+                  .select("name")
+                  .eq("id", meta.bike_id)
+                  .single(),
+                supabase
+                  .from("organizations")
+                  .select("name, provider_address, provider_phone")
+                  .eq("id", meta.org_id)
+                  .single(),
+                supabase
+                  .from("bookings")
+                  .select("cancellation_token")
+                  .eq("id", booking.booking_id)
+                  .single(),
+              ]);
+
+            const siteUrl =
+              process.env.NEXT_PUBLIC_SITE_URL || "https://lociva.de";
+            const hotelSlug = meta.hotel_slug || "demo";
+            const cancelToken =
+              bookingRow?.cancellation_token ||
+              booking.cancellation_token ||
+              "";
+            const cancellationUrl = cancelToken
+              ? `${siteUrl}/hotel/${hotelSlug}/cancel?token=${cancelToken}`
+              : "";
+
+            await supabase.functions.invoke("send-email", {
+              body: {
+                type: "lociva_guest_confirmation",
+                to: meta.guest_email,
+                data: {
+                  guest_name: meta.guest_name,
+                  booking_number: booking.booking_number,
+                  bike_name: bikeData?.name || "–",
+                  start_date: meta.start_date,
+                  end_date: meta.end_date,
+                  total_days: meta.total_days,
+                  total_price: `${meta.total_price} €`,
+                  provider_name: orgData?.name || "",
+                  provider_address: orgData?.provider_address || "",
+                  provider_phone: orgData?.provider_phone || "",
+                  lang: meta.lang || "de",
+                  cancellation_url: cancellationUrl,
+                },
+              },
+            });
+            console.log("Confirmation email sent for booking:", booking?.booking_number || session.id);
+          } catch (emailErr) {
+            console.error("Failed to send confirmation email:", emailErr);
+          }
+
+          // Track analytics event
+          if (meta.hotel_id) {
+            await supabase.from("analytics_events").insert({
+              hotel_id: meta.hotel_id,
+              event_type: "booking_complete",
+              metadata: {
+                booking_id: booking.booking_id,
+                booking_number: booking.booking_number,
+                total_price: meta.total_price,
+              },
+            });
+          }
+        }
+        break;
+      }
+
+      // ---------------------------------------------------------------
+      // Provider Express account status changed
+      // ---------------------------------------------------------------
+      case "account.updated": {
+        const account = event.data.object;
+
+        const { error } = await supabase
+          .from("organizations")
+          .update({
+            stripe_charges_enabled: account.charges_enabled,
+            stripe_payouts_enabled: account.payouts_enabled,
+            stripe_onboarding_complete: account.details_submitted,
+          })
+          .eq("stripe_account_id", account.id);
+
+        if (error) {
+          console.error(
+            "Failed to update org for account:",
+            account.id,
+            error
+          );
+        } else {
+          console.log(
+            "Provider account updated:",
+            account.id,
+            "charges:",
+            account.charges_enabled,
+            "payouts:",
+            account.payouts_enabled
+          );
+        }
+        break;
+      }
+
+      // ---------------------------------------------------------------
+      // Refund processed → update cancellation_status
+      // ---------------------------------------------------------------
+      case "charge.refunded": {
+        const charge = event.data.object;
+        const piId =
+          typeof charge.payment_intent === "string"
+            ? charge.payment_intent
+            : charge.payment_intent?.id;
+
+        if (!piId) break;
+
+        const refundedRatio = charge.amount_refunded / charge.amount;
+        const cancellationStatus = refundedRatio >= 0.99 ? "free" : "partial";
+
+        await supabase
+          .from("bookings")
+          .update({
+            cancellation_status: cancellationStatus,
+            status: "cancelled",
+          })
+          .eq("stripe_payment_intent_id", piId);
+
+        console.log(
+          "Refund processed for PI:",
+          piId,
+          "status:",
+          cancellationStatus
+        );
+        break;
+      }
+
+      default:
+        console.log("Unhandled event type:", event.type);
+    }
+
+    return Response.json({ received: true });
+  } catch (error) {
+    console.error("Webhook handler error:", error);
+    return new Response("Internal error", { status: 500 });
+  }
+}

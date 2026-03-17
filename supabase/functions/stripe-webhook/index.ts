@@ -26,7 +26,7 @@ serve(async (req) => {
     event = stripe.webhooks.constructEvent(body, signature!, webhookSecret);
   } catch (err) {
     console.error("Webhook signature verification failed:", err.message);
-    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+    return new Response("Webhook signature verification failed", { status: 400 });
   }
 
   console.log("Received Stripe event:", event.type);
@@ -43,6 +43,17 @@ serve(async (req) => {
 
         // Lociva guest booking (has bike_id in metadata)
         if (meta.bike_id && meta.org_id) {
+          // Idempotency check: skip if booking already exists for this session
+          const { data: existingBooking } = await supabase
+            .from("bookings")
+            .select("id, booking_number")
+            .eq("stripe_checkout_session_id", session.id)
+            .maybeSingle();
+          if (existingBooking) {
+            console.log("Duplicate webhook — booking already exists:", existingBooking.booking_number);
+            return new Response(JSON.stringify({ received: true }), { headers: { "Content-Type": "application/json" } });
+          }
+
           const { data: booking, error: rpcErr } = await supabase.rpc("create_guest_booking", {
             p_organization_id: meta.org_id,
             p_bike_id:         meta.bike_id,
@@ -68,12 +79,21 @@ serve(async (req) => {
             }).eq("id", booking.booking_id);
             console.log("Lociva booking created:", booking.booking_number);
 
-            // Send guest confirmation email
+            // Send guest confirmation email with cancellation token link
             try {
-              const [{ data: bikeData }, { data: orgData }] = await Promise.all([
+              const [{ data: bikeData }, { data: orgData }, { data: bookingRow }] = await Promise.all([
                 supabase.from("bikes").select("name").eq("id", meta.bike_id).single(),
                 supabase.from("organizations").select("name, provider_address, provider_phone").eq("id", meta.org_id).single(),
+                supabase.from("bookings").select("cancellation_token").eq("id", booking.booking_id).single(),
               ]);
+
+              const siteUrl = Deno.env.get("SITE_URL") || "https://lociva.de";
+              const hotelSlug = meta.hotel_slug || "demo";
+              const cancelToken = bookingRow?.cancellation_token || booking.cancellation_token || "";
+              const cancellationUrl = cancelToken
+                ? `${siteUrl}/hotel/${hotelSlug}/cancel?token=${cancelToken}`
+                : "";
+
               await supabase.functions.invoke("send-email", {
                 body: {
                   type: "lociva_guest_confirmation",
@@ -90,10 +110,11 @@ serve(async (req) => {
                     provider_address: orgData?.provider_address || "",
                     provider_phone:   orgData?.provider_phone || "",
                     lang:             meta.lang || "de",
+                    cancellation_url: cancellationUrl,
                   },
                 },
               });
-              console.log("Confirmation email sent to:", meta.guest_email);
+              console.log("Confirmation email sent for booking:", booking.booking_number);
             } catch (emailErr) {
               console.error("Failed to send confirmation email:", emailErr);
               // Non-fatal — booking was created successfully
@@ -235,6 +256,6 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Webhook handler error:", error);
-    return new Response(`Webhook handler error: ${error.message}`, { status: 500 });
+    return new Response("Internal error", { status: 500 });
   }
 });

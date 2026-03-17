@@ -43,7 +43,7 @@ function DroppableCell({ id, date, bikeId, children, onClick, className }) {
         <div
             ref={setNodeRef}
             onClick={onClick}
-            className={`${className} ${isOver ? 'bg-brand-500/20' : ''}`}
+            className={`${className} ${isOver ? 'bg-[#3BAA82]/20' : ''}`}
         >
             {children}
         </div>
@@ -330,7 +330,7 @@ export default function CalendarPage() {
                             </button>
                         </div>
 
-                        <button onClick={() => setCurrentDate(new Date())} className="px-4 py-2 text-sm font-bold text-brand-600 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400 rounded-xl transition-colors border border-brand-200 dark:border-brand-800">
+                        <button onClick={() => setCurrentDate(new Date())} className="px-4 py-2 text-sm font-bold text-[#1A7D5A] bg-[#D4EDE2] hover:bg-[#D4EDE2] dark:bg-[#1A7D5A]/20 dark:text-[#3BAA82] rounded-xl transition-colors border border-[#1A7D5A]/30 dark:border-[#1A7D5A]/30">
                             Heute
                         </button>
 
@@ -378,18 +378,18 @@ export default function CalendarPage() {
                             ))}
                         </select>
                         <div className="relative flex-1 lg:w-64 group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#1A7D5A] transition-colors" />
                             <input
                                 type="text"
                                 placeholder="Suchen..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className={`w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none text-sm transition-all ${darkMode ? "bg-slate-800 border-slate-700 focus:border-brand-500 focus:bg-slate-800" : "bg-slate-50 border-slate-200 focus:border-brand-500 focus:bg-white focus:shadow-sm"}`}
+                                className={`w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none text-sm transition-all ${darkMode ? "bg-slate-800 border-slate-700 focus:border-[#1A7D5A] focus:bg-slate-800" : "bg-slate-50 border-slate-200 focus:border-[#1A7D5A] focus:bg-white focus:shadow-sm"}`}
                             />
                         </div>
                         <button
                             onClick={() => { setEditBooking(null); setSelectedDate(new Date()); setSelectedBikeId(null); setShowModal(true); }}
-                            className="btn-primary flex items-center gap-2 whitespace-nowrap py-2.5 px-5 rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 hover:-translate-y-0.5 transition-all"
+                            className="btn-primary flex items-center gap-2 whitespace-nowrap py-2.5 px-5 rounded-xl shadow-lg shadow-[#1A7D5A]/20 hover:shadow-[#1A7D5A]/30 hover:-translate-y-0.5 transition-all"
                         >
                             <Plus className="w-4 h-4" />
                             <span className="hidden sm:inline font-bold">Neue Buchung</span>
@@ -411,15 +411,15 @@ export default function CalendarPage() {
                                     const isToday = fmtISO(day) === fmtISO(new Date());
                                     const isWeekend = day.getDay() === 0 || day.getDay() === 6;
                                     return (
-                                        <div key={day.toISOString()} className={`text-center py-3 border-r last:border-r-0 text-xs flex flex-col items-center justify-center gap-1 group relative ${darkMode ? "border-slate-800" : "border-slate-100"} ${isWeekend ? (darkMode ? "bg-slate-800/30" : "bg-slate-50/80") : ""} ${isToday ? (darkMode ? "bg-brand-900/10" : "bg-brand-50/40") : ""}`}>
-                                            <span className={`font-bold text-sm transition-transform group-hover:scale-110 ${isToday ? "text-brand-600 dark:text-brand-400" : "text-slate-700 dark:text-slate-300"}`}>{day.getDate()}</span>
-                                            <span className={`text-[10px] uppercase tracking-wider font-semibold ${isToday ? "text-brand-600 dark:text-brand-400" : "text-slate-400"}`}>
+                                        <div key={day.toISOString()} className={`text-center py-3 border-r last:border-r-0 text-xs flex flex-col items-center justify-center gap-1 group relative ${darkMode ? "border-slate-800" : "border-slate-100"} ${isWeekend ? (darkMode ? "bg-slate-800/30" : "bg-slate-50/80") : ""} ${isToday ? (darkMode ? "bg-[#1A7D5A]/10" : "bg-[#D4EDE2]/40") : ""}`}>
+                                            <span className={`font-bold text-sm transition-transform group-hover:scale-110 ${isToday ? "text-[#1A7D5A] dark:text-[#3BAA82]" : "text-slate-700 dark:text-slate-300"}`}>{day.getDate()}</span>
+                                            <span className={`text-[10px] uppercase tracking-wider font-semibold ${isToday ? "text-[#1A7D5A] dark:text-[#3BAA82]" : "text-slate-400"}`}>
                                                 {viewMode === 'month'
                                                     ? day.toLocaleDateString("de-DE", { weekday: "short" })
                                                     : day.toLocaleDateString("de-DE", { weekday: "long" })
                                                 }
                                             </span>
-                                            {isToday && <div className="absolute bottom-0 w-full h-0.5 bg-brand-500" />}
+                                            {isToday && <div className="absolute bottom-0 w-full h-0.5 bg-[#3BAA82]" />}
                                         </div>
                                     );
                                 })}
@@ -484,8 +484,8 @@ export default function CalendarPage() {
                                                             className={`border-r last:border-r-0 h-full transition-colors cursor-pointer
                                                                 ${darkMode ? "border-slate-800" : "border-slate-100"} 
                                                                 ${isWeekend ? (darkMode ? "bg-slate-800/20" : "bg-slate-50/60") : ""} 
-                                                                ${isToday ? (darkMode ? "bg-brand-900/5" : "bg-brand-50/20") : ""}
-                                                                hover:bg-brand-500/10`}
+                                                                ${isToday ? (darkMode ? "bg-[#1A7D5A]/5" : "bg-[#D4EDE2]/20") : ""}
+                                                                hover:bg-[#3BAA82]/10`}
                                                         />
                                                     );
                                                 })}

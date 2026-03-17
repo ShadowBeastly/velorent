@@ -15,7 +15,7 @@ function LegalPage({ title, icon: Icon, children, onBack }) {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#1A7D5A] to-[#3BAA82] rounded-xl flex items-center justify-center">
               <Icon className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-xl font-bold text-slate-900">{title}</h1>

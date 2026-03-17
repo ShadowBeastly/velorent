@@ -114,7 +114,7 @@ export default function CustomerModal({ customer, onSave, onDelete, onClose, dar
                     </div>
                     <div className="flex gap-3">
                         <button onClick={onClose} className={`px-4 py-2 rounded-lg ${darkMode ? "bg-slate-800" : "bg-slate-100"}`}>Abbrechen</button>
-                        <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium flex items-center gap-2">
+                        <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium flex items-center gap-2">
                             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                             Speichern
                         </button>

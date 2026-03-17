@@ -173,7 +173,7 @@ export default function TeamManagement() {
         <div className={`rounded-2xl border p-6 ${cardStyle}`}>
             {/* Header */}
             <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1A7D5A] to-[#3BAA82] flex items-center justify-center">
                     <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -216,7 +216,7 @@ export default function TeamManagement() {
                         <button
                             type="submit"
                             disabled={inviting || !inviteEmail.trim()}
-                            className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2 disabled:opacity-50"
+                            className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2 disabled:opacity-50"
                         >
                             {inviting ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />

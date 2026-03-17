@@ -21,8 +21,8 @@ export default function CategoriesPage() {
 
     const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
     const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none text-sm transition-all ${darkMode
-        ? "bg-slate-800 border-slate-700 text-white focus:border-brand-500"
-        : "bg-slate-50 border-slate-200 text-slate-900 focus:border-brand-500 focus:bg-white"}`;
+        ? "bg-slate-800 border-slate-700 text-white focus:border-[#1A7D5A]"
+        : "bg-slate-50 border-slate-200 text-slate-900 focus:border-[#1A7D5A] focus:bg-white"}`;
 
     // Count bikes per category
     const bikeCounts = useMemo(() => {
@@ -93,7 +93,7 @@ export default function CategoriesPage() {
                             Verwalte Fahrrad-Kategorien mit Standard-Preisen
                         </p>
                     </div>
-                    <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl font-medium shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition-all">
+                    <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#1A7D5A] text-white rounded-xl font-medium shadow-lg shadow-[#1A7D5A]/25 hover:shadow-[#1A7D5A]/40 transition-all">
                         <Plus className="w-4 h-4" /> Neue Kategorie
                     </button>
                 </div>
@@ -110,7 +110,7 @@ export default function CategoriesPage() {
                         <div key={cat.id} className={`rounded-2xl border p-5 ${cardStyle} hover:shadow-lg transition-shadow group`}>
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold ${darkMode ? "bg-brand-900/30 text-brand-400" : "bg-brand-100 text-brand-600"}`}>
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold ${darkMode ? "bg-[#1A7D5A]/30 text-[#3BAA82]" : "bg-[#D4EDE2] text-[#1A7D5A]"}`}>
                                         {cat.image_url ? (
                                             <img src={cat.image_url} alt="" className="w-full h-full object-cover rounded-xl" />
                                         ) : (
@@ -224,7 +224,7 @@ export default function CategoriesPage() {
                             <button onClick={() => setShowForm(false)} className={`px-4 py-2 rounded-xl text-sm font-medium ${darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"}`}>
                                 Abbrechen
                             </button>
-                            <button onClick={handleSave} disabled={!form.name} className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-lg shadow-brand-500/20">
+                            <button onClick={handleSave} disabled={!form.name} className="px-5 py-2 bg-[#3BAA82] hover:bg-[#1A7D5A] text-white rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-lg shadow-[#1A7D5A]/20">
                                 {editCategory ? "Speichern" : "Erstellen"}
                             </button>
                         </div>

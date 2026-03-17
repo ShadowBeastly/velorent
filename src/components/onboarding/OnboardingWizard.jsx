@@ -80,7 +80,7 @@ export default function OnboardingWizard({ bikes = [], bookings = [], onCreateBi
             <div className="fixed bottom-6 right-6 z-50">
                 <button
                     onClick={() => setMinimized(false)}
-                    className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-3 rounded-full shadow-lg hover:scale-105 transition-transform"
+                    className="bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white p-3 rounded-full shadow-lg hover:scale-105 transition-transform"
                 >
                     <PartyPopper className="w-6 h-6" />
                 </button>
@@ -92,7 +92,7 @@ export default function OnboardingWizard({ bikes = [], bookings = [], onCreateBi
         <div className={`fixed bottom-6 right-6 z-50 w-full max-w-sm transition-all duration-500 transform ${visible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"}`}>
             <div className={`rounded-xl shadow-2xl border ${darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"} overflow-hidden`}>
                 {/* Header */}
-                <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-4 flex items-center justify-between text-white">
+                <div className="bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] p-4 flex items-center justify-between text-white">
                     <div className="flex items-center gap-2">
                         <PartyPopper className="w-5 h-5" />
                         <h3 className="font-bold">Erste Schritte</h3>
@@ -139,7 +139,7 @@ export default function OnboardingWizard({ bikes = [], bookings = [], onCreateBi
                                             {!step.done && (
                                                 <button
                                                     onClick={step.action}
-                                                    className="mt-2 text-xs flex items-center gap-1 text-orange-500 font-medium hover:text-orange-600 hover:underline"
+                                                    className="mt-2 text-xs flex items-center gap-1 text-[#1A7D5A] font-medium hover:text-[#1A7D5A] hover:underline"
                                                 >
                                                     {step.btnText} <ArrowRight className="w-3 h-3" />
                                                 </button>

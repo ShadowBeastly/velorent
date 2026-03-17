@@ -12,9 +12,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+const ALLOWED_ORIGINS = ["https://lociva.de", "https://www.lociva.de", "http://localhost:3000"];
+
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const origin = req.headers.get("origin") || "https://lociva.de";
+  const requestOrigin = req.headers.get("origin") || "";
+  const origin = ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
 
   const { data, error } = await supabase.functions.invoke("stripe-checkout", {
     body: { ...body, origin },

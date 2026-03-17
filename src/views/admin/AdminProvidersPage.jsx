@@ -14,7 +14,7 @@ export default function AdminProvidersPage() {
   const [form, setForm] = useState({ provider_description: "", provider_address: "", provider_phone: "", provider_website: "", is_platform_provider: false });
 
   const card = darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200";
-  const inputCls = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${darkMode ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400" : "bg-white border-slate-300 text-slate-900"}`;
+  const inputCls = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-[#1A7D5A] ${darkMode ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400" : "bg-white border-slate-300 text-slate-900"}`;
   const labelCls = `block text-sm font-medium mb-1 ${darkMode ? "text-slate-300" : "text-slate-700"}`;
 
   async function loadProviders() {
@@ -24,7 +24,10 @@ export default function AdminProvidersPage() {
     setLoading(false);
   }
 
-  useEffect(() => { loadProviders(); }, []);
+  useEffect(() => {
+    async function init() { await loadProviders(); }
+    init();
+  }, []);
 
   function openEdit(provider) {
     setEditingProvider(provider);
@@ -51,7 +54,7 @@ export default function AdminProvidersPage() {
     <div className={`min-h-screen p-6 ${darkMode ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-900"}`}>
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Store className={`w-7 h-7 ${darkMode ? "text-indigo-400" : "text-indigo-600"}`} />
+          <Store className={`w-7 h-7 ${darkMode ? "text-[#3BAA82]" : "text-[#1A7D5A]"}`} />
           <div>
             <h1 className="text-2xl font-bold">Anbieter verwalten</h1>
             <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{providers.filter(p => p.is_platform_provider).length} Plattform-Anbieter aktiv</p>
@@ -65,7 +68,7 @@ export default function AdminProvidersPage() {
         <div className={`border rounded-xl overflow-hidden ${card}`}>
           {loading ? (
             <div className="flex items-center justify-center h-32">
-              <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-4 border-[#1A7D5A] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-16"><p className={darkMode ? "text-slate-400" : "text-slate-500"}>Keine Anbieter gefunden</p></div>
@@ -86,7 +89,7 @@ export default function AdminProvidersPage() {
                       {provider.provider_description && <p className={`text-xs mt-0.5 line-clamp-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{provider.provider_description}</p>}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${provider.is_platform_provider ? "bg-indigo-900/40 text-indigo-300" : "bg-slate-700 text-slate-400"}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${provider.is_platform_provider ? "bg-[#1A7D5A]/20 text-[#3BAA82]" : "bg-slate-700 text-slate-400"}`}>
                         {provider.is_platform_provider ? "Plattform-Anbieter" : "Intern"}
                       </span>
                     </td>
@@ -112,9 +115,9 @@ export default function AdminProvidersPage() {
           <div className={`w-full max-w-lg rounded-2xl border p-6 shadow-2xl ${darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
             <h2 className="text-xl font-bold mb-5">{editingProvider.name} bearbeiten</h2>
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-indigo-900/20 border border-indigo-800/40">
-                <input type="checkbox" id="platform_provider" checked={form.is_platform_provider} onChange={(e) => setForm(f => ({ ...f, is_platform_provider: e.target.checked }))} className="w-4 h-4 accent-indigo-600" />
-                <label htmlFor="platform_provider" className="text-sm font-medium text-indigo-300">Auf Plattform-Marktplatz aktiv</label>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-[#1A7D5A]/10 border border-[#1A7D5A]/30">
+                <input type="checkbox" id="platform_provider" checked={form.is_platform_provider} onChange={(e) => setForm(f => ({ ...f, is_platform_provider: e.target.checked }))} className="w-4 h-4 accent-[#1A7D5A]" />
+                <label htmlFor="platform_provider" className="text-sm font-medium text-[#3BAA82]">Auf Plattform-Marktplatz aktiv</label>
               </div>
               <div>
                 <label className={labelCls}>Beschreibung (für Gäste)</label>
@@ -137,7 +140,7 @@ export default function AdminProvidersPage() {
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setEditingProvider(null)} className={`flex-1 py-2.5 rounded-lg border font-medium ${darkMode ? "border-slate-600 text-slate-300 hover:bg-slate-700" : "border-slate-300 text-slate-600 hover:bg-slate-50"}`}>Abbrechen</button>
-              <button onClick={handleSave} disabled={saving} className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 text-white py-2.5 rounded-lg font-medium">
+              <button onClick={handleSave} disabled={saving} className="flex-1 bg-[#1A7D5A] hover:bg-[#1A7D5A] disabled:bg-[#1A7D5A]/40 text-white py-2.5 rounded-lg font-medium">
                 {saving ? "Speichern..." : "Speichern"}
               </button>
             </div>

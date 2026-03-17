@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Plus, Loader2, Check, RefreshCw, LayoutGrid, List, MoreHorizontal, Battery, Gauge, Layers, Download } from "lucide-react";
+import { Plus, Loader2, Check, RefreshCw, LayoutGrid, List, MoreHorizontal, Battery, Gauge, Download, Edit } from "lucide-react";
 import { BIKE_COLORS } from "../utils/constants";
 import { fmtCurrency } from "../utils/formatters";
 import BikeModal from "../components/fleet/BikeModal";
@@ -9,15 +9,26 @@ import { useData } from "../context/DataContext";
 import { useToast } from "../components/ui/Toast";
 import { exportToCSV } from "../utils/exportCSV";
 
+const FRAME_SIZES = ["XS", "S", "M", "L", "XL"];
+
 export default function FleetPage() {
     const { darkMode, searchQuery } = useApp();
     const { bikes, bookings, bikeCategories } = useData();
     const { addToast } = useToast();
     const [showModal, setShowModal] = useState(false);
     const [editBike, setEditBike] = useState(null);
-    const [viewMode, setViewMode] = useState("table");
+    const [viewMode, setViewMode] = useState("grid");
     const [statusFilter, setStatusFilter] = useState("all");
     const [categoryFilter, setCategoryFilter] = useState("all");
+    const [sizeFilter, setSizeFilter] = useState("all");
+
+    // Build category list
+    const categories = useMemo(() => {
+        if (bikeCategories?.categories?.length > 0) {
+            return bikeCategories.categories.map(c => c.name);
+        }
+        return [...new Set(bikes.bikes.map(b => b.category).filter(Boolean))];
+    }, [bikeCategories?.categories, bikes.bikes]);
 
     const filtered = useMemo(() => {
         return bikes.bikes.filter(b => {
@@ -34,14 +45,11 @@ export default function FleetPage() {
                 (statusFilter === "available" && !isOut && b.status === "available");
 
             const matchesCategory = categoryFilter === "all" || b.category === categoryFilter;
+            const matchesSize = sizeFilter === "all" || b.size === sizeFilter;
 
-            return matchesSearch && matchesStatus && matchesCategory;
+            return matchesSearch && matchesStatus && matchesCategory && matchesSize;
         });
-    }, [bikes.bikes, searchQuery, bookings.bookings, statusFilter, categoryFilter]);
-
-    const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
-    const tableHeaderStyle = darkMode ? "bg-slate-900 text-slate-400" : "bg-slate-50 text-slate-500";
-    const tableRowStyle = darkMode ? "border-slate-800 hover:bg-slate-800/50" : "border-slate-100 hover:bg-slate-50";
+    }, [bikes.bikes, searchQuery, bookings.bookings, statusFilter, categoryFilter, sizeFilter]);
 
     const handleSave = async (data) => {
         try {
@@ -66,11 +74,19 @@ export default function FleetPage() {
         }
     };
 
+    const getBikeStatus = (bike) => {
+        const isOut = bookings.bookings.some(b => b.bike_id === bike.id && b.status === "picked_up");
+        if (isOut) return { label: "Vermietet", bg: "bg-[#1A7D5A]", text: "text-white" };
+        if (bike.status === "maintenance") return { label: "Wartung", bg: "bg-slate-500", text: "text-white" };
+        return { label: "Verfügbar", bg: "bg-emerald-500", text: "text-white" };
+    };
+
     return (
-        <div className="space-y-4">
-            {/* Header & Controls */}
-            <div className={`rounded-2xl border p-4 ${cardStyle} flex flex-col md:flex-row gap-4 justify-between items-center`}>
-                <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Flotte</h2>
+                <div className="flex items-center gap-3">
                     <div className={`flex p-1 rounded-lg border ${darkMode ? "border-slate-700 bg-slate-800" : "border-slate-200 bg-slate-100"}`}>
                         <button
                             onClick={() => setViewMode("table")}
@@ -85,47 +101,6 @@ export default function FleetPage() {
                             <LayoutGrid className="w-4 h-4" />
                         </button>
                     </div>
-                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
-                    <div className="flex flex-wrap gap-2">
-                        {["all", "available", "out", "maintenance"].map(s => (
-                            <button
-                                key={s}
-                                onClick={() => setStatusFilter(s)}
-                                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${statusFilter === s
-                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent"
-                                    : "border-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
-                                    }`}
-                            >
-                                {s === "all" ? "Alle" : s === "available" ? "Verfügbar" : s === "out" ? "Unterwegs" : "Wartung"}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
-                    <div className="flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-slate-400 hidden sm:block" />
-                        <select
-                            value={categoryFilter}
-                            onChange={e => setCategoryFilter(e.target.value)}
-                            className={`text-xs px-2 py-1.5 rounded-lg border outline-none ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200 text-slate-700"}`}
-                        >
-                            <option value="all">Alle Kategorien</option>
-                            {bikeCategories.categories.map(c => (
-                                <option key={c.id} value={c.name}>{c.name}</option>
-                            ))}
-                            {/* Fallback: unique categories from bikes if no categories table yet */}
-                            {bikeCategories.categories.length === 0 &&
-                                [...new Set(bikes.bikes.map(b => b.category).filter(Boolean))].map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))
-                            }
-                        </select>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                    <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                        {filtered.length} Räder
-                    </span>
                     <button
                         onClick={() => exportToCSV(filtered, [
                             { key: 'name', label: 'Name' },
@@ -134,108 +109,283 @@ export default function FleetPage() {
                             { key: 'price_per_day', label: 'Preis/Tag' },
                             { key: 'status', label: 'Status' },
                         ], 'flotte')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium border transition-colors whitespace-nowrap ${darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-600 hover:bg-slate-100"}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium border transition-colors ${darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-600 hover:bg-slate-100"}`}
                     >
                         <Download className="w-4 h-4" />
                         <span className="hidden sm:inline">Exportieren</span>
                     </button>
                     <button
                         onClick={() => { setEditBike(null); setShowModal(true); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium shadow-lg shadow-orange-500/25 whitespace-nowrap"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-bold text-sm shadow-lg shadow-[#1A7D5A]/25 transition-all hover:shadow-xl"
                     >
                         <Plus className="w-4 h-4" />
-                        <span className="hidden sm:inline">Neues Rad</span>
+                        Fahrrad hinzufügen
                     </button>
+                </div>
+            </div>
+
+            {/* Filter Section */}
+            <div className={`rounded-xl border shadow-sm p-5 space-y-5 ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}>
+                {/* Fahrrad-Kategorie */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <span className={`text-xs font-bold uppercase tracking-wider w-32 shrink-0 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                        Fahrrad-Kategorie
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setCategoryFilter("all")}
+                            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${categoryFilter === "all"
+                                ? "bg-[#1A7D5A] text-white shadow-sm"
+                                : darkMode ? "bg-slate-800 text-slate-400 hover:bg-slate-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                }`}
+                        >
+                            Alle
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setCategoryFilter(cat)}
+                                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${categoryFilter === cat
+                                    ? "bg-[#1A7D5A] text-white shadow-sm"
+                                    : darkMode ? "bg-slate-800 text-slate-400 hover:bg-slate-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                    }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className={`h-px ${darkMode ? "bg-slate-800" : "bg-slate-100"}`} />
+
+                {/* Rahmengröße */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <span className={`text-xs font-bold uppercase tracking-wider w-32 shrink-0 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                        Rahmengröße
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setSizeFilter("all")}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${sizeFilter === "all"
+                                ? "border-2 border-[#1A7D5A] text-[#1A7D5A] bg-[#1A7D5A]/5"
+                                : darkMode ? "bg-slate-800 text-slate-400 hover:bg-slate-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                }`}
+                        >
+                            Alle
+                        </button>
+                        {FRAME_SIZES.map(size => (
+                            <button
+                                key={size}
+                                onClick={() => setSizeFilter(size)}
+                                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${sizeFilter === size
+                                    ? "border-2 border-[#1A7D5A] text-[#1A7D5A] bg-[#1A7D5A]/5"
+                                    : darkMode ? "bg-slate-800 text-slate-400 hover:bg-slate-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                    }`}
+                            >
+                                {size}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className={`h-px ${darkMode ? "bg-slate-800" : "bg-slate-100"}`} />
+
+                {/* Status */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <span className={`text-xs font-bold uppercase tracking-wider w-32 shrink-0 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                        Status
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                        {[
+                            { value: "all", label: "Alle" },
+                            { value: "available", label: "Verfügbar" },
+                            { value: "out", label: "Vermietet" },
+                            { value: "maintenance", label: "Wartung" },
+                        ].map(s => (
+                            <button
+                                key={s.value}
+                                onClick={() => setStatusFilter(s.value)}
+                                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${statusFilter === s.value
+                                    ? "bg-[#1A7D5A] text-white shadow-sm"
+                                    : darkMode ? "bg-slate-800 text-slate-400 hover:bg-slate-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                    }`}
+                            >
+                                {s.label}
+                            </button>
+                        ))}
+                        <span className={`text-xs font-medium self-center ml-2 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                            {filtered.length} Räder
+                        </span>
+                    </div>
                 </div>
             </div>
 
             {/* Content */}
             {bikes.loading ? (
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-[#1A7D5A]" />
                 </div>
-            ) : viewMode === "table" ? (
-                // TABLE VIEW
-                <div className={`rounded-2xl border overflow-hidden ${cardStyle}`}>
+            ) : viewMode === "grid" ? (
+                /* GRID VIEW — Design Mockup Style */
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filtered.map((bike) => {
+                        const globalIdx = bikes.bikes.findIndex(b => b.id === bike.id);
+                        const status = getBikeStatus(bike);
+
+                        return (
+                            <div key={bike.id} className={`rounded-xl border overflow-hidden shadow-sm group transition-all hover:shadow-md ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}>
+                                {/* Image / Color Placeholder */}
+                                <div className="aspect-video relative overflow-hidden">
+                                    <div className={`w-full h-full ${BIKE_COLORS[globalIdx % BIKE_COLORS.length]} opacity-20`} />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className={`w-16 h-16 rounded-2xl ${BIKE_COLORS[globalIdx % BIKE_COLORS.length]} flex items-center justify-center text-white text-2xl font-bold shadow-lg`}>
+                                            {globalIdx + 1}
+                                        </div>
+                                    </div>
+                                    {/* Status Badge */}
+                                    <div className="absolute top-3 left-3">
+                                        <span className={`${status.bg} ${status.text} text-[10px] font-bold px-2.5 py-1 rounded shadow-sm uppercase tracking-wider`}>
+                                            {status.label}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Card Body */}
+                                <div className="p-5">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <span className="text-[#1A7D5A] text-[10px] font-bold uppercase tracking-widest block mb-1">
+                                                {bike.category || "—"}
+                                            </span>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{bike.name}</h3>
+                                            {bike.frame_number && (
+                                                <p className={`text-[10px] mt-0.5 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{bike.frame_number}</p>
+                                            )}
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{fmtCurrency(bike.price_per_day)}</p>
+                                            <p className={`text-[10px] uppercase font-medium ${darkMode ? "text-slate-500" : "text-slate-400"}`}>pro Tag</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Tech specs row */}
+                                    {(bike.size || bike.battery || bike.motor) && (
+                                        <div className={`flex items-center gap-3 text-xs mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                            {bike.size && <span className="font-medium">{bike.size}</span>}
+                                            {bike.battery && (
+                                                <span className="flex items-center gap-1">
+                                                    <Battery className="w-3 h-3" /> {bike.battery}
+                                                </span>
+                                            )}
+                                            {bike.motor && (
+                                                <span className="flex items-center gap-1 truncate">
+                                                    <Gauge className="w-3 h-3" /> {bike.motor}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => { setEditBike(bike); setShowModal(true); }}
+                                            className={`flex-1 py-2.5 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-colors ${darkMode ? "bg-slate-800 text-slate-300 hover:bg-slate-700" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                            Bearbeiten
+                                        </button>
+                                        <button
+                                            onClick={() => toggleStatus(bike)}
+                                            className={`p-2.5 rounded-lg transition-colors ${darkMode ? "border border-slate-700 hover:bg-slate-800 text-slate-400" : "border border-slate-200 hover:bg-slate-50 text-slate-400"}`}
+                                            title={bike.status === "maintenance" ? "Wartung beenden" : "In Wartung setzen"}
+                                        >
+                                            {bike.status === "maintenance" ? <Check className="w-5 h-5" /> : <RefreshCw className="w-5 h-5" />}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {filtered.length === 0 && (
+                        <div className={`col-span-full text-center py-12 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                            Keine Räder gefunden.
+                        </div>
+                    )}
+                </div>
+            ) : (
+                /* TABLE VIEW */
+                <div className={`rounded-xl border overflow-hidden shadow-sm ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead className={`text-xs uppercase font-semibold ${tableHeaderStyle}`}>
-                                <tr>
-                                    <th className="px-6 py-4">Name / Modell</th>
-                                    <th className="px-6 py-4">Kategorie</th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4">Technische Daten</th>
-                                    <th className="px-6 py-4 text-right">Preis/Tag</th>
-                                    <th className="px-6 py-4 text-right">Aktionen</th>
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className={`border-b ${darkMode ? "bg-slate-800/50 border-slate-800" : "bg-slate-50 border-slate-100"}`}>
+                                    <th className={`px-6 py-4 text-[11px] font-bold uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Name / Modell</th>
+                                    <th className={`px-6 py-4 text-[11px] font-bold uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Kategorie</th>
+                                    <th className={`px-6 py-4 text-[11px] font-bold uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Status</th>
+                                    <th className={`px-6 py-4 text-[11px] font-bold uppercase tracking-wider hidden md:table-cell ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Technische Daten</th>
+                                    <th className={`px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-right ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Preis/Tag</th>
+                                    <th className={`px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-right ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Aktionen</th>
                                 </tr>
                             </thead>
                             <tbody className={`divide-y ${darkMode ? "divide-slate-800" : "divide-slate-100"}`}>
                                 {filtered.map((bike) => {
                                     const globalIdx = bikes.bikes.findIndex(b => b.id === bike.id);
-                                    const isOut = bookings.bookings.some(b => b.bike_id === bike.id && b.status === "picked_up");
+                                    const status = getBikeStatus(bike);
 
                                     return (
-                                        <tr key={bike.id} className={`transition-colors ${tableRowStyle}`}>
+                                        <tr key={bike.id} className={`transition-colors ${darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"}`}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-8 h-8 rounded-lg ${BIKE_COLORS[globalIdx % BIKE_COLORS.length]} flex items-center justify-center text-white font-bold text-xs`}>
                                                         {globalIdx + 1}
                                                     </div>
                                                     <div>
-                                                        <div className="font-medium">{bike.name}</div>
-                                                        <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{bike.frame_number}</div>
+                                                        <div className="text-sm font-bold">{bike.name}</div>
+                                                        <div className={`text-[10px] ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{bike.frame_number}</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-2.5 py-1 rounded-md text-xs font-medium ${darkMode ? "bg-slate-800 text-slate-300" : "bg-slate-100 text-slate-600"}`}>
-                                                    {bike.category}
-                                                </span>
+                                                <span className="text-[#1A7D5A] text-[10px] font-bold uppercase tracking-widest">{bike.category}</span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${isOut ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
-                                                    bike.status === "maintenance" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
-                                                        "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                                    }`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${isOut ? "bg-blue-500" : bike.status === "maintenance" ? "bg-amber-500" : "bg-emerald-500"
-                                                        }`} />
-                                                    {isOut ? "Unterwegs" : bike.status === "maintenance" ? "Wartung" : "Verfügbar"}
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                                                    status.label === "Vermietet" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                                    : status.label === "Wartung" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                                    : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                                }`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${
+                                                        status.label === "Vermietet" ? "bg-blue-500"
+                                                        : status.label === "Wartung" ? "bg-amber-500"
+                                                        : "bg-emerald-500"
+                                                    }`} />
+                                                    {status.label}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 hidden md:table-cell">
                                                 <div className={`flex items-center gap-4 text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                                    <div className="flex items-center gap-1" title="Größe">
-                                                        <span className="font-medium">{bike.size}</span>
-                                                    </div>
+                                                    {bike.size && <span className="font-medium">{bike.size}</span>}
                                                     {bike.battery && (
-                                                        <div className="flex items-center gap-1" title="Akku">
-                                                            <Battery className="w-3 h-3" />
-                                                            <span>{bike.battery}</span>
-                                                        </div>
+                                                        <span className="flex items-center gap-1"><Battery className="w-3 h-3" /> {bike.battery}</span>
                                                     )}
                                                     {bike.motor && (
-                                                        <div className="flex items-center gap-1" title="Motor">
-                                                            <Gauge className="w-3 h-3" />
-                                                            <span className="truncate max-w-[80px]">{bike.motor}</span>
-                                                        </div>
+                                                        <span className="flex items-center gap-1 truncate max-w-[80px]"><Gauge className="w-3 h-3" /> {bike.motor}</span>
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-right font-medium">
-                                                {fmtCurrency(bike.price_per_day)}
-                                            </td>
+                                            <td className="px-6 py-4 text-right text-sm font-bold">{fmtCurrency(bike.price_per_day)}</td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => toggleStatus(bike)}
-                                                        className={`p-1.5 rounded-md transition-colors ${darkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-500 hover:text-slate-900"}`}
+                                                        className={`p-1.5 rounded transition-colors ${darkMode ? "text-slate-400 hover:text-[#3BAA82] hover:bg-slate-800" : "text-slate-400 hover:text-[#1A7D5A] hover:bg-slate-100"}`}
                                                         title={bike.status === "maintenance" ? "Wartung beenden" : "In Wartung setzen"}
                                                     >
                                                         <RefreshCw className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => { setEditBike(bike); setShowModal(true); }}
-                                                        className={`p-1.5 rounded-md transition-colors ${darkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-500 hover:text-slate-900"}`}
+                                                        className={`p-1.5 rounded transition-colors ${darkMode ? "text-slate-400 hover:text-[#3BAA82] hover:bg-slate-800" : "text-slate-400 hover:text-[#1A7D5A] hover:bg-slate-100"}`}
                                                     >
                                                         <MoreHorizontal className="w-4 h-4" />
                                                     </button>
@@ -247,73 +397,11 @@ export default function FleetPage() {
                             </tbody>
                         </table>
                         {filtered.length === 0 && (
-                            <div className="p-12 text-center text-slate-500">
+                            <div className={`p-12 text-center ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                                 Keine Räder gefunden.
                             </div>
                         )}
                     </div>
-                </div>
-            ) : (
-                // GRID VIEW (Legacy)
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filtered.map((bike) => {
-                        const globalIdx = bikes.bikes.findIndex(b => b.id === bike.id);
-                        const isOut = bookings.bookings.some(b => b.bike_id === bike.id && b.status === "picked_up");
-
-                        return (
-                            <div key={bike.id} className={`rounded-2xl border overflow-hidden ${cardStyle}`}>
-                                <div className={`h-2 ${BIKE_COLORS[globalIdx % BIKE_COLORS.length]}`} />
-                                <div className="p-4">
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-xl ${BIKE_COLORS[globalIdx % BIKE_COLORS.length]} flex items-center justify-center text-white font-bold`}>
-                                                {globalIdx + 1}
-                                            </div>
-                                            <div>
-                                                <h3 className="font-semibold">{bike.name}</h3>
-                                                <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{bike.category}</p>
-                                            </div>
-                                        </div>
-                                        <span className={`text-xs px-2 py-1 rounded-full ${isOut ? "bg-blue-100 text-blue-700" :
-                                            bike.status === "maintenance" ? "bg-amber-100 text-amber-700" :
-                                                "bg-emerald-100 text-emerald-700"
-                                            }`}>
-                                            {isOut ? "Unterwegs" : bike.status === "maintenance" ? "Wartung" : "Verfügbar"}
-                                        </span>
-                                    </div>
-
-                                    <div className={`space-y-2 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
-                                        <div className="flex justify-between">
-                                            <span>Größe</span>
-                                            <span className="font-medium">{bike.size}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Preis/Tag</span>
-                                            <span className="font-medium text-orange-500">{fmtCurrency(bike.price_per_day)}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className={`flex gap-2 mt-4 pt-4 border-t ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
-                                        <button
-                                            onClick={() => { setEditBike(bike); setShowModal(true); }}
-                                            className={`flex-1 py-2 rounded-lg text-sm ${darkMode ? "bg-slate-800 hover:bg-slate-700" : "bg-slate-100 hover:bg-slate-200"}`}
-                                        >
-                                            Bearbeiten
-                                        </button>
-                                        <button
-                                            onClick={() => toggleStatus(bike)}
-                                            className={`px-3 py-2 rounded-lg text-sm ${bike.status === "maintenance"
-                                                ? "bg-emerald-100 text-emerald-700"
-                                                : "bg-amber-100 text-amber-700"
-                                                }`}
-                                        >
-                                            {bike.status === "maintenance" ? <Check className="w-4 h-4" /> : <RefreshCw className="w-4 h-4" />}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
                 </div>
             )}
 
@@ -330,4 +418,3 @@ export default function FleetPage() {
         </div>
     );
 }
-

@@ -47,7 +47,7 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                         </button>
                         <button
                             onClick={handleDownload}
-                            className="px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 flex items-center gap-2 transition-colors"
+                            className="px-3 py-2 bg-[#1A7D5A] text-white rounded-lg text-sm font-medium hover:bg-[#1A7D5A] flex items-center gap-2 transition-colors"
                         >
                             <Download className="w-4 h-4" />
                             <span className="hidden sm:inline">PDF herunterladen</span>

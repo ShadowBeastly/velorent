@@ -86,7 +86,7 @@ export default function HotelStatsPage() {
         <div className="text-center max-w-md">
           <Building2 className={`w-16 h-16 mx-auto mb-4 ${darkMode ? "text-slate-600" : "text-slate-300"}`} />
           <h1 className="text-xl font-bold mb-2">Kein Hotel zugeordnet</h1>
-          <p className={darkMode ? "text-slate-400" : "text-slate-500"}>Ihr Account ist noch keinem Hotel zugeordnet. Bitte kontaktieren Sie den Support unter <span className="text-indigo-400">info@rentcore.app</span>.</p>
+          <p className={darkMode ? "text-slate-400" : "text-slate-500"}>Ihr Account ist noch keinem Hotel zugeordnet. Bitte kontaktieren Sie den Support unter <span className="text-[#3BAA82]">info@rentcore.app</span>.</p>
         </div>
       </div>
     );
@@ -98,7 +98,7 @@ export default function HotelStatsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Building2 className={`w-7 h-7 ${darkMode ? "text-indigo-400" : "text-indigo-600"}`} />
+            <Building2 className={`w-7 h-7 ${darkMode ? "text-[#3BAA82]" : "text-[#1A7D5A]"}`} />
             <div>
               <h1 className="text-2xl font-bold">Hotel Dashboard</h1>
               {hotel && <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{hotel.name}</p>}
@@ -107,7 +107,7 @@ export default function HotelStatsPage() {
           {/* Period selector */}
           <div className="flex gap-1">
             {PERIODS.map((p, i) => (
-              <button key={i} onClick={() => setPeriod(i)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${period === i ? "bg-indigo-600 text-white" : darkMode ? "text-slate-400 hover:text-white hover:bg-slate-700" : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"}`}>
+              <button key={i} onClick={() => setPeriod(i)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${period === i ? "bg-[#1A7D5A] text-white" : darkMode ? "text-slate-400 hover:text-white hover:bg-slate-700" : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"}`}>
                 {p.label}
               </button>
             ))}
@@ -130,8 +130,8 @@ export default function HotelStatsPage() {
               ].map(({ icon: Icon, label, value, sub }) => (
                 <div key={label} className={`rounded-xl border p-5 ${card}`}>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${darkMode ? "bg-indigo-900/40" : "bg-indigo-50"}`}>
-                      <Icon className="w-5 h-5 text-indigo-500" />
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${darkMode ? "bg-[#1A7D5A]/20" : "bg-[#D4EDE2]"}`}>
+                      <Icon className="w-5 h-5 text-[#1A7D5A]" />
                     </div>
                     <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{label}</span>
                   </div>
@@ -166,7 +166,7 @@ export default function HotelStatsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h2 className="font-semibold mb-1">Ihr Buchungslink</h2>
-                    <p className={`text-sm font-mono truncate mb-2 ${darkMode ? "text-indigo-400" : "text-indigo-600"}`}>
+                    <p className={`text-sm font-mono truncate mb-2 ${darkMode ? "text-[#3BAA82]" : "text-[#1A7D5A]"}`}>
                       {typeof window !== "undefined" ? window.location.origin : "https://rentcore.app"}/hotel/{hotel.slug}
                     </p>
                     <p className={`text-xs mb-3 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>

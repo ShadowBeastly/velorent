@@ -37,7 +37,7 @@ export default function CookieBanner() {
                 <div className="shrink-0">
                     <button
                         onClick={dismiss}
-                        className="px-5 py-2 text-sm rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors"
+                        className="px-5 py-2 text-sm rounded-lg bg-[#1A7D5A] hover:bg-[#1A7D5A] text-white font-medium transition-colors"
                     >
                         Verstanden
                     </button>

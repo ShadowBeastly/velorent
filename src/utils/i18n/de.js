@@ -12,10 +12,12 @@ export default {
     "nav.addons": "Zubehör",
     "nav.maintenance": "Wartung",
     "nav.vouchers": "Gutscheine",
+    "nav.advanced": "Erweitert",
     "nav.marketplace": "Marktplatz",
     "nav.hotelStats": "Hotel Dashboard",
     "nav.adminHotels": "Hotels (Admin)",
     "nav.adminProviders": "Anbieter (Admin)",
+    "nav.adminRegions": "Regionen (Admin)",
     "nav.adminAnalytics": "Analytics (Admin)",
 
     // Common

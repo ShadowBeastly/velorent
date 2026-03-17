@@ -75,6 +75,10 @@ export default function MarketplacePage() {
       });
       const json = await res.json();
       if (json.error || !json.url) throw new Error(json.error || "Fehler beim Stripe-Onboarding");
+      const TRUSTED_PREFIXES = ["https://checkout.stripe.com/", "https://connect.stripe.com/"];
+      if (!TRUSTED_PREFIXES.some(prefix => json.url.startsWith(prefix))) {
+        throw new Error("Ungültige Stripe-URL");
+      }
       window.location.href = json.url;
     } catch (err) {
       setStripeError(err.message);
@@ -133,12 +137,13 @@ export default function MarketplacePage() {
   if (loading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${darkMode ? "bg-slate-900" : "bg-slate-50"}`}>
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[#1A7D5A] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
+    <>
     <div className={`min-h-screen p-6 ${darkMode ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-900"}`}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
@@ -341,7 +346,7 @@ export default function MarketplacePage() {
                 { value: "partial",  label: "Teilstorno (<24h)",           desc: "50 % Rückerstattung, Provision auf Restbetrag" },
                 { value: "no_show",  label: "No-Show",                    desc: "Kein Refund, volle Provision" },
               ].map(opt => (
-                <label key={opt.value} className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${cancelType === opt.value ? "border-indigo-500 bg-indigo-500/10" : darkMode ? "border-slate-700 hover:border-slate-600" : "border-slate-200 hover:border-slate-300"}`}>
+                <label key={opt.value} className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${cancelType === opt.value ? "border-[#1A7D5A] bg-[#1A7D5A]/10" : darkMode ? "border-slate-700 hover:border-slate-600" : "border-slate-200 hover:border-slate-300"}`}>
                   <input type="radio" name="cancelType" value={opt.value} checked={cancelType === opt.value} onChange={() => setCancelType(opt.value)} className="mt-0.5" />
                   <div>
                     <p className="font-medium text-sm">{opt.label}</p>
@@ -413,7 +418,7 @@ export default function MarketplacePage() {
             </div>
           </div>
           <div className={`px-6 py-4 border-t flex items-center justify-between gap-4 ${darkMode ? "border-slate-700" : "border-slate-200"}`}>
-            <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Mit dem Klick auf "AGB akzeptieren" bestätigen Sie, diese Bedingungen gelesen und akzeptiert zu haben.</p>
+            <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Mit dem Klick auf &quot;AGB akzeptieren&quot; bestätigen Sie, diese Bedingungen gelesen und akzeptiert zu haben.</p>
             <button
               onClick={acceptAgb}
               disabled={agbAccepting}
@@ -425,5 +430,6 @@ export default function MarketplacePage() {
         </div>
       </div>
     )}
+  </>
   );
 }

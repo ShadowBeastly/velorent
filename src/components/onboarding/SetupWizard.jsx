@@ -126,7 +126,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#1A7D5A] to-[#3BAA82] flex items-center justify-center shadow-lg shadow-[#1A7D5A]/30">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Willkommen bei Lociva!</h1>
@@ -139,13 +139,13 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${step >= s
-                    ? "bg-gradient-to-br from-orange-500 to-amber-500 text-white"
+                    ? "bg-gradient-to-br from-[#1A7D5A] to-[#3BAA82] text-white"
                     : "bg-slate-800 text-slate-500"
                   }`}>
                   {step > s ? <Check className="w-5 h-5" /> : s}
                 </div>
                 {s < 3 && (
-                  <div className={`w-24 h-1 mx-2 rounded-full transition-all ${step > s ? "bg-gradient-to-r from-orange-500 to-amber-500" : "bg-slate-800"
+                  <div className={`w-24 h-1 mx-2 rounded-full transition-all ${step > s ? "bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82]" : "bg-slate-800"
                     }`} />
                 )}
               </div>
@@ -165,8 +165,8 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
           {step === 1 && (
             <div className="p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                  <Building className="w-6 h-6 text-orange-400" />
+                <div className="w-12 h-12 bg-[#1A7D5A]/20 rounded-xl flex items-center justify-center">
+                  <Building className="w-6 h-6 text-[#3BAA82]" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-white">Ihr Unternehmen</h2>
@@ -191,7 +191,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
                         .replace(/^-|-$/g, "")
                       );
                     }}
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 outline-none"
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-[#1A7D5A] outline-none"
                     placeholder="z.B. Hotel Alpenblick Fahrradverleih"
                   />
                 </div>
@@ -206,7 +206,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
                       type="text"
                       value={orgSlug}
                       onChange={(e) => setOrgSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                      className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 outline-none"
+                      className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-[#1A7D5A] outline-none"
                       placeholder="hotel-alpenblick"
                     />
                   </div>
@@ -219,8 +219,8 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
           {step === 2 && (
             <div className="p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                  <Bike className="w-6 h-6 text-orange-400" />
+                <div className="w-12 h-12 bg-[#1A7D5A]/20 rounded-xl flex items-center justify-center">
+                  <Bike className="w-6 h-6 text-[#3BAA82]" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-white">Ihre Fahrräder</h2>
@@ -236,14 +236,14 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
                         type="text"
                         value={bike.name}
                         onChange={(e) => updateBike(index, "name", e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-orange-500 outline-none"
+                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-[#1A7D5A] outline-none"
                         placeholder="z.B. City E-Bike"
                       />
                     </div>
                     <select
                       value={bike.category}
                       onChange={(e) => updateBike(index, "category", e.target.value)}
-                      className="px-3 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:border-orange-500 outline-none"
+                      className="px-3 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:border-[#1A7D5A] outline-none"
                     >
                       <option>E-Bike</option>
                       <option>E-MTB</option>
@@ -274,7 +274,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
                 {bikes.length < 5 && (
                   <button
                     onClick={addBike}
-                    className="flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm"
+                    className="flex items-center gap-2 text-[#3BAA82] hover:text-[#3BAA82] text-sm"
                   >
                     <Plus className="w-4 h-4" />
                     Weiteres Rad hinzufügen
@@ -292,8 +292,8 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
           {step === 3 && (
             <div className="p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-orange-400" />
+                <div className="w-12 h-12 bg-[#1A7D5A]/20 rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-[#3BAA82]" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-white">Fast geschafft!</h2>
@@ -307,11 +307,11 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
                     type="checkbox"
                     checked={settings.enableWidget}
                     onChange={(e) => setSettings({ ...settings, enableWidget: e.target.checked })}
-                    className="w-5 h-5 rounded accent-orange-500"
+                    className="w-5 h-5 rounded accent-[#1A7D5A]"
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 text-white font-medium">
-                      <Globe className="w-4 h-4 text-orange-400" />
+                      <Globe className="w-4 h-4 text-[#3BAA82]" />
                       Online-Buchungswidget aktivieren
                     </div>
                     <p className="text-sm text-slate-500 mt-1">
@@ -325,11 +325,11 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
                     type="checkbox"
                     checked={settings.enableEmails}
                     onChange={(e) => setSettings({ ...settings, enableEmails: e.target.checked })}
-                    className="w-5 h-5 rounded accent-orange-500"
+                    className="w-5 h-5 rounded accent-[#1A7D5A]"
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 text-white font-medium">
-                      <Calendar className="w-4 h-4 text-orange-400" />
+                      <Calendar className="w-4 h-4 text-[#3BAA82]" />
                       E-Mail-Benachrichtigungen
                     </div>
                     <p className="text-sm text-slate-500 mt-1">
@@ -376,7 +376,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
               <button
                 onClick={() => setStep(step + 1)}
                 disabled={step === 1 && (!orgName || !orgSlug)}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white font-semibold rounded-xl shadow-lg shadow-[#1A7D5A]/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Weiter
                 <ChevronRight className="w-4 h-4" />
@@ -385,7 +385,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
               <button
                 onClick={handleCreateOrg}
                 disabled={loading || !orgName || !orgSlug}
-                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/25 disabled:opacity-50"
+                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white font-semibold rounded-xl shadow-lg shadow-[#1A7D5A]/25 disabled:opacity-50"
               >
                 {loading ? (
                   <>
