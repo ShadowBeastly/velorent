@@ -250,11 +250,39 @@ export default function HotelLandingPage({ slug }) {
     try { await supabase.rpc("track_analytics_event", { p_hotel_id: hotelData.hotel.id, p_event_type: eventType, p_session_id: sessionId, p_metadata: metadata }); } catch { /* silently fail */ }
   }, [hotelData, sessionId]);
 
+  const stripeSessionRef = useRef(null);
+
+  // On mount: capture session_id from URL before it gets cleared
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const sid = params.get("session_id");
-    if (sid) { setConfirmedBooking({ booking_number: null, total_price: null, deposit_amount: null }); setStep(4); window.history.replaceState({}, "", window.location.pathname); if (hotelData?.hotel?.id) trackEvent("booking_complete", { stripe_session_id: sid }); }
+    if (sid) {
+      stripeSessionRef.current = sid;
+      // Restore booking context from sessionStorage (saved before Stripe redirect)
+      try {
+        const saved = sessionStorage.getItem("lociva_booking_context");
+        if (saved) {
+          const ctx = JSON.parse(saved);
+          setConfirmedBooking({ booking_number: null, total_price: ctx.total_price ?? null, deposit_amount: ctx.deposit_amount ?? null });
+          if (ctx.selectedProvider) setSelectedProvider(ctx.selectedProvider);
+          if (ctx.selectedBike) setSelectedBike(ctx.selectedBike);
+          sessionStorage.removeItem("lociva_booking_context");
+        } else {
+          setConfirmedBooking({ booking_number: null, total_price: null, deposit_amount: null });
+        }
+      } catch { setConfirmedBooking({ booking_number: null, total_price: null, deposit_amount: null }); }
+      setStep(4);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
     if (params.get("cancelled")) window.history.replaceState({}, "", window.location.pathname);
+  }, []);
+
+  // Fire booking_complete analytics once hotelData is available
+  useEffect(() => {
+    if (stripeSessionRef.current && hotelData?.hotel?.id) {
+      trackEvent("booking_complete", { stripe_session_id: stripeSessionRef.current });
+      stripeSessionRef.current = null;
+    }
   }, [hotelData, trackEvent]);
 
   useEffect(() => {
@@ -308,13 +336,15 @@ export default function HotelLandingPage({ slug }) {
       if (json.error || !json.url) { setSubmitError(json.error || t.errorOccurred); setSubmitting(false); return; }
       const TRUSTED = ["https://checkout.stripe.com/", "https://connect.stripe.com/"];
       if (!TRUSTED.some(p => json.url.startsWith(p))) { setSubmitError(t.errorOccurred); setSubmitting(false); return; }
+      // Save booking context so Step 4 can restore it after Stripe redirect
+      try { sessionStorage.setItem("lociva_booking_context", JSON.stringify({ selectedProvider, selectedBike, total_price: totalPrice, deposit_amount: selectedBike?.deposit ?? 0 })); } catch { /* ignore */ }
       window.location.href = json.url;
     } catch { setSubmitError(t.errorOccurred); setSubmitting(false); }
   }
 
   function handleReset() {
-    setStep(1); setSelectedBike(null); setSelectedProvider(null); setStartDate(""); setEndDate("");
-    setRentalType("daily"); setBookingDate(""); setStartTime("09:00"); setEndTime("13:00");
+    setStep(1); setSelectedBike(null); setSelectedProvider(null); setStartDate(todayISO()); setEndDate(todayISO());
+    setRentalType("daily"); setBookingDate(todayISO()); setStartTime(nextHalfHour()); setEndTime(nextHalfHour(2));
     setGuestName(""); setGuestEmail(""); setGuestPhone(""); setAgbAccepted(false);
     setConfirmedBooking(null); setSubmitError(""); setActiveCategory(null);
   }

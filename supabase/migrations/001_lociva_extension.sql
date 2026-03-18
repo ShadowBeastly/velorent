@@ -335,6 +335,7 @@ BEGIN
         'name',          b.name,
         'category',      b.category,
         'price_per_day', b.price_per_day,
+        'price_per_hour', b.price_per_hour,
         'deposit',       b.deposit,
         'image_url',     b.image_url,
         'status',        b.status,
