@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RentCore Widget — Local Test</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f0f4f8;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
+      font-family: sans-serif;
+    }
+
+    .demo-wrapper {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .demo-header {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .demo-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1A7D5A;
+      margin-bottom: 6px;
+    }
+
+    .demo-header p {
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .demo-note {
+      margin-top: 24px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .demo-note strong { color: #111827; }
+    .demo-note code {
+      background: #f3f4f6;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-wrapper">
+    <div class="demo-header">
+      <h1>RentCore Booking Widget</h1>
+      <p>Local development test — run <code>npm run build</code> in <code>widget/</code> first.</p>
+    </div>
+
+    <!--
+      Replace YOUR_ORG_ID with a real organization UUID from your Supabase DB.
+      data-api-base points to the Next.js dev server (or production URL).
+    -->
+    <div
+      data-rentcore-tenant="YOUR_ORG_ID"
+      data-theme="light"
+      data-lang="de"
+      data-primary-color="#1A7D5A"
+      data-api-base="http://localhost:3000"
+    ></div>
+
+    <div class="demo-note">
+      <strong>Test-Anleitung:</strong><br />
+      1. <code>cd widget && npm install && npm run build</code><br />
+      2. <code>dist/embed.js</code> wird erzeugt.<br />
+      3. Ersetze <code>YOUR_ORG_ID</code> mit einer echten Org-UUID aus Supabase.<br />
+      4. Starte den Next.js Dev-Server: <code>npm run dev</code> im Root.<br />
+      5. Öffne diese Datei: <code>open widget/test.html</code> oder serviere lokal.<br />
+      6. Stelle sicher, dass <code>widget_enabled = true</code> für die Org in Supabase gesetzt ist.<br />
+      7. CORS: Für lokale Tests bleibe <code>widget_allowed_domains</code> leer (allow-all).
+    </div>
+  </div>
+
+  <!-- Load the built widget bundle -->
+  <script src="./dist/embed.js"></script>
+</body>
+</html>

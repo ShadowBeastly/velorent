@@ -6,7 +6,7 @@ import RentCoreLandingPage from "../src/views/RentCoreLandingPage";
 
 function getHomeRoute(role) {
     if (role === "superadmin") return "/app/admin";
-    if (role === "hotel") return "/app/hotel-stats";
+    if (role === "hotel") return "/app/lociva";
     return "/app";
 }
 
