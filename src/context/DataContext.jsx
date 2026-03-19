@@ -8,8 +8,11 @@ import { useInvoices } from "../hooks/useInvoices";
 import { useBikeCategories } from "../hooks/useBikeCategories";
 import { useAddOns } from "../hooks/useAddOns";
 import { useMaintenanceBlocks } from "../hooks/useMaintenanceBlocks";
+import { useMaintenance } from "../hooks/useMaintenance";
 import { useVouchers } from "../hooks/useVouchers";
+import { useCoupons } from "../hooks/useCoupons";
 import { usePricingRules } from "../hooks/usePricingRules";
+import { useDeposits } from "../hooks/useDeposits";
 import { fmtISO, fmtCurrency } from "../utils/formatters";
 import { calculateLateFee } from "../utils/calculateLateFee";
 
@@ -26,8 +29,11 @@ export function DataProvider({ children }) {
     const bikeCategories = useBikeCategories(orgId);
     const addOns = useAddOns(orgId);
     const maintenanceBlocks = useMaintenanceBlocks(orgId);
+    const maintenanceDue = useMaintenance(orgId);
     const vouchers = useVouchers(orgId);
+    const coupons = useCoupons(orgId);
     const pricingRules = usePricingRules(orgId);
+    const deposits = useDeposits(orgId);
 
     const todayStr = fmtISO(new Date());
     const notifications = useMemo(() => {
@@ -48,8 +54,14 @@ export function DataProvider({ children }) {
                 n.push({ type: "info", msg: `Heute Abholung: ${customerName}`, id: b.id });
             }
         });
+        // Maintenance overdue notifications
+        maintenanceDue.dueMaintenances
+            .filter(m => m.is_overdue)
+            .forEach(m => {
+                n.push({ type: "warning", msg: `Wartung fällig: ${m.bike_name} (${m.type})`, id: `maint-${m.id}` });
+            });
         return n;
-    }, [bookings.bookings, todayStr, org.currentOrg]);
+    }, [bookings.bookings, todayStr, org.currentOrg, maintenanceDue.dueMaintenances]);
 
     return (
         <DataContext.Provider value={{
@@ -60,8 +72,11 @@ export function DataProvider({ children }) {
             bikeCategories,
             addOns,
             maintenanceBlocks,
+            maintenanceDue,
             vouchers,
+            coupons,
             pricingRules,
+            deposits,
             notifications
         }}>
             {children}

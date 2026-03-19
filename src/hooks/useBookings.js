@@ -113,10 +113,12 @@ export function useBookings(orgId) {
 
             setBookings(prev => [data, ...prev]);
 
-            // Trigger Email asynchronously
-            if (data.customer?.email) {
-                sendConfirmationEmail(data).catch(err => console.error("Email failed:", err));
-            }
+            // Trigger Resend confirmation email + QR code generation (fire-and-forget)
+            fetch("/api/emails/send-confirmation", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ booking_id: data.id }),
+            }).catch(err => console.error("Confirmation email trigger failed:", err));
         } else {
             console.error("Booking creation failed:", error);
         }
@@ -151,16 +153,8 @@ export function useBookings(orgId) {
         status: bookingData.status,
     });
 
-    const sendConfirmationEmail = async (bookingData) => {
-        const org = await fetchOrg();
-        await supabase.functions.invoke('send-email', {
-            body: {
-                type: "booking_confirmation",
-                to: bookingData.customer.email,
-                data: buildEmailData(bookingData, org),
-            }
-        });
-    };
+    // Confirmation is now sent via /api/emails/send-confirmation (Resend + QR code)
+    // The Brevo edge function is retained for pickup and return emails below.
 
     const sendPickupConfirmationEmail = async (bookingData) => {
         const org = await fetchOrg();
@@ -217,6 +211,12 @@ export function useBookings(orgId) {
             }
             if (updates.status === "returned" && data.customer?.email) {
                 sendReturnConfirmation(data).catch(err => console.error("Return email failed:", err));
+                // Also send Resend receipt
+                fetch("/api/emails/send-receipt", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ booking_id: id }),
+                }).catch(err => console.error("Receipt email trigger failed:", err));
             }
         } else {
             console.error("Booking update failed:", error);

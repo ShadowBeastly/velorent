@@ -33,7 +33,15 @@ export function useBikes(orgId) {
             .insert({ ...bike, organization_id: orgId })
             .select()
             .single();
-        if (!error) setBikes(prev => [...prev, data]);
+        if (!error) {
+            setBikes(prev => [...prev, data]);
+            // Auto-create bike_health record
+            await supabase
+                .from("bike_health")
+                .insert({ bike_id: data.id })
+                .select()
+                .maybeSingle();
+        }
         return { data, error };
     };
 

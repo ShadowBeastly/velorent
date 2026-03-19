@@ -1,4 +1,16 @@
 /**
+ * @deprecated Use `calculatePriceSync` from `./pricingEngine.js` instead.
+ *
+ * This file is kept for backwards compatibility. The new engine (pricingEngine.js)
+ * supports all existing rule types plus: group/quantity rules, cumulative multi-rule
+ * stacking, and richer per-rule adjustment breakdowns.
+ *
+ * Migration: replace `calculateDynamicPrice(bike, start, end, rules)` with
+ * `calculatePriceSync(bike, start, end, 1, rules)` — the new function returns a
+ * superset of the old shape ({ totalPrice, baseTotal, dailyBreakdown } is preserved).
+ */
+
+/**
  * Dynamic / seasonal pricing calculation.
  *
  * Schema assumptions for pricing_rules rows:

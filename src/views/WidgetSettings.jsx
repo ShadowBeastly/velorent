@@ -2,12 +2,92 @@
 import { useState, useEffect } from "react";
 import {
   Globe, Copy, Check, Eye, EyeOff, RefreshCw,
-  Palette, Settings, Code, Link, AlertCircle, CheckCircle, Loader2
+  Palette, Settings, Code, Link, AlertCircle, CheckCircle, Loader2,
+  Package, Shield
 } from "lucide-react";
 
 // ============ WIDGET SETTINGS COMPONENT ============
-// Diese Komponente in die Settings-Page integrieren
 export default function WidgetSettings({ supabase, orgId, darkMode }) {
+  // ── M13: Embeddable widget config (from organizations table) ──────────────
+  const [m13, setM13] = useState({
+    widget_enabled: false,
+    widget_allowed_domains: [],
+    widget_primary_color: "#1A7D5A",
+    widget_theme: "light",
+  });
+  const [m13Loading, setM13Loading] = useState(true);
+  const [m13Saving, setM13Saving] = useState(false);
+  const [m13Saved, setM13Saved] = useState(null); // null | 'ok' | 'err'
+  const [m13Copied, setM13Copied] = useState(false);
+  const [domainsText, setDomainsText] = useState(""); // textarea string
+
+  useEffect(() => {
+    let mounted = true;
+    if (!orgId) { setM13Loading(false); return; }
+
+    supabase
+      .from("organizations")
+      .select("widget_enabled, widget_allowed_domains, widget_primary_color, widget_theme")
+      .eq("id", orgId)
+      .single()
+      .then(({ data }) => {
+        if (!mounted) return;
+        if (data) {
+          setM13({
+            widget_enabled:         data.widget_enabled         ?? false,
+            widget_allowed_domains: data.widget_allowed_domains ?? [],
+            widget_primary_color:   data.widget_primary_color   ?? "#1A7D5A",
+            widget_theme:           data.widget_theme            ?? "light",
+          });
+          setDomainsText((data.widget_allowed_domains ?? []).join("\n"));
+        }
+        setM13Loading(false);
+      });
+
+    return () => { mounted = false; };
+  }, [orgId, supabase]);
+
+  const saveM13 = async () => {
+    setM13Saving(true);
+    setM13Saved(null);
+
+    const domains = domainsText
+      .split(/[\n,]+/)
+      .map((d) => d.trim().toLowerCase())
+      .filter(Boolean);
+
+    const { error } = await supabase
+      .from("organizations")
+      .update({
+        widget_enabled:         m13.widget_enabled,
+        widget_allowed_domains: domains,
+        widget_primary_color:   m13.widget_primary_color,
+        widget_theme:           m13.widget_theme,
+      })
+      .eq("id", orgId);
+
+    setM13Saving(false);
+    setM13Saved(error ? "err" : "ok");
+    if (!error) {
+      setM13((prev) => ({ ...prev, widget_allowed_domains: domains }));
+      setTimeout(() => setM13Saved(null), 3000);
+    }
+  };
+
+  const m13EmbedCode = `<div data-rentcore-tenant="${orgId || "YOUR_ORG_ID"}"
+     data-theme="${m13.widget_theme}"
+     data-lang="de"
+     data-primary-color="${m13.widget_primary_color}">
+</div>
+<script src="https://rentcore.de/widget/embed.js" async></script>`;
+
+  const copyM13 = () => {
+    navigator.clipboard.writeText(m13EmbedCode);
+    setM13Copied(true);
+    setTimeout(() => setM13Copied(false), 2000);
+  };
+
+  // ── Legacy public_booking_settings ───────────────────────────────────────
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -151,6 +231,148 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
 
   return (
     <div className="space-y-6">
+
+      {/* ── M13: Embeddable Widget (data-rentcore-tenant) ───────────────── */}
+      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+              <Package className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Einbettbares Buchungs-Widget</h3>
+              <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                Ein &lt;script&gt;-Tag, einbettbar auf jeder Website
+              </p>
+            </div>
+          </div>
+          {/* Toggle */}
+          {!m13Loading && (
+            <button
+              onClick={() => setM13((p) => ({ ...p, widget_enabled: !p.widget_enabled }))}
+              className={`relative w-14 h-7 rounded-full transition-colors ${
+                m13.widget_enabled ? "bg-emerald-500" : darkMode ? "bg-slate-700" : "bg-slate-300"
+              }`}
+            >
+              <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                m13.widget_enabled ? "translate-x-7" : ""
+              }`} />
+            </button>
+          )}
+        </div>
+
+        {m13Loading ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="w-5 h-5 animate-spin text-[#1A7D5A]" />
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {/* Allowed Domains */}
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Shield className="w-4 h-4 text-[#1A7D5A]" />
+                <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+                  Erlaubte Domains (CORS)
+                </label>
+              </div>
+              <p className={`text-xs mb-2 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                Eine Domain pro Zeile (z.B. https://meinhotel.de). Leer = alle erlaubt (nur für Entwicklung).
+              </p>
+              <textarea
+                className={`${inputStyle} h-24 resize-y font-mono text-sm`}
+                value={domainsText}
+                onChange={(e) => setDomainsText(e.target.value)}
+                placeholder={"https://meinhotel.de\nhttps://www.meinhotel.de"}
+              />
+            </div>
+
+            {/* Color + Theme */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+                  Primärfarbe
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={m13.widget_primary_color}
+                    onChange={(e) => setM13((p) => ({ ...p, widget_primary_color: e.target.value }))}
+                    className="w-12 h-10 rounded-lg border-0 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={m13.widget_primary_color}
+                    onChange={(e) => setM13((p) => ({ ...p, widget_primary_color: e.target.value }))}
+                    className={`${inputStyle} flex-1 font-mono`}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+                  Widget-Theme
+                </label>
+                <select
+                  value={m13.widget_theme}
+                  onChange={(e) => setM13((p) => ({ ...p, widget_theme: e.target.value }))}
+                  className={inputStyle}
+                >
+                  <option value="light">Hell (light)</option>
+                  <option value="dark">Dunkel (dark)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Live preview button color */}
+            <div
+              className="h-10 flex items-center justify-center text-white text-sm font-semibold rounded-lg"
+              style={{ background: m13.widget_primary_color }}
+            >
+              Jetzt buchen — Vorschau
+            </div>
+
+            {/* Embed code */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Code className="w-4 h-4 text-[#1A7D5A]" />
+                <span className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+                  Einbettungscode
+                </span>
+              </div>
+              <div className={`relative rounded-xl overflow-hidden ${darkMode ? "bg-slate-950" : "bg-slate-100"}`}>
+                <pre className={`p-4 text-xs overflow-x-auto leading-relaxed ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+                  <code>{m13EmbedCode}</code>
+                </pre>
+                <button
+                  onClick={copyM13}
+                  className="absolute top-2 right-2 p-2 rounded-lg bg-[#1A7D5A] text-white hover:bg-[#15694b] transition-colors"
+                  title="Code kopieren"
+                >
+                  {m13Copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className={`text-xs mt-2 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                💡 Ersetzen Sie <code>YOUR_ORG_ID</code> mit Ihrer echten Organisations-ID.
+              </p>
+            </div>
+
+            {/* Save */}
+            <div className="flex items-center gap-3 justify-end pt-2">
+              {m13Saved === "ok"  && <span className="text-emerald-500 text-sm flex items-center gap-1"><CheckCircle className="w-4 h-4" />Gespeichert</span>}
+              {m13Saved === "err" && <span className="text-rose-500 text-sm flex items-center gap-1"><AlertCircle className="w-4 h-4" />Fehler</span>}
+              <button
+                onClick={saveM13}
+                disabled={m13Saving}
+                className="px-5 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-md shadow-[#1A7D5A]/20"
+              >
+                {m13Saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                Speichern
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Legacy: Public Booking Settings (public_booking_settings) ─────── */}
       {/* Widget Status */}
       <div className={`rounded-2xl border p-6 ${cardStyle}`}>
         <div className="flex items-center justify-between mb-6">

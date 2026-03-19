@@ -368,3 +368,80 @@ npm test          # Runs formatters, calculatePrice, exportCSV tests (node --tes
 - Scouts get exclusive region + playbook + platform access
 - Revenue share: 20-30% of Lociva's commission
 - Playbook: `docs/Lociva-Scout-Playbook.docx`
+
+---
+
+## RentCore Feature Expansion (Build Agent Instructions)
+
+> This section defines the RentCore feature roadmap derived from competitive analysis against Booqable, Rentware, bike.rent Manager, and Twice Commerce. These features are built into the existing monorepo, extending the provider dashboard (`/app/*`).
+
+### Build Rules (additions to existing architecture rules)
+
+- All new tables get `organization_id` column + RLS policies matching existing patterns.
+- New features extend existing hooks pattern (`useDeposits.js`, `useMaintenance.js`, etc.).
+- New API routes go under `app/api/` following existing patterns (not under `app/app/api/`).
+- Stripe integration extends the existing Stripe Connect setup (same platform account, same connected accounts).
+- Email: migrate from Brevo to Resend (`npm install resend @react-email/components`) for new templates. Existing Brevo Edge Functions stay until full migration.
+- New dependencies allowed: `signature_pad`, `resend`, `@react-email/components`, `qrcode`.
+- `calculatePrice.js` gets replaced by the new Pricing Engine. Migrate existing logic, don't keep both.
+- All new UI goes into `src/views/` (page components) and `src/components/` (shared components), matching existing patterns.
+- German UI labels first, wrap in `t()` for i18n.
+
+### Existing RentCore Features (already built)
+
+PDF contract generation, conflict detection (double-booking prevention), CSV/JSON export/import, discount logic (from day 7 at 25€/day), basic handover protocol (text-based, no photos), fleet management (bikes CRUD + status), booking management (create, edit, cancel), categories, addons, pricing rules (basic), vouchers (basic), maintenance (basic), invoices, customer database, calendar view.
+
+### Build Sequence
+
+Work sequentially. Each milestone: schema change → migration → RPC/API → hook → UI → test.
+
+#### M1: Buffer time between rentals
+Add `buffer_minutes INTEGER DEFAULT 120` to bikes table. Extend conflict detection: booking end + buffer_minutes = earliest next start. E-Bikes default 180 min. Settings page: global default buffer (slider, 30 min steps, 0-360). Bike detail: individual override. Calendar view: show buffer as hatched block.
+
+#### M2: Pricing Engine (replaces calculatePrice.js)
+New tables: `pricing_rules` (name, type, adjustment_type, adjustment_value, priority, applies_to) + `pricing_rule_conditions` (date_range, weekdays, time_range, min_duration, min_quantity). New function: `calculatePrice(bikeId, startDate, endDate, quantity)` loads base price + all active rules sorted by priority, applies matching rules cumulatively per day. Returns `{ basePricePerDay, adjustments: [{rule, amount}], totalPrice, savings }`. Migrate existing discount logic as a pricing_rule. Seed data: Hauptsaison +25% (Jun-Aug), Nebensaison -15% (Nov-Feb), Wochenende +15% (Sa/So), Wochenmiet -20% (7+ days), Gruppenrabatt -10% (5+ bikes). CRUD UI at Settings → Preisregeln. Checkout shows price breakdown.
+
+#### M3: Deposit management
+New table: `deposits` (booking_id, amount, status [pending/held/partially_charged/fully_charged/released], stripe_payment_intent_id, charged_amount, charge_reason). Add to bikes: `deposit_amount DECIMAL`, `deposit_type ENUM(fixed/percentage)`, `deposit_percentage DECIMAL`. Auto-calculate at booking. Return flow: "Release deposit" or "Charge deposit" with amount + reason. Stripe Pre-Auth (capture_method=manual) using existing Stripe Connect.
+
+#### M4: Digital signature
+`npm install signature_pad`. Client component `SignaturePad.tsx` (touch canvas, min 300x150px, outputs base64 PNG). Save to Supabase Storage. Embed in existing PDF contract (signature field bottom + timestamp + checkbox text). Add to bookings: `signature_url`, `signed_at`, `signed_contract_url`.
+
+#### M5: Email system with QR codes
+`npm install resend @react-email/components qrcode`. Add to bookings: `confirmation_code VARCHAR(8) UNIQUE`, `qr_code_url`, `email_sent_at`. New table: `email_log`. QR contains `https://[app-url]/checkin/{confirmation_code}`. 4 React Email templates: booking-confirmation (with QR + bike details + price + location), pickup-reminder (24h before), return-reminder (24h before), receipt (after return with deposit status). Vercel Cron: daily 10:00 send reminders. Route `/checkin/[code]` loads booking via QR scan, starts handover flow.
+
+#### M6: Coupon system
+New tables: `coupons` (code, type [percentage/fixed], value, min_order_value, min_duration_days, min_quantity, max_uses, used_count, valid_from, valid_until, applies_to, is_active) + `coupon_usages`. Validation: active + in date range + not exhausted + conditions met. One code per booking. Checkout: code input with live validation. Applied after pricing rules. Settings → Gutscheine: CRUD + batch generation ("Generate 10 codes at 15%").
+
+#### M7: Availability calendar (enhanced)
+Extend existing calendar view. Three modes: day (timeline 06-22h, bikes as rows, bookings as blocks), week (7 columns, bookings as bars), month (utilization % per day as color). Color codes: blue=confirmed+paid, yellow=reserved, green=currently rented, red=overdue, gray-hatched=buffer, orange=maintenance. Click empty slot → quick booking modal (bike + slot prefilled). Click block → booking detail sidebar. Filter by category, status.
+
+#### M8: Maintenance tracker (enhanced)
+New tables: `maintenance_schedules` (bike_id, type [routine/brake/tire/chain/battery/full_service], interval_days, interval_rentals, next_due_at, is_overdue GENERATED), `maintenance_logs` (bike_id, schedule_id, type, description, performed_by, cost, parts_used TEXT[], photos TEXT[]), `bike_health` (bike_id UNIQUE, total_rentals, total_rental_days, brake_status, tire_front_status, tire_rear_status, chain_status, battery_health_percent, last_full_service). Return checklist (mandatory before completing return): brakes, tires, chain, lights, frame, bell, saddle, accessories, battery %. After each return: update total_rentals + check intervals → set next_due_at. If overdue → bike not bookable. Dashboard widget: "Maintenance due" (overdue=red, soon=yellow). Bike detail: maintenance tab with service history + health status.
+
+#### M9: Kiosk mode
+Route `/kiosk` (or `/app/kiosk`). Fullscreen layout, no sidebar, large touch buttons (min 48px), font min 18px. Flow: welcome screen → bike selection (large cards with photos) → date picker → customer data form → summary → payment (Stripe or "pay at counter") → signature → QR confirmation. Auto-reset to welcome after 60s inactivity. Admin access: tap logo 3x → PIN entry. Add to organizations: `kiosk_enabled BOOLEAN`, `kiosk_pin VARCHAR(6)`.
+
+#### M10: Photo damage documentation (CORE DIFFERENTIATOR)
+New tables: `handover_protocols` (booking_id, type [pickup/return], performed_by, bike_condition_notes, checklist JSONB), `condition_photos` (protocol_id, photo_url, thumbnail_url, position [front/rear/left_side/right_side/top/detail], annotations JSONB [{x, y, radius, label, severity}]), `damage_reports` (booking_id, pickup_protocol_id, return_protocol_id, damages JSONB [{description, severity, photo_id, estimated_cost}], total_estimated_cost, deposit_charged, status [detected/customer_notified/resolved/disputed]).
+
+Components:
+- `CameraCapture.tsx`: device camera via MediaDevices API, auto-compress (max 1200px, JPEG 80%)
+- `PhotoAnnotator.tsx`: canvas overlay on photo, touch to mark damage (red circle + label)
+- `SideBySideCompare.tsx`: pickup photo left, return photo right (same position)
+- `ConditionChecklist.tsx`: touch-optimized checklist (frame, wheels, brakes, chain, gears, lights, bell, saddle, accessories, battery)
+- `HandoverFlow.tsx`: stepper (photos → checklist → signature → done)
+- `DamageReportGenerator.tsx`: PDF with before/after photos + annotations + costs
+
+Pickup flow: 6 photo positions → optional damage marking → checklist → signature → save.
+Return flow: load pickup photos as reference → side-by-side capture → mark new damages → checklist → auto-generate damage report → decide deposit (release/charge).
+Storage: `condition-photos/{org_id}/{booking_id}/{type}/{position}.jpg`.
+
+#### M11: Dashboard (enhanced)
+Single API call `GET /api/dashboard` (5min cache). Widgets: revenue 30 days (+month comparison), active rentals (+ overdue count), utilization rate %, today (pickups/returns), maintenance due, next 5 bookings with quick actions, revenue chart 12 months (Recharts), top 5 bikes by revenue.
+
+#### M12: Public REST API
+Routes under `app/api/v1/`. Endpoints: bikes (CRUD + availability), bookings (CRUD + cancel), customers (CRUD), pricing/calculate, availability overview. Auth: API key (Bearer token, SHA-256 hashed in DB). New table: `api_keys` (organization_id, key_hash, key_prefix, name, permissions TEXT[], last_used_at, expires_at, is_active). Rate limiting: 100 req/min per key. Cursor-based pagination. Outgoing webhooks: booking.created/cancelled/completed, payment.received, damage.reported (configurable URL per org). Settings → API: key CRUD + webhook config + test button.
+
+#### M13: Embeddable booking widget
+Separate Vite project under `/widget`. Output: single JS+CSS bundle (<100KB gzip). Embed via `<script src="https://widget.rentcore.app/embed.js">` + `<div data-tenant="ID" data-theme="light" data-lang="de" data-primary-color="#2B6CB0">`. Features: bike catalog grid, date picker, cart, coupon code field, Stripe checkout, confirmation. CSS isolation via Shadow DOM. Public API endpoints: `GET /api/public/[tenant]/bikes`, `GET /api/public/[tenant]/availability`, `POST /api/public/[tenant]/bookings`, `POST /api/public/[tenant]/checkout`. Add to organizations: `widget_enabled`, `widget_allowed_domains TEXT[]`, `widget_theme JSONB`. Settings → Widget: on/off, domain whitelist, color config, copy embed code.

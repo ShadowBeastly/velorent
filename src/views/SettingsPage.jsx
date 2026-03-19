@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Building, Loader2, Check, Key, Copy, CreditCard, Palette, Zap, Star, Rocket, ExternalLink, Clock, Languages, Trash2, AlertTriangle } from "lucide-react";
+import { Building, Loader2, Check, Key, Copy, CreditCard, Palette, Zap, Star, Rocket, ExternalLink, Clock, Languages, Trash2, AlertTriangle, Timer, Monitor } from "lucide-react";
 import { supabase } from "../utils/supabase";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
@@ -145,7 +145,10 @@ export default function SettingsPage() {
             iban: form.iban,
             bic: form.bic,
             logo_url: form.logo_url,
-            settings: form.settings,
+            settings: {
+                ...form.settings,
+                default_buffer_minutes: parseInt(form.settings?.default_buffer_minutes ?? 120, 10),
+            },
             late_fee_enabled: form.late_fee_enabled ?? false,
             late_fee_type: form.late_fee_type || "fixed",
             late_fee_amount: Math.max(0, parseFloat(form.late_fee_amount) || 10),
@@ -603,6 +606,72 @@ export default function SettingsPage() {
                 </div>
             </div>
 
+            {/* Buffer Time Settings */}
+            <div className={`rounded-2xl border p-6 ${cardStyle}`}>
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                        <Timer className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-lg">Puffer-Zeit zwischen Buchungen</h3>
+                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Mindestzeit zur Reinigung / Vorbereitung nach jeder Rückgabe</p>
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    {(() => {
+                        const bufferVal = parseInt(form.settings?.default_buffer_minutes ?? 120, 10);
+                        const hours = Math.floor(bufferVal / 60);
+                        const mins = bufferVal % 60;
+                        const bufferLabel = bufferVal === 0 ? "Kein Puffer" : hours > 0 && mins > 0 ? `${hours} Std. ${mins} Min.` : hours > 0 ? `${hours} Std.` : `${mins} Min.`;
+                        return (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+                                        Globaler Standard-Puffer
+                                    </label>
+                                    <span className={`text-sm font-semibold px-3 py-1 rounded-lg ${darkMode ? "bg-slate-800 text-amber-400" : "bg-amber-50 text-amber-700"}`}>
+                                        {bufferLabel}
+                                    </span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={360}
+                                    step={30}
+                                    value={bufferVal}
+                                    onChange={(e) => setForm(f => ({
+                                        ...f,
+                                        settings: { ...f.settings, default_buffer_minutes: parseInt(e.target.value, 10) }
+                                    }))}
+                                    className="w-full accent-amber-500"
+                                />
+                                <div className={`flex justify-between text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                    <span>0 Min.</span>
+                                    <span>1 Std.</span>
+                                    <span>2 Std.</span>
+                                    <span>3 Std.</span>
+                                    <span>4 Std.</span>
+                                    <span>5 Std.</span>
+                                    <span>6 Std.</span>
+                                </div>
+                                <p className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                    Einzelne Räder können diesen Wert in der Flottenverwaltung überschreiben. E-Bikes empfohlen: 3 Std.
+                                </p>
+                            </>
+                        );
+                    })()}
+                </div>
+
+                <div className="flex items-center gap-3 mt-6">
+                    <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2">
+                        {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                        Speichern
+                    </button>
+                    {saved && <span className="text-emerald-500 flex items-center gap-1"><Check className="w-4 h-4" /> Gespeichert!</span>}
+                </div>
+            </div>
+
             {/* Language Settings */}
             <div className={`rounded-2xl border p-6 ${cardStyle}`}>
                 <div className="flex items-center gap-3 mb-6">
@@ -651,6 +720,79 @@ export default function SettingsPage() {
 
             {/* Widget Settings */}
             <WidgetSettings supabase={supabase} orgId={org.currentOrg?.id} darkMode={darkMode} />
+
+            {/* Kiosk Settings */}
+            <div className={`rounded-2xl border p-6 ${cardStyle}`}>
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                        <Monitor className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-lg">Kiosk-Modus</h3>
+                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                            Self-Service-Terminal für Vor-Ort-Buchungen — erreichbar unter{" "}
+                            <a
+                                href={`/kiosk?org=${org.currentOrg?.id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-violet-500 hover:underline"
+                            >
+                                /kiosk?org={org.currentOrg?.id?.slice(0, 8)}…
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <div className="space-y-5">
+                    {/* Enable toggle */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Kiosk-Modus aktivieren</p>
+                            <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                Erlaubt öffentlichen Zugriff auf den Self-Service-Buchungsscreen
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setForm(f => ({ ...f, settings: { ...f.settings, kiosk_enabled: !f.settings?.kiosk_enabled } }))}
+                            className={`relative w-12 h-6 rounded-full transition-colors ${form.settings?.kiosk_enabled ? "bg-violet-500" : darkMode ? "bg-slate-700" : "bg-slate-300"}`}
+                        >
+                            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${form.settings?.kiosk_enabled ? "left-7" : "left-1"}`} />
+                        </button>
+                    </div>
+
+                    {form.settings?.kiosk_enabled && (
+                        <div>
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+                                Admin-PIN (4–6 Ziffern)
+                            </label>
+                            <p className={`text-xs mb-2 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                3× auf das Logo tippen öffnet die PIN-Eingabe. Standard: 1234.
+                            </p>
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={6}
+                                value={form.settings?.kiosk_pin || ""}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                                    setForm(f => ({ ...f, settings: { ...f.settings, kiosk_pin: val } }));
+                                }}
+                                placeholder="z.B. 1234"
+                                className={`w-36 px-3 py-2 rounded-lg border outline-none font-mono tracking-widest text-lg ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-300"}`}
+                            />
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-3 mt-6">
+                    <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2">
+                        {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                        Speichern
+                    </button>
+                    {saved && <span className="text-emerald-500 flex items-center gap-1"><Check className="w-4 h-4" /> Gespeichert!</span>}
+                </div>
+            </div>
 
             {/* Danger Zone */}
             <div className={`rounded-2xl border p-6 ${darkMode ? "bg-slate-900 border-red-900/40" : "bg-white border-red-200"}`}>

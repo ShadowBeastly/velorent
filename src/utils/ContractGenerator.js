@@ -18,7 +18,12 @@ const formatCurrency = (amount) => {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount || 0);
 };
 
-export const generateContract = (booking, organization) => {
+/**
+ * @param {object} booking
+ * @param {object} organization
+ * @param {string|null} signatureDataUrl  - base64 PNG data URL of the customer's signature
+ */
+export const generateContract = (booking, organization, signatureDataUrl = null) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
@@ -273,18 +278,40 @@ export const generateContract = (booking, organization) => {
     // Ort/Datum line
     const placeDate = `Ort, Datum: _________________________`;
     doc.text(placeDate, sigBoxLeft, y);
-    doc.text(placeDate, sigBoxRight, y);
+    if (!signatureDataUrl) doc.text(placeDate, sigBoxRight, y);
     y += 20;
 
-    // Signature lines
+    // Left: blank Vermieter line (always)
     doc.setDrawColor(15, 23, 42);
     doc.line(sigBoxLeft, y, sigBoxLeft + sigBoxWidth, y);
-    doc.line(sigBoxRight, y, sigBoxRight + sigBoxWidth, y);
+
+    // Right: customer signature image or blank line
+    if (signatureDataUrl) {
+        const imgW = 60; // mm
+        const imgH = 22; // mm (~2.7:1 ratio matches 300×110px canvas output)
+        doc.addImage(signatureDataUrl, 'PNG', sigBoxRight, y - imgH - 2, imgW, imgH);
+        doc.line(sigBoxRight, y, sigBoxRight + sigBoxWidth, y);
+    } else {
+        doc.line(sigBoxRight, y, sigBoxRight + sigBoxWidth, y);
+    }
     y += 5;
 
     doc.setFontSize(8);
     doc.text(`${organization?.name || 'Vermieter'} (Unterschrift)`, sigBoxLeft, y);
-    doc.text(`${booking?.customer_name || 'Mieter'} (Unterschrift)`, sigBoxRight, y);
+
+    if (signatureDataUrl) {
+        const signedAt = booking?.signed_at ? new Date(booking.signed_at) : new Date();
+        const dateStr = signedAt.toLocaleDateString('de-DE');
+        const timeStr = signedAt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+        doc.text(`Unterschrieben am ${dateStr} um ${timeStr} Uhr`, sigBoxRight, y);
+        y += 4;
+        doc.setFontSize(7.5);
+        doc.setTextColor('#64748b');
+        doc.text(`${booking?.customer_name || 'Mieter'}`, sigBoxRight, y);
+        doc.setTextColor(grayColor);
+    } else {
+        doc.text(`${booking?.customer_name || 'Mieter'} (Unterschrift)`, sigBoxRight, y);
+    }
 
     // ─── FOOTER ───────────────────────────────────────────────────────────────
 

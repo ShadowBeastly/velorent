@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { Plus, Loader2, Edit, FileText, ArrowUpRight, ArrowDownLeft, Download, Users, ChevronRight, Calendar } from "lucide-react";
 import BookingModal from "../components/bookings/BookingModal";
 import HandoverModal from "../components/dashboard/HandoverModal";
+import DepositActionModal from "../components/DepositActionModal";
 import { STATUS } from "../utils/constants";
 import { fmtCurrency, fmtDate } from "../utils/formatters";
 import { calculateLateFee } from "../utils/calculateLateFee";
@@ -32,7 +33,7 @@ const SOURCES = [
 
 export default function BookingsPage() {
     const { darkMode, searchQuery } = useApp();
-    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories } = useData();
+    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories, deposits, coupons } = useData();
     const org = useOrganization();
     const currentOrg = org.currentOrg;
     const { addToast } = useToast();
@@ -48,6 +49,7 @@ export default function BookingsPage() {
     const [editBooking, setEditBooking] = useState(null);
     const [handoverBooking, setHandoverBooking] = useState(null);
     const [handoverType, setHandoverType] = useState(null);
+    const [depositModal, setDepositModal] = useState({ open: false, deposit: null });
 
     // Build category list from bikeCategories or fallback from bikes
     const categories = useMemo(() => {
@@ -94,7 +96,9 @@ export default function BookingsPage() {
     const hasActiveFilters = categoryFilter !== "all" || paymentFilter !== "all" || sourceFilter !== "all" || dateFrom || dateTo;
 
     const handleSave = async (data) => {
-        let bookingData = { ...data };
+        // Extract coupon meta (not stored directly on bookings table)
+        const { _couponId, _couponDiscountAmount, ...rest } = data;
+        let bookingData = { ...rest };
 
         // Handle new customer creation
         if (!bookingData.customer_id && bookingData.customer_name) {
@@ -127,10 +131,30 @@ export default function BookingsPage() {
                 return;
             }
         } else {
-            const { error } = await bookings.create(bookingData, addOns.addOns);
+            const { data: newBooking, error } = await bookings.create(bookingData, addOns.addOns);
             if (error) {
                 addToast("Fehler beim Erstellen: " + error.message, "error");
                 return;
+            }
+            // Auto-create deposit based on bike deposit settings
+            if (newBooking?.id) {
+                const selectedBike = bikes.bikes.find(b => b.id === bookingData.bike_id);
+                let depositAmount = 0;
+                if (selectedBike?.deposit_type === "fixed" && selectedBike?.deposit_amount > 0) {
+                    depositAmount = selectedBike.deposit_amount;
+                } else if (selectedBike?.deposit_type === "percentage" && selectedBike?.deposit_percentage > 0) {
+                    depositAmount = (bookingData.total_price || 0) * selectedBike.deposit_percentage / 100;
+                } else if (bookingData.deposit_amount > 0) {
+                    // fallback: use manually entered deposit_amount from form
+                    depositAmount = bookingData.deposit_amount;
+                }
+                if (depositAmount > 0) {
+                    await deposits.createDeposit(newBooking.id, depositAmount);
+                }
+            }
+            // Record coupon usage if a coupon was applied
+            if (newBooking?.id && _couponId && _couponDiscountAmount) {
+                await coupons.recordUsage(_couponId, newBooking.id, _couponDiscountAmount);
             }
         }
         setShowModal(false);
@@ -170,12 +194,21 @@ export default function BookingsPage() {
                 deposit_status: protocol.damages?.length ? "held" : "refunded"
             };
         }
-        const { error } = await bookings.update(handoverBooking.id, updates);
+        const bookingId = handoverBooking.id;
+        const wasReturn = handoverType === "return";
+        const { error } = await bookings.update(bookingId, updates);
         if (error) {
             addToast("Fehler: " + error.message, "error");
         } else {
             addToast("Erfolgreich aktualisiert", "success");
             setHandoverBooking(null);
+            // After return: check for pending deposit and prompt action
+            if (wasReturn) {
+                const { data: dep } = await deposits.getDepositByBooking(bookingId);
+                if (dep && dep.status === "pending") {
+                    setDepositModal({ open: true, deposit: dep });
+                }
+            }
         }
     };
 
@@ -510,6 +543,23 @@ export default function BookingsPage() {
                                                                 : `${lateFee.daysLate}T überfällig`}
                                                         </span>
                                                     )}
+                                                    {(() => {
+                                                        const dep = deposits.deposits.find(d => d.booking_id === b.id);
+                                                        if (!dep) return null;
+                                                        const badge = {
+                                                            pending: { label: "Kaution: Ausstehend", cls: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300" },
+                                                            held: { label: "Kaution: Gehalten", cls: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
+                                                            released: { label: "Kaution: Freigegeben", cls: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300" },
+                                                            partially_charged: { label: "Kaution: Teilw. einbehalten", cls: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300" },
+                                                            fully_charged: { label: "Kaution: Einbehalten", cls: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300" },
+                                                        }[dep.status];
+                                                        if (!badge) return null;
+                                                        return (
+                                                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold self-start whitespace-nowrap ${badge.cls}`}>
+                                                                {badge.label}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                 </div>
                                             </td>
                                             {/* Aktionen */}
@@ -614,6 +664,7 @@ export default function BookingsPage() {
                     existingBookings={bookings.bookings}
                     pricingRules={pricingRules?.rules || []}
                     addOns={addOns.addOns}
+                    validateCoupon={coupons?.validateCoupon}
                     onSave={handleSave}
                     onDelete={async (id, cancellationStatus) => {
                         const { error } = await bookings.remove(id, cancellationStatus);
@@ -636,6 +687,22 @@ export default function BookingsPage() {
                     darkMode={darkMode}
                 />
             )}
+            <DepositActionModal
+                isOpen={depositModal.open}
+                deposit={depositModal.deposit}
+                darkMode={darkMode}
+                onRelease={async () => {
+                    const { error } = await deposits.releaseDeposit(depositModal.deposit.id);
+                    if (error) addToast("Fehler beim Freigeben: " + error.message, "error");
+                    else { addToast("Kaution freigegeben", "success"); setDepositModal({ open: false, deposit: null }); }
+                }}
+                onCharge={async (amount, reason) => {
+                    const { error } = await deposits.chargeDeposit(depositModal.deposit.id, amount, reason);
+                    if (error) addToast("Fehler beim Einbehalten: " + error.message, "error");
+                    else { addToast("Kaution einbehalten", "success"); setDepositModal({ open: false, deposit: null }); }
+                }}
+                onClose={() => setDepositModal({ open: false, deposit: null })}
+            />
         </div>
     );
 }

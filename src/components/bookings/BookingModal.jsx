@@ -1,10 +1,14 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle } from "lucide-react";
+import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle, PenLine } from "lucide-react";
 import { fmtISO, addDays, daysDiff, fmtCurrency } from "../../utils/formatters";
 import { STATUS } from "../../utils/constants";
 import ContractModal from "./ContractModal";
-import { calculateDynamicPrice } from "../../utils/calculatePrice";
+import { calculatePriceSync } from "../../utils/pricingEngine";
+import { useOrganization } from "../../context/OrgContext";
+import { supabase } from "../../utils/supabase";
+import { generateContract } from "../../utils/ContractGenerator";
+import SignaturePad from "../SignaturePad";
 
 function getCancellationScenario(startDate) {
     const now = new Date();
@@ -62,15 +66,26 @@ const STEPS = [
     { id: 1, label: "Zeitraum & Rad", icon: Calendar },
     { id: 2, label: "Kunde", icon: User },
     { id: 3, label: "Details", icon: CreditCard },
-    { id: 4, label: "Abschluss", icon: CheckCircle }
+    { id: 4, label: "Abschluss", icon: CheckCircle },
+    { id: 5, label: "Unterschrift", icon: PenLine }
 ];
 
-export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, pricingRules, addOns, onSave, onDelete, onClose, darkMode }) {
+export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, pricingRules, addOns, validateCoupon, onSave, onDelete, onClose, darkMode }) {
     const [step, setStep] = useState(1);
     const [saving, setSaving] = useState(false);
     const [stepError, setStepError] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [showCancelBreakdown, setShowCancelBreakdown] = useState(false);
+    const [signatureData, setSignatureData] = useState(null);
+    const [agbAccepted, setAgbAccepted] = useState(false);
+
+    // Coupon state
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState(null); // { coupon, discountAmount }
+    // eslint-disable-next-line no-unused-vars
+    const [couponError, setCouponError] = useState('');
+    // eslint-disable-next-line no-unused-vars
+    const [couponLoading, setCouponLoading] = useState(false);
 
     const isMarketplaceBooking = booking?.booking_source === "hotel_qr";
     const [customerSearch, setCustomerSearch] = useState("");
@@ -78,6 +93,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const [showContract, setShowContract] = useState(false);
 
     const [isGroupBooking, setIsGroupBooking] = useState(Boolean(booking?.is_group_booking));
+    const { currentOrg } = useOrganization();
 
     const [form, setForm] = useState(() => {
         if (booking) return {
@@ -127,7 +143,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     // Dynamic pricing result for the current selection (used in UI hints — single bike only)
     const pricingResult = useMemo(() => {
         if (isGroupBooking || !selectedBike || !form.start_date || !form.end_date) return null;
-        return calculateDynamicPrice(selectedBike, form.start_date, form.end_date, pricingRules || []);
+        return calculatePriceSync(selectedBike, form.start_date, form.end_date, 1, pricingRules || []);
     }, [isGroupBooking, selectedBike, form.start_date, form.end_date, pricingRules]);
 
     // Auto-calc price using dynamic pricing rules (single bike)
@@ -135,13 +151,14 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         if (!bikeId || !start || !end) return 0;
         const bike = bikes.find(b => b.id === bikeId);
         if (!bike) return 0;
-        return calculateDynamicPrice(bike, start, end, pricingRules || []).totalPrice;
+        return calculatePriceSync(bike, start, end, 1, pricingRules || []).totalPrice;
     };
 
     // Calc total price for all selected bikes in group mode
     const calcGroupTotal = (selectedBikesList, start, end) => {
+        const qty = selectedBikesList.length;
         return selectedBikesList.reduce((sum, bike) => {
-            return sum + calculateDynamicPrice(bike, start, end, pricingRules || []).totalPrice;
+            return sum + calculatePriceSync(bike, start, end, qty, pricingRules || []).totalPrice;
         }, 0);
     };
 
@@ -173,7 +190,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             if (alreadySelected) {
                 nextSelected = prev.selectedBikes.filter(b => b.id !== bike.id);
             } else {
-                const subtotal = calculateDynamicPrice(bike, prev.start_date, prev.end_date, pricingRules || []).totalPrice;
+                const subtotal = calculatePriceSync(bike, prev.start_date, prev.end_date, 1, pricingRules || []).totalPrice;
                 nextSelected = [...prev.selectedBikes, { ...bike, subtotal }];
             }
             const firstBike = nextSelected[0] || null;
@@ -222,6 +239,38 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         });
     };
 
+    // eslint-disable-next-line no-unused-vars
+    const applyCoupon = async () => {
+        if (!couponCode.trim()) return;
+        if (!validateCoupon) { setCouponError('Gutschein-Validierung nicht verfügbar.'); return; }
+        setCouponLoading(true);
+        setCouponError('');
+        setAppliedCoupon(null);
+        const bikeQty = isGroupBooking ? form.selectedBikes.length : 1;
+        const selectedBikeObj = bikes.find(b => b.id === form.bike_id);
+        const result = await validateCoupon(couponCode.trim().toUpperCase(), {
+            totalPrice: form.total_price,
+            durationDays: days,
+            quantity: bikeQty,
+            categoryId: selectedBikeObj?.category_id,
+            bikeId: form.bike_id,
+        });
+        setCouponLoading(false);
+        if (result.valid) {
+            setAppliedCoupon(result);
+            setCouponCode('');
+        } else {
+            setCouponError(result.reason || 'Ungültiger Gutschein.');
+        }
+    };
+
+    // eslint-disable-next-line no-unused-vars
+    const removeCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponError('');
+        setCouponCode('');
+    };
+
     // Filtered Customers
     const filteredCustomers = useMemo(() => {
         return customers.filter(c =>
@@ -230,7 +279,17 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         );
     }, [customers, customerSearch]);
 
-    // Availability Check (single bike)
+    // Helper: get effective end of an existing booking including its buffer
+    const getBufferedEnd = (existingBooking) => {
+        const bikeData = bikes.find(bk => bk.id === existingBooking.bike_id);
+        const bufferMins = bikeData?.buffer_minutes ?? 0;
+        if (!bufferMins) return new Date(existingBooking.end_date);
+        const end = new Date(existingBooking.end_date);
+        end.setMinutes(end.getMinutes() + bufferMins);
+        return end;
+    };
+
+    // Availability Check (single bike) — buffer extends the blocked window after end_date
     const conflictingBooking = useMemo(() => {
         if (isGroupBooking) return null; // handled separately for group
         if (!form.bike_id || !form.start_date || !form.end_date) return null;
@@ -239,9 +298,10 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             b.bike_id === form.bike_id &&
             !["cancelled", "returned", "deleted"].includes(b.status) &&
             new Date(b.start_date) <= new Date(form.end_date) &&
-            new Date(b.end_date) >= new Date(form.start_date)
+            getBufferedEnd(b) >= new Date(form.start_date)
         );
-    }, [isGroupBooking, form.bike_id, form.start_date, form.end_date, existingBookings, booking]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isGroupBooking, form.bike_id, form.start_date, form.end_date, existingBookings, booking, bikes]);
 
     // Availability check for ALL bikes in a group selection
     const groupConflicts = useMemo(() => {
@@ -252,10 +312,11 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                 b.bike_id === bike.id &&
                 !["cancelled", "returned", "deleted"].includes(b.status) &&
                 new Date(b.start_date) <= new Date(form.end_date) &&
-                new Date(b.end_date) >= new Date(form.start_date)
+                getBufferedEnd(b) >= new Date(form.start_date)
             )
         );
-    }, [isGroupBooking, form.selectedBikes, form.start_date, form.end_date, existingBookings, booking]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isGroupBooking, form.selectedBikes, form.start_date, form.end_date, existingBookings, booking, bikes]);
 
     const isBikeAvailable = !conflictingBooking;
 
@@ -289,10 +350,56 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         }
         setSaving(true);
         try {
-            // Pass selectedBikes for group bookings; hook handles booking_items insert
+            const discountAmount = appliedCoupon?.discountAmount || 0;
+            const finalPrice = Math.max(0, form.total_price - discountAmount);
+
+            // ── M4: Upload signature + signed PDF before saving ──────────────
+            let signatureUrl = null;
+            let signedContractUrl = null;
+            const orgId = currentOrg?.id || '';
+
+            if (signatureData && orgId) {
+                const fileId = crypto.randomUUID();
+                try {
+                    // 1. Upload signature PNG
+                    const base64 = signatureData.split(',')[1];
+                    const byteChars = atob(base64);
+                    const bytes = new Uint8Array(byteChars.length);
+                    for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+                    const sigBlob = new Blob([bytes], { type: 'image/png' });
+                    const sigPath = `signatures/${orgId}/${fileId}.png`;
+                    const { error: sigErr } = await supabase.storage.from('signatures').upload(sigPath, sigBlob, { contentType: 'image/png', upsert: true });
+                    if (!sigErr) {
+                        const { data: sigUrl } = supabase.storage.from('signatures').getPublicUrl(sigPath);
+                        signatureUrl = sigUrl.publicUrl;
+                    }
+
+                    // 2. Generate and upload signed PDF
+                    const bikeForPdf = bikes.find(b => b.id === form.bike_id);
+                    const pdfBooking = { ...form, bike: bikeForPdf, signed_at: new Date().toISOString(), customer_id_number: form.id_number };
+                    const doc = generateContract(pdfBooking, currentOrg, signatureData);
+                    const pdfBytes = doc.output('arraybuffer');
+                    const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+                    const pdfPath = `contracts/${orgId}/${fileId}.pdf`;
+                    const { error: pdfErr } = await supabase.storage.from('contracts').upload(pdfPath, pdfBlob, { contentType: 'application/pdf', upsert: true });
+                    if (!pdfErr) {
+                        const { data: pdfUrl } = supabase.storage.from('contracts').getPublicUrl(pdfPath);
+                        signedContractUrl = pdfUrl.publicUrl;
+                    }
+                } catch (storageErr) {
+                    console.warn('Storage upload failed, saving booking without signature URLs:', storageErr);
+                }
+            }
+            // ─────────────────────────────────────────────────────────────────
+
             await onSave({
                 ...form,
+                total_price: finalPrice,
                 selectedBikes: isGroupBooking ? form.selectedBikes : [],
+                _couponId: appliedCoupon?.coupon?.id || null,
+                _couponDiscountAmount: discountAmount || null,
+                ...(signatureUrl ? { signature_url: signatureUrl, signed_at: new Date().toISOString() } : {}),
+                ...(signedContractUrl ? { signed_contract_url: signedContractUrl } : {}),
             });
         } catch (err) {
             console.error("Fehler beim Speichern:", err);
@@ -343,7 +450,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                         <div>
                             <h3 id="booking-modal-title" className="text-lg font-semibold">{booking ? "Buchung bearbeiten" : "Neue Buchung"}</h3>
                             <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                Schritt {step} von 4
+                                Schritt {step} von {STEPS.length}
                             </p>
                         </div>
                     </div>
@@ -745,6 +852,45 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                     )}
                                 </div>
                             )}
+
+                            {/* Gutscheincode */}
+                            <div>
+                            <label className={labelStyle}>Gutscheincode</label>
+                            {appliedCoupon ? (
+                                <div className='flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-700/50'>
+                                    <span className='flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-medium'>
+                                        <Tag className='w-4 h-4' />
+                                        <code className='font-bold'>{appliedCoupon.coupon.code}</code>
+                                        — {appliedCoupon.coupon.type === 'percentage' ? `${appliedCoupon.coupon.value}%` : fmtCurrency(appliedCoupon.coupon.value)} Rabatt
+                                        {' '}({fmtCurrency(appliedCoupon.discountAmount)} gespart)
+                                    </span>
+                                    <button onClick={removeCoupon} className='text-xs text-slate-500 hover:text-red-500 transition-colors underline'>Entfernen</button>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className='flex gap-2'>
+                                        <input
+                                            className={inputStyle + ' font-mono uppercase tracking-wider'}
+                                            value={couponCode}
+                                            onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(''); }}
+                                            placeholder='GUTSCHEINCODE'
+                                            onKeyDown={e => e.key === 'Enter' && applyCoupon()}
+                                        />
+                                        <button
+                                            onClick={applyCoupon}
+                                            disabled={!couponCode.trim() || couponLoading}
+                                            className='px-3 py-2 bg-[#1A7D5A] hover:bg-[#156649] text-white rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap transition-colors'
+                                        >
+                                            {couponLoading ? <Loader2 className='w-4 h-4 animate-spin' /> : 'Einlösen'}
+                                        </button>
+                                    </div>
+                                    {couponError && (
+                                        <p className='mt-1.5 text-xs text-red-500 flex items-center gap-1'>
+                                            <X className='w-3 h-3' /> {couponError}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -773,7 +919,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                             </div>
                                             <div className="space-y-1 pl-2">
                                                 {form.selectedBikes.map(bike => {
-                                                    const bikeTotal = calculateDynamicPrice(bike, form.start_date, form.end_date, pricingRules || []).totalPrice;
+                                                    const bikeTotal = calculatePriceSync(bike, form.start_date, form.end_date, form.selectedBikes.length, pricingRules || []).totalPrice;
                                                     return (
                                                         <div key={bike.id} className="flex justify-between text-xs">
                                                             <span className={darkMode ? "text-slate-400" : "text-slate-600"}>{bike.name}</span>
@@ -817,21 +963,112 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         </div>
                                     )}
 
+                                    {/* Coupon discount */}
+                                    {appliedCoupon && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                                <Tag className="w-3.5 h-3.5" />
+                                                Gutschein ({appliedCoupon.coupon.code})
+                                            </span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                                                -{fmtCurrency(appliedCoupon.discountAmount)}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {/* Pricing breakdown (single bike) */}
+                                    {!isGroupBooking && pricingResult && pricingResult.adjustmentsSummary.length > 0 && (
+                                        <div className={`rounded-lg px-3 py-2 text-xs space-y-1 ${darkMode ? "bg-slate-800/60" : "bg-slate-50"}`}>
+                                            <div className="flex justify-between text-slate-500">
+                                                <span>Basispreis ({pricingResult.dailyBreakdown.length} Tage)</span>
+                                                <span>{fmtCurrency(pricingResult.baseTotal)}</span>
+                                            </div>
+                                            {pricingResult.adjustmentsSummary.map((adj, i) => (
+                                                <div key={i} className={`flex justify-between font-medium ${adj.totalAmount < 0 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                                                    <span>{adj.ruleName}</span>
+                                                    <span>{adj.totalAmount > 0 ? "+" : ""}{fmtCurrency(adj.totalAmount)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
                                     <div className="border-t my-2 pt-2 flex justify-between text-base">
                                         <span className="font-medium">Gesamtbetrag</span>
                                         <div className="text-right">
                                             <span className="font-bold text-[#1A7D5A]">{fmtCurrency(form.total_price)}</span>
-                                            {!isGroupBooking && pricingResult && pricingResult.baseTotal !== pricingResult.totalPrice && (
-                                                <div className={`text-xs mt-0.5 ${pricingResult.totalPrice < pricingResult.baseTotal ? "text-emerald-500" : "text-amber-500"}`}>
-                                                    {pricingResult.totalPrice < pricingResult.baseTotal
-                                                        ? <span className="flex items-center gap-1 justify-end"><TrendingDown className="w-3 h-3" />Rabatt: statt {fmtCurrency(pricingResult.baseTotal)}</span>
-                                                        : <span className="flex items-center gap-1 justify-end"><TrendingUp className="w-3 h-3" />Aufschlag: statt {fmtCurrency(pricingResult.baseTotal)}</span>
-                                                    }
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
+                                    {form.deposit_amount > 0 && (
+                                        <div className="flex justify-between items-center pt-1">
+                                            <span className="text-slate-500">Kaution</span>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300`}>
+                                                {fmtCurrency(form.deposit_amount)} · Ausstehend
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* STEP 5: UNTERSCHRIFT */}
+                    {step === 5 && (
+                        <div className="space-y-6">
+                            {booking?.signature_url && (
+                                <div className={`p-3 rounded-lg border text-sm flex items-center gap-2 ${darkMode ? "border-emerald-700/40 bg-emerald-900/20 text-emerald-400" : "border-emerald-500/30 bg-emerald-50 text-emerald-700"}`}>
+                                    <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                                    Bereits unterschrieben am {new Date(booking.signed_at).toLocaleString("de-DE")}
+                                </div>
+                            )}
+
+                            {/* Contract summary */}
+                            <div className={`p-4 rounded-xl border text-sm space-y-2 ${darkMode ? "bg-slate-800 border-slate-700" : "bg-slate-50 border-slate-200"}`}>
+                                <h4 className="font-semibold mb-3">Vertragsübersicht</h4>
+                                <div className="flex justify-between">
+                                    <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Mieter</span>
+                                    <span className="font-medium">{form.customer_name}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Fahrrad</span>
+                                    <span className="font-medium">{bikes.find(b => b.id === form.bike_id)?.name || "—"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Zeitraum</span>
+                                    <span className="font-medium">{new Date(form.start_date).toLocaleDateString("de-DE")} – {new Date(form.end_date).toLocaleDateString("de-DE")} ({days} Tage)</span>
+                                </div>
+                                <div className="flex justify-between border-t pt-2 mt-1">
+                                    <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Gesamtpreis</span>
+                                    <span className="font-bold text-[#1A7D5A]">{fmtCurrency(form.total_price)}</span>
+                                </div>
+                            </div>
+
+                            {/* AGB Checkbox */}
+                            <label className="flex items-start gap-3 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={agbAccepted}
+                                    onChange={(e) => setAgbAccepted(e.target.checked)}
+                                    className="mt-0.5 w-4 h-4 accent-[#1A7D5A]"
+                                />
+                                <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+                                    Ich bestätige die Richtigkeit der Angaben und akzeptiere die{" "}
+                                    <span className="text-[#1A7D5A] font-medium">Allgemeinen Mietbedingungen</span>.
+                                </span>
+                            </label>
+
+                            {/* Signature pad */}
+                            <div>
+                                <label className={`${labelStyle} mb-2 flex items-center justify-between`}>
+                                    <span>Unterschrift des Mieters</span>
+                                    {signatureData && (
+                                        <span className="text-emerald-500 text-xs font-normal">✓ Unterschrift erfasst</span>
+                                    )}
+                                </label>
+                                <SignaturePad
+                                    key={step}
+                                    onSave={(data) => setSignatureData(data)}
+                                    onClear={() => setSignatureData(null)}
+                                    darkMode={darkMode}
+                                />
                             </div>
                         </div>
                     )}
@@ -923,13 +1160,13 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                         </div>
 
                         <button
-                            onClick={step === 4 ? handleSave : handleNext}
-                            disabled={saving}
+                            onClick={step === 5 ? handleSave : handleNext}
+                            disabled={saving || (step === 5 && (!agbAccepted || !signatureData))}
                             className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2 disabled:opacity-50"
                         >
                             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                            {step === 4 ? "Buchung speichern" : "Weiter"}
-                            {step < 4 && <ChevronRight className="w-4 h-4" />}
+                            {step === 5 ? "Buchung speichern" : "Weiter"}
+                            {step < 5 && <ChevronRight className="w-4 h-4" />}
                         </button>
                     </div>
                 </div>

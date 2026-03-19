@@ -12,7 +12,7 @@ export function usePricingRules(orgId) {
         try {
             const { data, error } = await supabase
                 .from("pricing_rules")
-                .select("*")
+                .select("*, pricing_rule_conditions(*)")
                 .eq("organization_id", orgId)
                 .order("priority", { ascending: false })
                 .order("created_at", { ascending: false });
@@ -28,11 +28,13 @@ export function usePricingRules(orgId) {
 
     useEffect(() => { load(); }, [load]);
 
+    // ── pricing_rules CRUD ───────────────────────────────────────────────────────
+
     const create = async (rule) => {
         const { data, error } = await supabase
             .from("pricing_rules")
             .insert({ ...rule, organization_id: orgId })
-            .select()
+            .select("*, pricing_rule_conditions(*)")
             .single();
         if (!error) setRules(prev => [data, ...prev]);
         return { data, error };
@@ -44,7 +46,7 @@ export function usePricingRules(orgId) {
             .update(updates)
             .eq("id", id)
             .eq("organization_id", orgId)
-            .select()
+            .select("*, pricing_rule_conditions(*)")
             .single();
         if (!error) setRules(prev => prev.map(r => r.id === id ? data : r));
         return { data, error };
@@ -60,5 +62,70 @@ export function usePricingRules(orgId) {
         return { error };
     };
 
-    return { rules, loading, reload: load, create, update, remove };
+    // ── pricing_rule_conditions CRUD ─────────────────────────────────────────────
+
+    const createCondition = async (ruleId, conditionData) => {
+        const { data, error } = await supabase
+            .from("pricing_rule_conditions")
+            .insert({ ...conditionData, rule_id: ruleId })
+            .select()
+            .single();
+        if (!error) {
+            setRules(prev => prev.map(r => r.id === ruleId
+                ? { ...r, pricing_rule_conditions: [...(r.pricing_rule_conditions || []), data] }
+                : r
+            ));
+        }
+        return { data, error };
+    };
+
+    const updateCondition = async (conditionId, ruleId, updates) => {
+        const { data, error } = await supabase
+            .from("pricing_rule_conditions")
+            .update(updates)
+            .eq("id", conditionId)
+            .select()
+            .single();
+        if (!error) {
+            setRules(prev => prev.map(r => r.id === ruleId
+                ? {
+                    ...r,
+                    pricing_rule_conditions: (r.pricing_rule_conditions || [])
+                        .map(c => c.id === conditionId ? data : c)
+                }
+                : r
+            ));
+        }
+        return { data, error };
+    };
+
+    const removeCondition = async (conditionId, ruleId) => {
+        const { error } = await supabase
+            .from("pricing_rule_conditions")
+            .delete()
+            .eq("id", conditionId);
+        if (!error) {
+            setRules(prev => prev.map(r => r.id === ruleId
+                ? {
+                    ...r,
+                    pricing_rule_conditions: (r.pricing_rule_conditions || [])
+                        .filter(c => c.id !== conditionId)
+                }
+                : r
+            ));
+        }
+        return { error };
+    };
+
+    return {
+        rules,
+        loading,
+        reload: load,
+        create,
+        update,
+        remove,
+        createCondition,
+        updateCondition,
+        removeCondition,
+    };
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Bike, TrendingUp, Users, BarChart3, AlertTriangle } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
@@ -11,6 +11,10 @@ import HotelBookingsCard from "../components/dashboard/HotelBookingsCard";
 import StripePayoutCard from "../components/dashboard/StripePayoutCard";
 import LocivaBadge from "../components/dashboard/LocivaBadge";
 import HandoverModal from "../components/dashboard/HandoverModal";
+import MaintenanceDueWidget from "../components/dashboard/MaintenanceDueWidget";
+import UpcomingBookingsWidget from "../components/dashboard/UpcomingBookingsWidget";
+import TopBikesWidget from "../components/dashboard/TopBikesWidget";
+import RevenueChartWidget from "../components/dashboard/RevenueChartWidget";
 import { fmtCurrency } from "../utils/formatters";
 import { calculateLateFee } from "../utils/calculateLateFee";
 import { useApp } from "../context/AppContext";
@@ -60,12 +64,29 @@ function calcTrend(current, previous) {
 
 export default function DashboardPage() {
     const { darkMode } = useApp();
-    const { bikes, bookings, customers } = useData();
+    const { bikes, bookings, customers, deposits } = useData();
     const org = useOrganization();
     const router = useRouter();
     const today = new Date().toISOString().slice(0, 10);
 
     const [period, setPeriod] = useState("7d");
+
+    // ── Dashboard API stats (single server call, 5-min cache) ────────────
+    const [dashStats, setDashStats] = useState(null);
+
+    const fetchDashStats = useCallback(async () => {
+        const orgId = org.currentOrg?.id;
+        if (!orgId) return;
+        try {
+            const res = await fetch(`/api/dashboard?orgId=${orgId}`);
+            if (res.ok) setDashStats(await res.json());
+        } catch {
+            // non-fatal — widgets fall back gracefully
+        }
+    }, [org.currentOrg?.id]);
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    useEffect(() => { fetchDashStats(); }, [fetchDashStats]);
 
     const periodDays = PERIODS.find(p => p.value === period)?.days ?? 7;
     const { currentStart, currentEnd, prevStart, prevEnd } = useMemo(
@@ -124,6 +145,16 @@ export default function DashboardPage() {
         [overdueBookings]
     );
 
+    // Pending deposits
+    const pendingDeposits = useMemo(
+        () => (deposits?.deposits || []).filter(d => d.status === "pending"),
+        [deposits?.deposits]
+    );
+    const pendingDepositsTotal = useMemo(
+        () => pendingDeposits.reduce((sum, d) => sum + Number(d.amount || 0), 0),
+        [pendingDeposits]
+    );
+
     const [handoverBooking, setHandoverBooking] = useState(null);
     const [handoverType, setHandoverType] = useState(null);
 
@@ -158,6 +189,7 @@ export default function DashboardPage() {
         await bookings.update(handoverBooking.id, updates);
         setHandoverBooking(null);
         setHandoverType(null);
+        fetchDashStats();
     };
 
     const periodLabel = PERIODS.find(p => p.value === period)?.label ?? "";
@@ -274,6 +306,32 @@ export default function DashboardPage() {
                 />
             </div>
 
+            {/* Offene Kautionen Widget */}
+            {pendingDeposits.length > 0 && (
+                <div
+                    onClick={() => router.push('/app/bookings')}
+                    className={`rounded-2xl border p-5 flex items-center justify-between gap-4 cursor-pointer transition-all hover:shadow-md ${darkMode ? "bg-slate-900 border-slate-800 hover:border-yellow-600/40" : "bg-yellow-50 border-yellow-200 hover:border-yellow-400"}`}
+                >
+                    <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${darkMode ? "bg-yellow-500/10 text-yellow-400" : "bg-yellow-100 text-yellow-600"}`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p className={`text-sm font-bold ${darkMode ? "text-yellow-300" : "text-yellow-800"}`}>Offene Kautionen</p>
+                            <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-400" : "text-yellow-700"}`}>
+                                {pendingDeposits.length} {pendingDeposits.length === 1 ? "Kaution" : "Kautionen"} ausstehend
+                            </p>
+                        </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                        <p className={`text-2xl font-bold tabular-nums ${darkMode ? "text-yellow-300" : "text-yellow-800"}`}>{fmtCurrency(pendingDepositsTotal)}</p>
+                        <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-500" : "text-yellow-600"}`}>Gesamt</p>
+                    </div>
+                </div>
+            )}
+
             {/* Weekly Calendar + Today Sidebar */}
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
                 <WeeklyCalendar
@@ -290,9 +348,33 @@ export default function DashboardPage() {
                 />
             </div>
 
-            {/* Revenue Chart (collapsed below calendar) */}
+            {/* Maintenance alert (only shown when there are issues) */}
+            {(dashStats?.maintenanceOverdue > 0 || dashStats?.maintenanceDueSoon > 0) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <MaintenanceDueWidget
+                        overdue={dashStats?.maintenanceOverdue ?? 0}
+                        dueSoon={dashStats?.maintenanceDueSoon ?? 0}
+                    />
+                </div>
+            )}
+
+            {/* Revenue Chart — 12-month bar (full width) */}
+            {dashStats?.monthlyRevenue?.length > 0 && (
+                <RevenueChartWidget data={dashStats.monthlyRevenue} />
+            )}
+
+            {/* Revenue Chart (area, period-switchable) */}
             <div>
                 <RevenueChart bookings={bookings.bookings} darkMode={darkMode} />
+            </div>
+
+            {/* Upcoming Bookings + Top Bikes */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+                <UpcomingBookingsWidget
+                    bookings={dashStats?.upcomingBookings ?? []}
+                    onHandover={(b) => handleAction(b, "pickup")}
+                />
+                <TopBikesWidget bikes={dashStats?.topBikes ?? []} />
             </div>
 
             {/* Bottom Row: Recent Bookings */}

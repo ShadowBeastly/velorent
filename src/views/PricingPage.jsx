@@ -3,20 +3,21 @@ import { useState, useMemo } from "react";
 import {
     Plus, Loader2, Pencil, Trash2, X, Check, Tag,
     Calendar, Clock, Percent, TrendingUp, TrendingDown,
-    AlertCircle, ToggleLeft, ToggleRight
+    AlertCircle, ToggleLeft, ToggleRight, Users
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
 import { useToast } from "../components/ui/Toast";
 import { fmtCurrency } from "../utils/formatters";
-import { calculateDynamicPrice } from "../utils/calculatePrice";
+import { calculatePriceSync } from "../utils/pricingEngine";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const RULE_TYPES = [
     { value: "seasonal", label: "Saison", description: "Auf-/Abschlag in einem Datumsbereich" },
     { value: "weekend", label: "Wochenende", description: "Auf-/Abschlag an bestimmten Wochentagen" },
-    { value: "duration", label: "Aufenthaltsdauer", description: "Rabatt ab Mindestanzahl von Tagen" }
+    { value: "duration", label: "Aufenthaltsdauer", description: "Rabatt ab Mindestanzahl von Tagen" },
+    { value: "group", label: "Gruppe", description: "Rabatt ab Mindestanzahl von Rädern" }
 ];
 
 const MODIFIER_TYPES = [
@@ -43,6 +44,7 @@ const EMPTY_RULE = {
     start_date: "",
     end_date: "",
     min_days: 7,
+    min_quantity: 5,
     days_of_week: [5, 6],
     bike_category: "",
     is_active: true,
@@ -70,12 +72,14 @@ function modifierLabel(rule) {
 function typeIcon(type) {
     if (type === "seasonal") return <Calendar className="w-4 h-4" />;
     if (type === "weekend") return <Clock className="w-4 h-4" />;
+    if (type === "group") return <Users className="w-4 h-4" />;
     return <Percent className="w-4 h-4" />;
 }
 
 function typeColor(type) {
     if (type === "seasonal") return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
     if (type === "weekend") return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
+    if (type === "group") return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
     return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400";
 }
 
@@ -88,7 +92,11 @@ function modifierIsPositive(rule) {
 // ─── Rule Modal ───────────────────────────────────────────────────────────────
 
 function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
-    const [form, setForm] = useState(rule ? { ...rule } : { ...EMPTY_RULE });
+    const [form, setForm] = useState(() => {
+        if (!rule) return { ...EMPTY_RULE };
+        const cond = (rule.pricing_rule_conditions || []).find(c => c.condition_type === "min_quantity");
+        return { ...rule, min_quantity: cond ? cond.min_value : (rule.min_quantity ?? 5) };
+    });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
 
@@ -109,6 +117,8 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
             return "Startdatum muss vor dem Enddatum liegen.";
         if (form.type === "duration" && (!form.min_days || form.min_days < 1))
             return "Mindestanzahl Tage muss ≥ 1 sein.";
+        if (form.type === "group" && (!form.min_quantity || form.min_quantity < 2))
+            return "Mindestanzahl Räder muss ≥ 2 sein.";
         if (form.type === "weekend" && (!form.days_of_week || form.days_of_week.length === 0))
             return "Bitte mindestens einen Wochentag auswählen.";
         if (!form.modifier_value && form.modifier_value !== 0)
@@ -210,6 +220,23 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
                             />
                             <p className={`mt-1 text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                                 Rabatt greift ab dieser Anzahl an gebuchten Tagen.
+                            </p>
+                        </div>
+                    )}
+
+                    {form.type === "group" && (
+                        <div>
+                            <label className={labelStyle}>Mindestanzahl Räder / Personen</label>
+                            <input
+                                type="number"
+                                min={2}
+                                value={form.min_quantity || ""}
+                                onChange={e => set({ min_quantity: parseInt(e.target.value, 10) || "" })}
+                                className={inputStyle}
+                                placeholder="z.B. 5"
+                            />
+                            <p className={`mt-1 text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                Rabatt greift ab dieser Anzahl an Rädern in einer Buchung.
                             </p>
                         </div>
                     )}
@@ -371,7 +398,7 @@ function PricingPreview({ pricingRules, bikes, darkMode }) {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {scenarios.map((sc, i) => {
-                    const result = calculateDynamicPrice(sampleBike, sc.start, sc.end, pricingRules);
+                    const result = calculatePriceSync(sampleBike, sc.start, sc.end, 1, pricingRules);
                     const base = result.baseTotal;
                     const final = result.totalPrice;
                     const diff = final - base;
@@ -390,12 +417,12 @@ function PricingPreview({ pricingRules, bikes, darkMode }) {
                             <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                                 {days} Tage · Basis: {fmtCurrency(base)}
                             </div>
-                            {diff !== 0 && (
-                                <div className={`mt-2 flex items-center gap-1 text-xs ${diff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                                    {diff > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                                    {Math.abs(Math.round((diff / base) * 100))} % {diff > 0 ? "Aufschlag" : "Ersparnis"}
+                            {result.adjustmentsSummary.map((adj, j) => (
+                                <div key={j} className={`mt-1 flex items-center gap-1 text-xs ${adj.totalAmount < 0 ? "text-emerald-600" : "text-amber-600"}`}>
+                                    {adj.totalAmount < 0 ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
+                                    {adj.ruleName}: {adj.totalAmount > 0 ? "+" : ""}{fmtCurrency(adj.totalAmount)}
                                 </div>
-                            )}
+                            ))}
                         </div>
                     );
                 })}
@@ -427,13 +454,27 @@ export default function PricingPage() {
 
     const handleSave = async (data) => {
         try {
+            const { min_quantity, ...ruleData } = data;
             let result;
             if (editRule) {
-                result = await rulesCtx.update(editRule.id, data);
+                result = await rulesCtx.update(editRule.id, ruleData);
             } else {
-                result = await rulesCtx.create(data);
+                result = await rulesCtx.create(ruleData);
             }
             if (result?.error) throw result.error;
+
+            // For group rules, sync the min_quantity condition
+            if (data.type === "group" && min_quantity && result.data) {
+                const ruleId = result.data.id;
+                const existingCond = (result.data.pricing_rule_conditions || [])
+                    .find(c => c.condition_type === "min_quantity");
+                if (existingCond) {
+                    await rulesCtx.updateCondition(existingCond.id, ruleId, { min_value: min_quantity });
+                } else {
+                    await rulesCtx.createCondition(ruleId, { condition_type: "min_quantity", min_value: min_quantity });
+                }
+            }
+
             addToast(editRule ? "Preisregel aktualisiert." : "Preisregel erstellt.", "success");
             setShowModal(false);
             setEditRule(null);
@@ -535,6 +576,10 @@ export default function PricingPage() {
                                                 {rule.type === "weekend" && rule.days_of_week && (
                                                     <>{(rule.days_of_week || []).map(d => WEEKDAYS.find(w => w.day === d)?.label || d).join(", ")}</>
                                                 )}
+                                                {rule.type === "group" && (() => {
+                                                    const cond = (rule.pricing_rule_conditions || []).find(c => c.condition_type === "min_quantity");
+                                                    return cond ? <>ab {cond.min_value} Räder</> : <>Gruppe</>;
+                                                })()}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${positive === true ? "text-amber-500" : positive === false ? "text-emerald-500" : darkMode ? "text-slate-300" : "text-slate-700"}`}>
