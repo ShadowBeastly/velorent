@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Bike, TrendingUp, Users, BarChart3, AlertTriangle } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
@@ -13,6 +13,10 @@ import LocivaBadge from "../components/dashboard/LocivaBadge";
 import HandoverModal from "../components/dashboard/HandoverModal";
 import { fmtCurrency } from "../utils/formatters";
 import { calculateLateFee } from "../utils/calculateLateFee";
+import MaintenanceDueWidget from "../components/dashboard/MaintenanceDueWidget";
+import RevenueChartWidget from "../components/dashboard/RevenueChartWidget";
+import UpcomingBookingsWidget from "../components/dashboard/UpcomingBookingsWidget";
+import TopBikesWidget from "../components/dashboard/TopBikesWidget";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
 import { useOrganization } from "../context/OrgContext";
@@ -66,6 +70,19 @@ export default function DashboardPage() {
     const today = new Date().toISOString().slice(0, 10);
 
     const [period, setPeriod] = useState("7d");
+
+    // ── Dashboard API stats (single server call, 5-min cache) ────────────
+    const [dashStats, setDashStats] = useState(null);
+    const fetchDashStats = useCallback(async () => {
+        const orgId = org.currentOrg?.id;
+        if (!orgId) return;
+        try {
+            const res = await fetch(`/api/dashboard?orgId=${orgId}`);
+            if (res.ok) setDashStats(await res.json());
+        } catch { /* non-fatal */ }
+    }, [org.currentOrg?.id]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    useEffect(() => { fetchDashStats(); }, [fetchDashStats]);
 
     const periodDays = PERIODS.find(p => p.value === period)?.days ?? 7;
     const { currentStart, currentEnd, prevStart, prevEnd } = useMemo(
@@ -158,6 +175,7 @@ export default function DashboardPage() {
         await bookings.update(handoverBooking.id, updates);
         setHandoverBooking(null);
         setHandoverType(null);
+        fetchDashStats();
     };
 
     const periodLabel = PERIODS.find(p => p.value === period)?.label ?? "";
@@ -290,9 +308,33 @@ export default function DashboardPage() {
                 />
             </div>
 
-            {/* Revenue Chart (collapsed below calendar) */}
+            {/* Maintenance alert — only shown when there are issues */}
+            {(dashStats?.maintenanceOverdue > 0 || dashStats?.maintenanceDueSoon > 0) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <MaintenanceDueWidget
+                        overdue={dashStats.maintenanceOverdue}
+                        dueSoon={dashStats.maintenanceDueSoon}
+                    />
+                </div>
+            )}
+
+            {/* Revenue Chart — 12-month bar (full width) */}
+            {dashStats?.monthlyRevenue?.length > 0 && (
+                <RevenueChartWidget data={dashStats.monthlyRevenue} />
+            )}
+
+            {/* Revenue Chart (area, period-switchable) */}
             <div>
                 <RevenueChart bookings={bookings.bookings} darkMode={darkMode} />
+            </div>
+
+            {/* Upcoming Bookings + Top Bikes */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+                <UpcomingBookingsWidget
+                    bookings={dashStats?.upcomingBookings ?? []}
+                    onHandover={(b) => handleAction(b, "pickup")}
+                />
+                <TopBikesWidget bikes={dashStats?.topBikes ?? []} />
             </div>
 
             {/* Bottom Row: Recent Bookings */}
