@@ -1,8 +1,8 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Plus, Loader2, Edit, FileText, ArrowUpRight, ArrowDownLeft, Download, Users, ChevronRight, Calendar } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Plus, Loader2, Edit, FileText, ArrowUpRight, ArrowDownLeft, Download, Users, ChevronRight, Calendar, Camera, AlertTriangle } from "lucide-react";
 import BookingModal from "../components/bookings/BookingModal";
-import HandoverModal from "../components/dashboard/HandoverModal";
 import { STATUS } from "../utils/constants";
 import { fmtCurrency, fmtDate } from "../utils/formatters";
 import { calculateLateFee } from "../utils/calculateLateFee";
@@ -32,7 +32,8 @@ const SOURCES = [
 
 export default function BookingsPage() {
     const { darkMode, searchQuery } = useApp();
-    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories } = useData();
+    const router = useRouter();
+    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories, handoverProtocols } = useData();
     const org = useOrganization();
     const currentOrg = org.currentOrg;
     const { addToast } = useToast();
@@ -46,8 +47,6 @@ export default function BookingsPage() {
     const [showFilters, setShowFilters] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editBooking, setEditBooking] = useState(null);
-    const [handoverBooking, setHandoverBooking] = useState(null);
-    const [handoverType, setHandoverType] = useState(null);
 
     // Build category list from bikeCategories or fallback from bikes
     const categories = useMemo(() => {
@@ -137,46 +136,11 @@ export default function BookingsPage() {
     };
 
     const handlePickup = (booking) => {
-        setHandoverBooking(booking);
-        setHandoverType("pickup");
+        router.push(`/app/bookings/${booking.id}/handover`);
     };
 
     const handleReturn = (booking) => {
-        setHandoverBooking(booking);
-        setHandoverType("return");
-    };
-
-    const confirmHandover = async (protocol) => {
-        const notesText = [
-            protocol.notes,
-            protocol.damages?.length ? `Schäden: ${protocol.damages.join(", ")}` : null,
-            `Akku: ${protocol.batteryLevel}%`,
-        ].filter(Boolean).join("\n");
-
-        let updates;
-        if (handoverType === "pickup") {
-            updates = {
-                status: "picked_up",
-                pickup_notes: notesText,
-                pickup_protocol: protocol,
-                deposit_amount: handoverBooking.deposit_amount,
-                deposit_status: "held"
-            };
-        } else {
-            updates = {
-                status: "returned",
-                return_notes: notesText,
-                return_protocol: protocol,
-                deposit_status: protocol.damages?.length ? "held" : "refunded"
-            };
-        }
-        const { error } = await bookings.update(handoverBooking.id, updates);
-        if (error) {
-            addToast("Fehler: " + error.message, "error");
-        } else {
-            addToast("Erfolgreich aktualisiert", "success");
-            setHandoverBooking(null);
-        }
+        router.push(`/app/bookings/${booking.id}/return`);
     };
 
     const handleInvoice = async (booking) => {
@@ -510,6 +474,16 @@ export default function BookingsPage() {
                                                                 : `${lateFee.daysLate}T überfällig`}
                                                         </span>
                                                     )}
+                                                    {b.pickup_protocol_id && (
+                                                        <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold self-start inline-flex items-center gap-1 whitespace-nowrap">
+                                                            <Camera className="w-3 h-3" /> Fotos
+                                                        </span>
+                                                    )}
+                                                    {handoverProtocols?.protocols?.some(p => p.booking_id === b.id && p.type === "return") && (
+                                                        <span className="text-[10px] px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-bold self-start inline-flex items-center gap-1 whitespace-nowrap">
+                                                            <AlertTriangle className="w-3 h-3" /> Schaden
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </td>
                                             {/* Aktionen */}
@@ -624,15 +598,6 @@ export default function BookingsPage() {
                         }
                     }}
                     onClose={() => setShowModal(false)}
-                    darkMode={darkMode}
-                />
-            )}
-            {handoverBooking && (
-                <HandoverModal
-                    booking={handoverBooking}
-                    type={handoverType}
-                    onConfirm={confirmHandover}
-                    onClose={() => { setHandoverBooking(null); setHandoverType(null); }}
                     darkMode={darkMode}
                 />
             )}

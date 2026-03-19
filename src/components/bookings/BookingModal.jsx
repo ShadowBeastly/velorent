@@ -1,10 +1,10 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle, Tag } from "lucide-react";
+import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle, Tag } from "lucide-react"; // eslint-disable-line no-unused-vars
 import { fmtISO, addDays, daysDiff, fmtCurrency } from "../../utils/formatters";
 import { STATUS } from "../../utils/constants";
 import ContractModal from "./ContractModal";
-import { calculateDynamicPrice } from "../../utils/calculatePrice";
+import { calculatePriceSync } from "../../utils/pricingEngine";
 
 function getCancellationScenario(startDate) {
     const now = new Date();
@@ -75,7 +75,9 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState(null); // { coupon, discountAmount }
+    // eslint-disable-next-line no-unused-vars
     const [couponError, setCouponError] = useState('');
+    // eslint-disable-next-line no-unused-vars
     const [couponLoading, setCouponLoading] = useState(false);
 
     const isMarketplaceBooking = booking?.booking_source === "hotel_qr";
@@ -133,7 +135,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     // Dynamic pricing result for the current selection (used in UI hints — single bike only)
     const pricingResult = useMemo(() => {
         if (isGroupBooking || !selectedBike || !form.start_date || !form.end_date) return null;
-        return calculateDynamicPrice(selectedBike, form.start_date, form.end_date, pricingRules || []);
+        return calculatePriceSync(selectedBike, form.start_date, form.end_date, 1, pricingRules || []);
     }, [isGroupBooking, selectedBike, form.start_date, form.end_date, pricingRules]);
 
     // Auto-calc price using dynamic pricing rules (single bike)
@@ -141,13 +143,14 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         if (!bikeId || !start || !end) return 0;
         const bike = bikes.find(b => b.id === bikeId);
         if (!bike) return 0;
-        return calculateDynamicPrice(bike, start, end, pricingRules || []).totalPrice;
+        return calculatePriceSync(bike, start, end, 1, pricingRules || []).totalPrice;
     };
 
     // Calc total price for all selected bikes in group mode
     const calcGroupTotal = (selectedBikesList, start, end) => {
+        const qty = selectedBikesList.length;
         return selectedBikesList.reduce((sum, bike) => {
-            return sum + calculateDynamicPrice(bike, start, end, pricingRules || []).totalPrice;
+            return sum + calculatePriceSync(bike, start, end, qty, pricingRules || []).totalPrice;
         }, 0);
     };
 
@@ -179,7 +182,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             if (alreadySelected) {
                 nextSelected = prev.selectedBikes.filter(b => b.id !== bike.id);
             } else {
-                const subtotal = calculateDynamicPrice(bike, prev.start_date, prev.end_date, pricingRules || []).totalPrice;
+                const subtotal = calculatePriceSync(bike, prev.start_date, prev.end_date, 1, pricingRules || []).totalPrice;
                 nextSelected = [...prev.selectedBikes, { ...bike, subtotal }];
             }
             const firstBike = nextSelected[0] || null;
@@ -228,6 +231,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         });
     };
 
+    // eslint-disable-next-line no-unused-vars
     const applyCoupon = async () => {
         if (!couponCode.trim()) return;
         if (!validateCoupon) { setCouponError('Gutschein-Validierung nicht verfügbar.'); return; }
@@ -252,6 +256,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         }
     };
 
+    // eslint-disable-next-line no-unused-vars
     const removeCoupon = () => {
         setAppliedCoupon(null);
         setCouponError('');
@@ -798,6 +803,46 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                     )}
                                 </div>
                             )}
+
+                            {/* Gutscheincode */}
+                            <div>
+                                <label className={labelStyle}>Gutscheincode</label>
+                                {appliedCoupon ? (
+                                    <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-700/50">
+                                        <span className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-medium">
+                                            <Tag className="w-4 h-4" />
+                                            <code className="font-bold">{appliedCoupon.coupon.code}</code>
+                                            {' — '}{appliedCoupon.coupon.type === 'percentage' ? `${appliedCoupon.coupon.value}%` : fmtCurrency(appliedCoupon.coupon.value)} Rabatt
+                                            {' '}({fmtCurrency(appliedCoupon.discountAmount)} gespart)
+                                        </span>
+                                        <button onClick={removeCoupon} className="text-xs text-slate-500 hover:text-red-500 transition-colors underline">Entfernen</button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <div className="flex gap-2">
+                                            <input
+                                                className={`${inputStyle} font-mono uppercase tracking-wider`}
+                                                value={couponCode}
+                                                onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(''); }}
+                                                placeholder="GUTSCHEINCODE"
+                                                onKeyDown={e => e.key === 'Enter' && applyCoupon()}
+                                            />
+                                            <button
+                                                onClick={applyCoupon}
+                                                disabled={!couponCode.trim() || couponLoading}
+                                                className="px-3 py-2 bg-[#1A7D5A] hover:bg-[#156649] text-white rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap transition-colors"
+                                            >
+                                                {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Einlösen'}
+                                            </button>
+                                        </div>
+                                        {couponError && (
+                                            <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                                                <X className="w-3 h-3" /> {couponError}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
 
@@ -826,7 +871,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                             </div>
                                             <div className="space-y-1 pl-2">
                                                 {form.selectedBikes.map(bike => {
-                                                    const bikeTotal = calculateDynamicPrice(bike, form.start_date, form.end_date, pricingRules || []).totalPrice;
+                                                    const bikeTotal = calculatePriceSync(bike, form.start_date, form.end_date, form.selectedBikes.length, pricingRules || []).totalPrice;
                                                     return (
                                                         <div key={bike.id} className="flex justify-between text-xs">
                                                             <span className={darkMode ? "text-slate-400" : "text-slate-600"}>{bike.name}</span>
@@ -870,10 +915,23 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         </div>
                                     )}
 
+                                    {/* Coupon discount row */}
+                                    {appliedCoupon && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                                <Tag className="w-3.5 h-3.5" />
+                                                Gutschein ({appliedCoupon.coupon.code})
+                                            </span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                                                -{fmtCurrency(appliedCoupon.discountAmount)}
+                                            </span>
+                                        </div>
+                                    )}
+
                                     <div className="border-t my-2 pt-2 flex justify-between text-base">
                                         <span className="font-medium">Gesamtbetrag</span>
                                         <div className="text-right">
-                                            <span className="font-bold text-[#1A7D5A]">{fmtCurrency(form.total_price)}</span>
+                                            <span className="font-bold text-[#1A7D5A]">{fmtCurrency(appliedCoupon ? Math.max(0, form.total_price - (appliedCoupon.discountAmount || 0)) : form.total_price)}</span>
                                             {!isGroupBooking && pricingResult && pricingResult.baseTotal !== pricingResult.totalPrice && (
                                                 <div className={`text-xs mt-0.5 ${pricingResult.totalPrice < pricingResult.baseTotal ? "text-emerald-500" : "text-amber-500"}`}>
                                                     {pricingResult.totalPrice < pricingResult.baseTotal
