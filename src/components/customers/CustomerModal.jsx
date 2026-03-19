@@ -16,6 +16,7 @@ export default function CustomerModal({ customer, onSave, onDelete, onClose, dar
     });
     const [saving, setSaving] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const modalBg = darkMode ? "bg-slate-900" : "bg-white";
     const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-300"}`;
@@ -30,7 +31,14 @@ export default function CustomerModal({ customer, onSave, onDelete, onClose, dar
     }, [onClose]);
 
     const handleSave = async () => {
-        if (!form.first_name?.trim() || !form.last_name?.trim()) return;
+        const newErrors = {};
+        if (!form.first_name?.trim()) newErrors.first_name = true;
+        if (!form.last_name?.trim()) newErrors.last_name = true;
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+        setErrors({});
         setSaving(true);
         try {
             await onSave(form);
@@ -59,40 +67,42 @@ export default function CustomerModal({ customer, onSave, onDelete, onClose, dar
                 <div className="p-6 space-y-4 overflow-y-auto max-h-[60dvh]">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Vorname</label>
-                            <input type="text" value={form.first_name} onChange={(e) => setForm(f => ({ ...f, first_name: e.target.value }))} className={inputStyle} />
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Vorname <span className="text-rose-500">*</span></label>
+                            <input type="text" value={form.first_name || ""} onChange={(e) => { setForm(f => ({ ...f, first_name: e.target.value })); setErrors(prev => ({ ...prev, first_name: false })); }} className={`${inputStyle} ${errors.first_name ? "border-rose-500 ring-1 ring-rose-500" : ""}`} />
+                            {errors.first_name && <p className="text-xs text-rose-500 mt-1">Vorname ist erforderlich</p>}
                         </div>
                         <div>
-                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Nachname</label>
-                            <input type="text" value={form.last_name} onChange={(e) => setForm(f => ({ ...f, last_name: e.target.value }))} className={inputStyle} />
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Nachname <span className="text-rose-500">*</span></label>
+                            <input type="text" value={form.last_name || ""} onChange={(e) => { setForm(f => ({ ...f, last_name: e.target.value })); setErrors(prev => ({ ...prev, last_name: false })); }} className={`${inputStyle} ${errors.last_name ? "border-rose-500 ring-1 ring-rose-500" : ""}`} />
+                            {errors.last_name && <p className="text-xs text-rose-500 mt-1">Nachname ist erforderlich</p>}
                         </div>
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>E-Mail</label>
-                            <input type="email" value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} className={inputStyle} />
+                            <input type="email" value={form.email || ""} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} className={inputStyle} />
                         </div>
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Telefon</label>
-                            <input type="tel" value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className={inputStyle} />
+                            <input type="tel" value={form.phone || ""} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className={inputStyle} />
                         </div>
                         <div className="sm:col-span-2">
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Adresse</label>
-                            <input type="text" value={form.address} onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))} className={inputStyle} />
+                            <input type="text" value={form.address || ""} onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))} className={inputStyle} />
                         </div>
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>PLZ</label>
-                            <input type="text" value={form.postal_code} onChange={(e) => setForm(f => ({ ...f, postal_code: e.target.value }))} className={inputStyle} />
+                            <input type="text" value={form.postal_code || ""} onChange={(e) => setForm(f => ({ ...f, postal_code: e.target.value }))} className={inputStyle} />
                         </div>
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Stadt</label>
-                            <input type="text" value={form.city} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} className={inputStyle} />
+                            <input type="text" value={form.city || ""} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} className={inputStyle} />
                         </div>
                         <div className="sm:col-span-2">
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Ausweis-Nr.</label>
-                            <input type="text" value={form.id_number} onChange={(e) => setForm(f => ({ ...f, id_number: e.target.value }))} className={inputStyle} />
+                            <input type="text" value={form.id_number || ""} onChange={(e) => setForm(f => ({ ...f, id_number: e.target.value }))} className={inputStyle} />
                         </div>
                         <div className="sm:col-span-2">
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Notizen</label>
-                            <textarea value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={inputStyle} />
+                            <textarea value={form.notes || ""} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={inputStyle} />
                         </div>
                     </div>
                 </div>
