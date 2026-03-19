@@ -6,7 +6,7 @@ import { NAVIGATION_ITEMS } from "../../utils/navigationItems";
 import { useApp } from "../../context/AppContext";
 import { useData } from "../../context/DataContext";
 
-export default function Header() {
+export default function Header({ bannerOffset }) {
     const pathname = usePathname();
     const { sidebarOpen, setSidebarOpen, searchQuery, setSearchQuery, darkMode, setDarkMode } = useApp();
     const { notifications } = useData();
@@ -27,7 +27,7 @@ export default function Header() {
     }, [showNotifications]);
 
     return (
-        <header className={`sticky top-0 z-30 ${darkMode ? "bg-slate-900/80 border-slate-800" : "bg-white/80 border-slate-200"} backdrop-blur-xl border-b transition-colors duration-300`}>
+        <header className={`sticky ${bannerOffset ? "top-10" : "top-0"} z-30 ${darkMode ? "bg-slate-900/80 border-slate-800" : "bg-white/80 border-slate-200"} backdrop-blur-xl border-b transition-colors duration-300`}>
             <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
                 <div className="flex items-center gap-3 min-w-0">
                     <button

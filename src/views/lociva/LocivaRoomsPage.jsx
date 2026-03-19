@@ -5,7 +5,7 @@ import {
     QrCode, Download, ToggleLeft, ToggleRight, Layers,
 } from "lucide-react";
 import QRCode from "qrcode";
-import { useLocivaHotel } from "@/app/app/lociva/layout";
+import { useLocivaHotel } from "@/src/context/LocivaHotelContext";
 import { useApp } from "@/src/context/AppContext";
 import { useHotelRooms } from "@/src/hooks/useHotelRooms";
 

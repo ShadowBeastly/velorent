@@ -5,7 +5,7 @@ import {
     ResponsiveContainer, CartesianGrid,
 } from "recharts";
 import { BarChart3, QrCode, BookOpen, TrendingUp, AlertCircle } from "lucide-react";
-import { useLocivaHotel } from "@/app/app/lociva/layout";
+import { useLocivaHotel } from "@/src/context/LocivaHotelContext";
 import { useApp } from "@/src/context/AppContext";
 import { supabase } from "@/src/utils/supabase";
 

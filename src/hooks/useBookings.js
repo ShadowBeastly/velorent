@@ -34,6 +34,9 @@ export function useBookings(orgId) {
             selectedAddOns = [],
             id_number,
             customer_id_number,
+            // Strip fields that don't exist on the bookings table
+            // eslint-disable-next-line no-unused-vars
+            customer_address: _ca, city: _city,
             ...bookingRow
         } = booking;
 

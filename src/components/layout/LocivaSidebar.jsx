@@ -88,8 +88,8 @@ export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen
                     {/* Navigation */}
                     <nav aria-label="Lociva Navigation" className="flex-1 px-3 space-y-1 overflow-y-auto py-3">
                         {LOCIVA_NAVIGATION_ITEMS.map((item) => {
-                            const isActive = item.path === "/app/lociva"
-                                ? pathname === "/app/lociva" || pathname === "/app/lociva/"
+                            const isActive = item.path === "/hotel"
+                                ? pathname === "/hotel" || pathname === "/hotel/"
                                 : pathname.startsWith(item.path);
 
                             return (

@@ -4,7 +4,7 @@ import {
     QrCode, BookOpen, Zap, BedDouble, TrendingUp, ArrowRight,
     Sparkles, CheckCircle2, AlertCircle,
 } from "lucide-react";
-import { useLocivaHotel } from "@/app/app/lociva/layout";
+import { useLocivaHotel } from "@/src/context/LocivaHotelContext";
 import { useApp } from "@/src/context/AppContext";
 import { supabase } from "@/src/utils/supabase";
 
@@ -290,7 +290,7 @@ export default function LocivaDashboardPage() {
                         <div className={`rounded-2xl border overflow-hidden ${card}`}>
                             <div className={`px-5 py-4 border-b ${darkMode ? "border-slate-700" : "border-slate-200"} flex items-center justify-between`}>
                                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Letzte Buchungen</h2>
-                                <a href="/app/lociva/analytics"
+                                <a href="/hotel/analytics"
                                     className="text-sm font-medium flex items-center gap-1 hover:underline"
                                     style={{ color: C.primary }}>
                                     Alle Statistiken <ArrowRight className="w-3.5 h-3.5" />
