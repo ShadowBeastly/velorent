@@ -281,7 +281,8 @@ export default function BookingsPage() {
                         </button>
                         <button
                             onClick={() => { setEditBooking(null); setShowModal(true); }}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25"
+                            disabled={showModal}
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Plus className="w-4 h-4" />
                             Neue Buchung
