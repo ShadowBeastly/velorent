@@ -8,6 +8,7 @@ import { AppProvider, useApp } from "../../../src/context/AppContext";
 import { supabase } from "../../../src/utils/supabase";
 import LocivaSidebar from "../../../src/components/layout/LocivaSidebar";
 import LoadingScreen from "../../../src/components/ui/LoadingScreen";
+import DemoBanner from "../../../src/components/ui/DemoBanner";
 
 // ---------------------------------------------------------------------------
 // Context
@@ -130,9 +131,12 @@ function LocivaShell({ children }) {
         );
     }
 
+    const isDemo = auth.user?.email === process.env.NEXT_PUBLIC_DEMO_EMAIL;
+
     return (
         <LocivaHotelContext.Provider value={{ hotel, hotelId, reload }}>
-            <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
+            <div className={`min-h-screen transition-colors duration-300 ${isDemo ? "pt-10" : ""} ${darkMode ? "dark bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
+                <DemoBanner userEmail={auth.user?.email} onExit={auth.signOut} />
                 {/* Skip to main content */}
                 <a
                     href="#lociva-main"
