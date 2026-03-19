@@ -55,7 +55,7 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL("/app/admin", request.url));
         }
         if (role === "hotel") {
-            return NextResponse.redirect(new URL("/app/hotel-stats", request.url));
+            return NextResponse.redirect(new URL("/app/lociva", request.url));
         }
         return NextResponse.redirect(new URL("/app", request.url));
     }

@@ -32,9 +32,9 @@ export default function DemoPage() {
                 // Sign in as demo
                 await signIn(demoEmail, demoPassword);
 
-                // Set demo org and redirect
+                // Set demo org and redirect to Lociva hotel dashboard
                 localStorage.setItem("currentOrgId", "d0000000-0000-0000-0000-000000000001");
-                router.push("/app");
+                router.push("/app/lociva");
             } catch (err) {
                 started.current = false;
                 setError(

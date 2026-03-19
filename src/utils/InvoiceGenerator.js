@@ -86,11 +86,14 @@ export const generateInvoice = (invoice, organization) => {
     // Fallback if items are empty but we have booking totals
     if (items.length === 0 && invoice.booking) {
         // Create detailed items from booking
+        const days = invoice.booking.total_days || 1;
+        const subtotal = invoice.booking.subtotal || invoice.booking.total || 0;
+        const unitPrice = invoice.booking.price_per_day || (days > 0 ? subtotal / days : subtotal);
         items.push({
             description: `Fahrradmiete: ${invoice.booking.bike?.name || 'Bike'} (${formatDate(invoice.booking.start_date)} - ${formatDate(invoice.booking.end_date)})`,
-            quantity: `${invoice.booking.total_days} Tage`,
-            unit_price: invoice.booking.price_per_day,
-            total: invoice.booking.subtotal || (invoice.booking.price_per_day * invoice.booking.total_days)
+            quantity: `${days} Tage`,
+            unit_price: unitPrice,
+            total: subtotal
         });
         if (invoice.booking.deposit_amount > 0) {
             // Deposits usually handled separately or noted, depending on accounting. 
@@ -145,10 +148,10 @@ export const generateInvoice = (invoice, organization) => {
     // Bold Total
     doc.setFontSize(14);
     doc.setTextColor(blackColor);
-    doc.setFont(undefined, 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.text('GESAMTBETRAG:', rightColX, finalY + 18, { align: 'left' });
     doc.text(formatCurrency(invoice.total), valueColX, finalY + 18, { align: 'right' });
-    doc.setFont(undefined, 'normal');
+    doc.setFont('helvetica', 'normal');
 
     // --- FOOTER ---
     const footerY = pageHeight - 15;
