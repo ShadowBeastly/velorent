@@ -18,7 +18,11 @@ const formatCurrency = (amount) => {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount || 0);
 };
 
-export const generateContract = (booking, organization) => {
+/**
+ * @param {string|null} signatureDataUrl  base64 PNG data URL of the customer signature
+ */
+export const generateContract = (booking, organization, // eslint-disable-next-line no-unused-vars
+ signatureDataUrl = null) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;

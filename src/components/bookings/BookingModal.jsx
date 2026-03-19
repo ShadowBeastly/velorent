@@ -1,10 +1,10 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle, PenLine } from "lucide-react";
+import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle, PenLine, Tag } from "lucide-react";
 import { fmtISO, addDays, daysDiff, fmtCurrency } from "../../utils/formatters";
 import { STATUS } from "../../utils/constants";
 import ContractModal from "./ContractModal";
-import { calculateDynamicPrice } from "../../utils/calculatePrice";
+import { calculatePriceSync } from "../../utils/pricingEngine";
 import { useOrganization } from "../../context/OrgContext";
 import { supabase } from "../../utils/supabase";
 import { generateContract } from "../../utils/ContractGenerator";

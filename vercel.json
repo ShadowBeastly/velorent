@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd widget && npm install && npm run build && cd .. && npm run build",
+  "crons": [
+    {
+      "path": "/api/cron/reminders",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}
