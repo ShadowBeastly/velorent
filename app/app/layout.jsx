@@ -11,6 +11,7 @@ import LoadingScreen from "../../src/components/ui/LoadingScreen";
 import OnboardingPage from "../../src/views/OnboardingPage";
 import OnboardingWizard from "../../src/components/onboarding/OnboardingWizard";
 import { ToastProvider } from "../../src/components/ui/Toast";
+import DemoBanner from "../../src/components/ui/DemoBanner";
 
 function AppShell({ children }) {
     const router = useRouter();
@@ -30,6 +31,7 @@ function AppShell({ children }) {
 
     return (
         <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
+            <DemoBanner userEmail={auth.user?.email} onExit={auth.signOut} />
             {/* Skip to main content — visible on focus for keyboard users */}
             <a
                 href="#main-content"
