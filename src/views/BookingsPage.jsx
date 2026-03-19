@@ -32,7 +32,7 @@ const SOURCES = [
 
 export default function BookingsPage() {
     const { darkMode, searchQuery } = useApp();
-    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories } = useData();
+    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories, maintenanceDue, coupons } = useData();
     const org = useOrganization();
     const currentOrg = org.currentOrg;
     const { addToast } = useToast();
@@ -94,7 +94,8 @@ export default function BookingsPage() {
     const hasActiveFilters = categoryFilter !== "all" || paymentFilter !== "all" || sourceFilter !== "all" || dateFrom || dateTo;
 
     const handleSave = async (data) => {
-        let bookingData = { ...data };
+        const { _couponId, _couponDiscountAmount, ...rest } = data;
+        let bookingData = { ...rest };
 
         // Handle new customer creation
         if (!bookingData.customer_id && bookingData.customer_name) {
@@ -105,11 +106,11 @@ export default function BookingsPage() {
             const newCustomer = {
                 first_name: firstName,
                 last_name: lastName,
-                email: bookingData.customer_email || null, // Allow null
-                phone: bookingData.customer_phone || null, // Allow null
+                email: bookingData.customer_email || null,
+                phone: bookingData.customer_phone || null,
                 id_number: bookingData.id_number,
                 address: bookingData.customer_address,
-                city: bookingData.city || "", // Optional
+                city: bookingData.city || "",
             };
 
             const { data: createdCustomer, error } = await customers.create(newCustomer);
@@ -127,10 +128,13 @@ export default function BookingsPage() {
                 return;
             }
         } else {
-            const { error } = await bookings.create(bookingData, addOns.addOns);
+            const { data: newBooking, error } = await bookings.create(bookingData, addOns.addOns);
             if (error) {
                 addToast("Fehler beim Erstellen: " + error.message, "error");
                 return;
+            }
+            if (newBooking?.id && _couponId && _couponDiscountAmount) {
+                await coupons.recordUsage(_couponId, newBooking.id, _couponDiscountAmount);
             }
         }
         setShowModal(false);
@@ -152,6 +156,9 @@ export default function BookingsPage() {
             protocol.damages?.length ? `Schäden: ${protocol.damages.join(", ")}` : null,
             `Akku: ${protocol.batteryLevel}%`,
         ].filter(Boolean).join("\n");
+
+        const bikeId = handoverBooking.bike_id;
+        const wasReturn = handoverType === "return";
 
         let updates;
         if (handoverType === "pickup") {
@@ -175,6 +182,10 @@ export default function BookingsPage() {
             addToast("Fehler: " + error.message, "error");
         } else {
             addToast("Erfolgreich aktualisiert", "success");
+            if (wasReturn && maintenanceDue) {
+                const daysRented = handoverBooking.total_days || 1;
+                await maintenanceDue.logReturn(bikeId, protocol.checklist || {}, daysRented);
+            }
             setHandoverBooking(null);
         }
     };
@@ -185,13 +196,11 @@ export default function BookingsPage() {
             return;
         }
 
-        // 1. Calculate Amounts
         const total = Number(booking.total_price);
         const taxRate = currentOrg?.tax_rate ?? 19;
         const net = total / (1 + (taxRate / 100));
         const tax = total - net;
 
-        // 2. Prepare Data
         const invoiceNumber = `RE-${(booking.booking_number || '000').replace(/^[A-Z]+-/, '')}`;
         const items = [{
             description: `Fahrradmiete: ${booking.bike?.name || 'Bike'} (${fmtDate(booking.start_date)} - ${fmtDate(booking.end_date)})`,
@@ -210,21 +219,18 @@ export default function BookingsPage() {
             tax_amount: tax,
             total: total,
             status: 'draft',
-            due_date: booking.end_date, // Due on return
+            due_date: booking.end_date,
             items: items
         };
 
         try {
-            // 3. Save to Database
             if (invoices && invoices.create) {
                 const { error } = await invoices.create(invoiceData);
                 if (error) {
                     console.error("DB Error:", error);
-                    // Continue to offer PDF even if DB Save fails (fallback)
                 }
             }
 
-            // 4. Generate PDF
             const pdfData = {
                 ...invoiceData,
                 created_at: new Date().toISOString(),
@@ -245,7 +251,6 @@ export default function BookingsPage() {
         }
     };
 
-    // Helper: get initials from customer name
     const getInitials = (name) => {
         if (!name) return "?";
         const parts = name.trim().split(" ");
@@ -458,7 +463,7 @@ export default function BookingsPage() {
                                             <td className="px-6 py-4">
                                                 <span className="font-semibold text-[#1A7D5A] text-sm">{b.booking_number}</span>
                                             </td>
-                                            {/* Kunde — Avatar + Name + Email/Phone */}
+                                            {/* Kunde */}
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 rounded-full bg-[#D4EDE2] dark:bg-[#1A7D5A]/20 flex items-center justify-center text-[#1A7D5A] text-xs font-bold shrink-0">
@@ -614,6 +619,7 @@ export default function BookingsPage() {
                     existingBookings={bookings.bookings}
                     pricingRules={pricingRules?.rules || []}
                     addOns={addOns.addOns}
+                    validateCoupon={coupons?.validateCoupon}
                     onSave={handleSave}
                     onDelete={async (id, cancellationStatus) => {
                         const { error } = await bookings.remove(id, cancellationStatus);

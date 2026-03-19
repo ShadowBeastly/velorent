@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Plus, Loader2, Check, RefreshCw, LayoutGrid, List, MoreHorizontal, Battery, Gauge, Download, Edit } from "lucide-react";
+import { Plus, Loader2, Check, RefreshCw, LayoutGrid, List, MoreHorizontal, Battery, Gauge, Download, Edit, AlertTriangle } from "lucide-react";
 import { BIKE_COLORS } from "../utils/constants";
 import { fmtCurrency } from "../utils/formatters";
 import BikeModal from "../components/fleet/BikeModal";
@@ -13,7 +13,7 @@ const FRAME_SIZES = ["XS", "S", "M", "L", "XL"];
 
 export default function FleetPage() {
     const { darkMode, searchQuery } = useApp();
-    const { bikes, bookings, bikeCategories } = useData();
+    const { bikes, bookings, bikeCategories, maintenanceDue } = useData();
     const { addToast } = useToast();
     const [showModal, setShowModal] = useState(false);
     const [editBike, setEditBike] = useState(null);
@@ -76,7 +76,9 @@ export default function FleetPage() {
 
     const getBikeStatus = (bike) => {
         const isOut = bookings.bookings.some(b => b.bike_id === bike.id && b.status === "picked_up");
+        const isOverdue = maintenanceDue?.overdueBikeIds?.has(bike.id);
         if (isOut) return { label: "Vermietet", bg: "bg-[#1A7D5A]", text: "text-white" };
+        if (isOverdue) return { label: "Wartung fällig", bg: "bg-rose-500", text: "text-white" };
         if (bike.status === "maintenance") return { label: "Wartung", bg: "bg-slate-500", text: "text-white" };
         return { label: "Verfügbar", bg: "bg-emerald-500", text: "text-white" };
     };
@@ -226,14 +228,15 @@ export default function FleetPage() {
                     <Loader2 className="w-8 h-8 animate-spin text-[#1A7D5A]" />
                 </div>
             ) : viewMode === "grid" ? (
-                /* GRID VIEW — Design Mockup Style */
+                /* GRID VIEW */
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filtered.map((bike) => {
                         const globalIdx = bikes.bikes.findIndex(b => b.id === bike.id);
                         const status = getBikeStatus(bike);
+                        const isOverdue = maintenanceDue?.overdueBikeIds?.has(bike.id);
 
                         return (
-                            <div key={bike.id} className={`rounded-xl border overflow-hidden shadow-sm group transition-all hover:shadow-md ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}>
+                            <div key={bike.id} className={`rounded-xl border overflow-hidden shadow-sm group transition-all hover:shadow-md ${isOverdue ? (darkMode ? "bg-slate-900 border-rose-800" : "bg-white border-rose-300") : darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}>
                                 {/* Image / Color Placeholder */}
                                 <div className="aspect-video relative overflow-hidden">
                                     <div className={`w-full h-full ${BIKE_COLORS[globalIdx % BIKE_COLORS.length]} opacity-20`} />
@@ -248,6 +251,15 @@ export default function FleetPage() {
                                             {status.label}
                                         </span>
                                     </div>
+                                    {/* Overdue warning badge */}
+                                    {isOverdue && (
+                                        <div className="absolute top-3 right-3">
+                                            <span className="bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
+                                                <AlertTriangle className="w-3 h-3" />
+                                                Wartung!
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Card Body */}
@@ -331,16 +343,20 @@ export default function FleetPage() {
                                 {filtered.map((bike) => {
                                     const globalIdx = bikes.bikes.findIndex(b => b.id === bike.id);
                                     const status = getBikeStatus(bike);
+                                    const isOverdue = maintenanceDue?.overdueBikeIds?.has(bike.id);
 
                                     return (
-                                        <tr key={bike.id} className={`transition-colors ${darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"}`}>
+                                        <tr key={bike.id} className={`transition-colors ${isOverdue ? (darkMode ? "bg-rose-500/5 hover:bg-rose-500/10" : "bg-rose-50/50 hover:bg-rose-50") : darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"}`}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-8 h-8 rounded-lg ${BIKE_COLORS[globalIdx % BIKE_COLORS.length]} flex items-center justify-center text-white font-bold text-xs`}>
                                                         {globalIdx + 1}
                                                     </div>
                                                     <div>
-                                                        <div className="text-sm font-bold">{bike.name}</div>
+                                                        <div className="text-sm font-bold flex items-center gap-2">
+                                                            {bike.name}
+                                                            {isOverdue && <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />}
+                                                        </div>
                                                         <div className={`text-[10px] ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{bike.frame_number}</div>
                                                     </div>
                                                 </div>
@@ -351,11 +367,13 @@ export default function FleetPage() {
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
                                                     status.label === "Vermietet" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                                    : status.label === "Wartung fällig" ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
                                                     : status.label === "Wartung" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                                                     : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
                                                 }`}>
                                                     <span className={`w-1.5 h-1.5 rounded-full ${
                                                         status.label === "Vermietet" ? "bg-blue-500"
+                                                        : status.label === "Wartung fällig" ? "bg-rose-500"
                                                         : status.label === "Wartung" ? "bg-amber-500"
                                                         : "bg-emerald-500"
                                                     }`} />

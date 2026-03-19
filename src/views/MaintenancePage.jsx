@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Plus, Loader2, Edit, Trash2, Wrench, CheckCircle, Clock } from "lucide-react";
+import { Plus, Loader2, Edit, Trash2, Wrench, CheckCircle, Clock, AlertTriangle, ChevronUp, ChevronDown, Activity } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
 import { useToast } from "../components/ui/Toast";
@@ -19,14 +19,23 @@ const STATUS_LABELS = {
     completed: { label: "Erledigt", icon: CheckCircle, color: "text-emerald-500" }
 };
 
+// 0 = overdue, 1 = due soon, 2 = ok
+function urgencyScore(bikeId, dueMap) {
+    const entries = dueMap.get(bikeId) || [];
+    if (entries.some(m => m.is_overdue)) return 0;
+    if (entries.length > 0) return 1;
+    return 2;
+}
+
 export default function MaintenancePage() {
     const { darkMode } = useApp();
-    const { maintenanceBlocks, bikes } = useData();
+    const { maintenanceBlocks, bikes, maintenanceDue } = useData();
     const { addToast } = useToast();
     const [statusFilter, setStatusFilter] = useState("all");
     const [showForm, setShowForm] = useState(false);
     const [editBlock, setEditBlock] = useState(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+    const [sortDir, setSortDir] = useState("asc");
     const [form, setForm] = useState({
         bike_id: "", type: "service", description: "",
         cost: "", start_date: "", end_date: "", status: "scheduled", performed_by: ""
@@ -36,6 +45,30 @@ export default function MaintenancePage() {
     const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none text-sm transition-all ${darkMode
         ? "bg-slate-800 border-slate-700 text-white focus:border-[#1A7D5A]"
         : "bg-slate-50 border-slate-200 text-slate-900 focus:border-[#1A7D5A] focus:bg-white"}`;
+
+    const dueMap = useMemo(() => {
+        const m = new Map();
+        (maintenanceDue?.dueMaintenances || []).forEach(entry => {
+            if (!m.has(entry.bike_id)) m.set(entry.bike_id, []);
+            m.get(entry.bike_id).push(entry);
+        });
+        return m;
+    }, [maintenanceDue?.dueMaintenances]);
+
+    const overviewRows = useMemo(() => {
+        const rows = bikes.bikes.map(bike => ({
+            bike,
+            score: urgencyScore(bike.id, dueMap),
+            entries: dueMap.get(bike.id) || [],
+        }));
+        rows.sort((a, b) => sortDir === "asc" ? a.score - b.score : b.score - a.score);
+        return rows;
+    }, [bikes.bikes, dueMap, sortDir]);
+
+    const overdueCount = maintenanceDue?.overdueCount || 0;
+    const soonCount = maintenanceDue?.soonDueCount || 0;
+    const dueBikeIds = new Set((maintenanceDue?.dueMaintenances || []).map(m => m.bike_id));
+    const okCount = bikes.bikes.filter(b => !dueBikeIds.has(b.id)).length;
 
     const filtered = useMemo(() => {
         return maintenanceBlocks.blocks.filter(b =>
@@ -71,7 +104,6 @@ export default function MaintenancePage() {
             const wasCompleted = editBlock.status !== "completed" && payload.status === "completed";
             const { error } = await maintenanceBlocks.update(editBlock.id, payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
-            // Auto-reset bike to "available" when maintenance is marked completed
             if (wasCompleted && payload.bike_id) {
                 const { error: bikeError } = await bikes.update(payload.bike_id, { status: "available" });
                 if (bikeError) addToast("Warnung: Fahrrad-Status konnte nicht zurückgesetzt werden.", "error");
@@ -99,31 +131,134 @@ export default function MaintenancePage() {
                     <div>
                         <h1 className="text-2xl font-bold">Wartung</h1>
                         <p className={`text-sm mt-1 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                            Wartungsblöcke, Reparaturen und Service-Termine verwalten
+                            Wartungsintervalle, Status und Service-Termine verwalten
                         </p>
                     </div>
                     <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#1A7D5A] text-white rounded-xl font-medium shadow-lg shadow-[#1A7D5A]/25 hover:shadow-[#1A7D5A]/40 transition-all">
                         <Plus className="w-4 h-4" /> Neuer Wartungsblock
                     </button>
                 </div>
-                {/* Status Filter */}
-                <div className="flex items-center gap-2 mt-4">
-                    {["all", "scheduled", "in_progress", "completed"].map(s => (
-                        <button key={s} onClick={() => setStatusFilter(s)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${statusFilter === s
-                                ? "bg-brand-500 text-white"
-                                : darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"
-                                }`}>
-                            {s === "all" ? "Alle" : STATUS_LABELS[s]?.label}
-                        </button>
-                    ))}
+
+                {/* Summary Stats */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+                    <div className={`rounded-xl p-4 border ${darkMode ? "border-slate-700 bg-slate-800/50" : "border-slate-100 bg-slate-50"}`}>
+                        <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Gesamt</div>
+                        <div className="text-2xl font-bold">{bikes.bikes.length}</div>
+                    </div>
+                    <div className={`rounded-xl p-4 border ${darkMode ? "border-rose-900/50 bg-rose-900/10" : "border-rose-100 bg-rose-50"}`}>
+                        <div className="text-xs font-bold uppercase tracking-wider mb-1 text-rose-500">Überfällig</div>
+                        <div className="text-2xl font-bold text-rose-500">{overdueCount}</div>
+                    </div>
+                    <div className={`rounded-xl p-4 border ${darkMode ? "border-amber-900/50 bg-amber-900/10" : "border-amber-100 bg-amber-50"}`}>
+                        <div className="text-xs font-bold uppercase tracking-wider mb-1 text-amber-500">Bald fällig</div>
+                        <div className="text-2xl font-bold text-amber-500">{soonCount}</div>
+                    </div>
+                    <div className={`rounded-xl p-4 border ${darkMode ? "border-emerald-900/50 bg-emerald-900/10" : "border-emerald-100 bg-emerald-50"}`}>
+                        <div className="text-xs font-bold uppercase tracking-wider mb-1 text-emerald-500">OK</div>
+                        <div className="text-2xl font-bold text-emerald-500">{okCount}</div>
+                    </div>
                 </div>
             </div>
 
-            {/* Table */}
+            {/* Fleet Status Overview */}
             <div className={`rounded-2xl border overflow-hidden ${cardStyle}`}>
+                <div className={`px-6 py-4 border-b flex items-center justify-between ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                    <h2 className="font-semibold flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-[#1A7D5A]" />
+                        Flotten-Wartungsstatus
+                    </h2>
+                    <button
+                        onClick={() => setSortDir(d => d === "asc" ? "desc" : "asc")}
+                        className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg transition-colors ${darkMode ? "hover:bg-slate-800 text-slate-400" : "hover:bg-slate-100 text-slate-500"}`}
+                    >
+                        Dringlichkeit
+                        {sortDir === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    </button>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className={darkMode ? "bg-slate-800/50" : "bg-slate-50"}>
+                            <tr className={`text-left text-xs font-bold uppercase tracking-wider ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                <th className="px-4 py-3">Fahrrad</th>
+                                <th className="px-4 py-3">Status</th>
+                                <th className="px-4 py-3">Nächste Wartung</th>
+                                <th className="px-4 py-3">Typ</th>
+                                <th className="px-4 py-3 hidden md:table-cell">Letzte Wartung</th>
+                                <th className="px-4 py-3 hidden lg:table-cell">Einsätze</th>
+                            </tr>
+                        </thead>
+                        <tbody className={`divide-y ${darkMode ? "divide-slate-800" : "divide-slate-100"}`}>
+                            {overviewRows.map(({ bike, score, entries }) => {
+                                const nextEntry = entries[0];
+                                return (
+                                    <tr key={bike.id} className={`${score === 0 ? (darkMode ? "bg-rose-500/5" : "bg-rose-50/60") : score === 1 ? (darkMode ? "bg-amber-500/5" : "bg-amber-50/40") : ""} ${darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"}`}>
+                                        <td className="px-4 py-3">
+                                            <div className="font-medium text-sm">{bike.name}</div>
+                                            <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{bike.category}</div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {score === 0 ? (
+                                                <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">
+                                                    <AlertTriangle className="w-3 h-3" /> Überfällig
+                                                </span>
+                                            ) : score === 1 ? (
+                                                <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                                    <Clock className="w-3 h-3" /> Bald fällig
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                    <CheckCircle className="w-3 h-3" /> OK
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm">
+                                            {nextEntry ? fmtDate(nextEntry.next_due_at) : <span className={`text-xs ${darkMode ? "text-slate-600" : "text-slate-400"}`}>Kein Intervall</span>}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm">
+                                            {nextEntry?.type ? (
+                                                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium capitalize">
+                                                    {nextEntry.type}
+                                                </span>
+                                            ) : "—"}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm hidden md:table-cell">
+                                            {nextEntry?.last_performed_at ? fmtDate(nextEntry.last_performed_at) : <span className={`text-xs ${darkMode ? "text-slate-600" : "text-slate-400"}`}>—</span>}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm hidden lg:table-cell">
+                                            {nextEntry?.total_rentals ?? "—"}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                    {bikes.bikes.length === 0 && (
+                        <div className={`text-center py-12 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                            <Wrench className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                            <p>Keine Fahrräder in der Flotte.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Maintenance Blocks */}
+            <div className={`rounded-2xl border overflow-hidden ${cardStyle}`}>
+                <div className={`px-6 py-4 border-b flex items-center justify-between ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                    <h2 className="font-semibold">Wartungsblöcke</h2>
+                    <div className="flex items-center gap-2">
+                        {["all", "scheduled", "in_progress", "completed"].map(s => (
+                            <button key={s} onClick={() => setStatusFilter(s)}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${statusFilter === s
+                                    ? "bg-[#1A7D5A] text-white"
+                                    : darkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"
+                                    }`}>
+                                {s === "all" ? "Alle" : STATUS_LABELS[s]?.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 {maintenanceBlocks.loading ? (
-                    <div className="flex items-center justify-center h-64">
+                    <div className="flex items-center justify-center h-48">
                         <Loader2 className="w-8 h-8 animate-spin text-[#1A7D5A]" />
                     </div>
                 ) : (
@@ -203,7 +338,7 @@ export default function MaintenancePage() {
                 </div>
             )}
 
-            {/* Modal */}
+            {/* Wartungsblock Modal */}
             {showForm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className={`w-full max-w-lg rounded-2xl border p-6 ${cardStyle} shadow-2xl max-h-[90dvh] overflow-y-auto`}>
