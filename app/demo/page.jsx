@@ -21,8 +21,9 @@ export default function DemoPage() {
     useEffect(() => {
         if (loading || error) return;
 
-        // Already signed in as demo user → redirect
+        // Already signed in as demo user → set demo org and redirect
         if (user?.email === demoEmail) {
+            localStorage.setItem("currentOrgId", "d0000000-0000-0000-0000-000000000001");
             router.push("/app");
             return;
         }
