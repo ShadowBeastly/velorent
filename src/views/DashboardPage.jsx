@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Bike, TrendingUp, Users, BarChart3, AlertTriangle } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
@@ -11,6 +11,10 @@ import HotelBookingsCard from "../components/dashboard/HotelBookingsCard";
 import StripePayoutCard from "../components/dashboard/StripePayoutCard";
 import LocivaBadge from "../components/dashboard/LocivaBadge";
 import HandoverModal from "../components/dashboard/HandoverModal";
+import MaintenanceDueWidget from "../components/dashboard/MaintenanceDueWidget";
+import UpcomingBookingsWidget from "../components/dashboard/UpcomingBookingsWidget";
+import TopBikesWidget from "../components/dashboard/TopBikesWidget";
+import RevenueChartWidget from "../components/dashboard/RevenueChartWidget";
 import { fmtCurrency } from "../utils/formatters";
 import { calculateLateFee } from "../utils/calculateLateFee";
 import { useApp } from "../context/AppContext";

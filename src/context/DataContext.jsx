@@ -9,7 +9,10 @@ import { useBikeCategories } from "../hooks/useBikeCategories";
 import { useAddOns } from "../hooks/useAddOns";
 import { useMaintenanceBlocks } from "../hooks/useMaintenanceBlocks";
 import { useVouchers } from "../hooks/useVouchers";
+import { useCoupons } from "../hooks/useCoupons";
 import { usePricingRules } from "../hooks/usePricingRules";
+import { useDeposits } from "../hooks/useDeposits";
+import { useHandoverProtocols } from "../hooks/useHandoverProtocols";
 import { fmtISO, fmtCurrency } from "../utils/formatters";
 import { calculateLateFee } from "../utils/calculateLateFee";
 
@@ -27,7 +30,10 @@ export function DataProvider({ children }) {
     const addOns = useAddOns(orgId);
     const maintenanceBlocks = useMaintenanceBlocks(orgId);
     const vouchers = useVouchers(orgId);
+    const coupons = useCoupons(orgId);
     const pricingRules = usePricingRules(orgId);
+    const deposits = useDeposits(orgId);
+    const handoverProtocols = useHandoverProtocols(orgId);
 
     const todayStr = fmtISO(new Date());
     const notifications = useMemo(() => {
@@ -61,7 +67,10 @@ export function DataProvider({ children }) {
             addOns,
             maintenanceBlocks,
             vouchers,
+            coupons,
             pricingRules,
+            deposits,
+            handoverProtocols,
             notifications
         }}>
             {children}
