@@ -30,7 +30,7 @@ INSERT INTO organizations (
     '+49 69 900000',
     'demo@rentcore.de',
     'https://rentcore.de',
-    'Demo-Account — Fahrrad- und E-Bike-Verleih im Herzen Frankfurts.',
+    'Demo-Account. Fahrrad- und E-Bike-Verleih im Herzen Frankfurts.',
     '{"demo": true}'::jsonb
 ) ON CONFLICT (id) DO NOTHING;
 
@@ -57,7 +57,7 @@ INSERT INTO bikes (id, organization_id, name, category, brand, model, price_per_
 ('d1000000-0000-0000-0000-000000000004', 'd0000000-0000-0000-0000-000000000001',
  'Riese & Müller Load 75', 'Lastenrad', 'Riese & Müller', 'Load 75',
  65.00, 360.00, 250, 'available',
- 'Elektrisches Lastenrad mit Bosch Performance CX — ideal für Familien oder Großeinkäufe.',
+ 'Elektrisches Lastenrad mit Bosch Performance CX. Ideal für Familien oder Großeinkäufe.',
  '500Wh', 2024, 'Dunkelgrün'),
 
 ('d1000000-0000-0000-0000-000000000005', 'd0000000-0000-0000-0000-000000000001',

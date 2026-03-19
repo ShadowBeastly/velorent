@@ -182,7 +182,7 @@ export default function TeamManagement() {
                 </div>
             </div>
 
-            {/* Invite Form — only owners/admins */}
+            {/* Invite Form. Only owners/admins */}
             {canManage && (
                 <form onSubmit={handleInvite} className={`flex flex-col sm:flex-row gap-3 mb-6 p-4 rounded-xl ${darkMode ? "bg-slate-800" : "bg-slate-50"}`}>
                     <div className="flex-1">
@@ -241,7 +241,7 @@ export default function TeamManagement() {
                 <div className="space-y-2">
                     {members.map(member => {
                         const isMe = member.user_id === user?.id;
-                        const displayName = member.profile?.full_name || member.invited_email || member.profile?.email || "—";
+                        const displayName = member.profile?.full_name || member.invited_email || member.profile?.email || "";
                         const displayEmail = member.profile?.email || member.invited_email || "";
                         const joinedDate = member.joined_at
                             ? new Date(member.joined_at).toLocaleDateString("de-DE")
@@ -281,7 +281,7 @@ export default function TeamManagement() {
                                     </div>
                                 </div>
 
-                                {/* Role Selector + Remove — only for owners/admins, not for self */}
+                                {/* Role Selector + Remove. Only for owners/admins, not for self */}
                                 {canManage && !isMe && (
                                     <div className="flex items-center gap-2 flex-shrink-0">
                                         <div className="relative">

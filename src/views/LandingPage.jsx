@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   QrCode, Building2, Bike, Euro, ArrowRight,
   ChevronRight, Menu, X, Check, CheckCircle,
-  Scan, CreditCard, TrendingUp, Shield
+  Scan, CreditCard, TrendingUp, Shield, MonitorPlay, LayoutDashboard
 } from "lucide-react";
 
 const C = {
@@ -44,7 +44,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             </div>
 
             <div className="hidden md:flex items-center gap-8">
-              {[["so-funktionierts", "So funktioniert's"], ["vorteile", "Vorteile"], ["faq", "FAQ"]].map(([id, label]) => (
+              {[["so-funktionierts", "So funktioniert's"], ["demo", "Demo"], ["vorteile", "Vorteile"], ["faq", "FAQ"]].map(([id, label]) => (
                 <button key={id} onClick={() => scrollTo(id)}
                   className="text-sm font-medium transition-colors"
                   style={{ color: C.neutral }}
@@ -82,7 +82,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-t py-4 px-4" style={{ borderColor: C.tint }}>
             <div className="flex flex-col gap-1">
-              {[["so-funktionierts", "So funktioniert's"], ["vorteile", "Vorteile"], ["faq", "FAQ"]].map(([id, label]) => (
+              {[["so-funktionierts", "So funktioniert's"], ["demo", "Demo"], ["vorteile", "Vorteile"], ["faq", "FAQ"]].map(([id, label]) => (
                 <button key={id} onClick={() => scrollTo(id)}
                   className="text-sm font-medium py-2.5 px-3 text-left rounded-lg" style={{ color: C.dark }}>
                   {label}
@@ -111,7 +111,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-8 text-xs font-medium border"
               style={{ borderColor: C.tint, background: C.white, color: C.primary }}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: C.primary }} />
-              Pilotphase — Rhein-Main · Sommer 2026
+              Pilotphase Rhein-Main · Sommer 2026
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium leading-tight mb-6"
@@ -121,7 +121,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             </h1>
 
             <p className="text-lg leading-relaxed mb-10" style={{ color: C.neutral }}>
-              Lociva bringt lokale Aktivitäten direkt ins Hotelzimmer — per QR-Code. Gäste scannen, buchen und bezahlen in 60 Sekunden. Hotels und Anbieter profitieren automatisch.
+              Lociva bringt lokale Aktivitäten direkt ins Hotelzimmer. Per QR-Code scannen, buchen und bezahlen in 60 Sekunden. Hotels und Anbieter profitieren automatisch.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -132,12 +132,13 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 onMouseLeave={(e) => { e.currentTarget.style.background = C.primary; }}>
                 Partner werden <ArrowRight className="w-4 h-4" />
               </a>
-              <button onClick={() => scrollTo("so-funktionierts")}
+              <button onClick={() => scrollTo("demo")}
                 className="flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium border transition-colors"
-                style={{ color: C.dark, borderColor: C.tint, background: C.white }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = C.primary; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.tint; }}>
-                So funktioniert&apos;s
+                style={{ color: C.primary, borderColor: C.primary, background: C.white }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = C.tint; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = C.white; }}>
+                <MonitorPlay className="w-4 h-4" />
+                Demo ansehen
               </button>
             </div>
 
@@ -156,7 +157,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 { icon: QrCode, step: "1", title: "QR-Code scannen", desc: "Gast scannt den Code im Hotelzimmer oder an der Rezeption", color: C.primary },
-                { icon: Scan, step: "2", title: "Aktivität buchen", desc: "E-Bikes, Kanus, Stadtführungen — alles direkt verfügbar", color: C.light },
+                { icon: Scan, step: "2", title: "Aktivität buchen", desc: "E-Bikes, Kanus, Stadtführungen. Alles direkt verfügbar", color: C.light },
                 { icon: CreditCard, step: "3", title: "Online bezahlen", desc: "Sichere Zahlung via Stripe. Anbieter erhält automatische Auszahlung", color: C.dark },
               ].map(({ icon: Icon, step, title, desc, color }) => (
                 <div key={step} className="relative bg-white rounded-2xl p-7 border text-center transition-all duration-200"
@@ -188,6 +189,89 @@ export default function LandingPage({ onGetStarted, onLogin }) {
         </div>
       </div>
 
+      {/* ── Demo ─────────────────────────────────────────────────── */}
+      <section id="demo" className="py-20 px-4" style={{ background: C.bg }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-medium border"
+              style={{ borderColor: C.tint, background: C.white, color: C.primary }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: C.primary }} />
+              Live-Demo. Kein Login erforderlich
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-medium mb-4" style={{ color: C.dark, letterSpacing: "-0.02em" }}>
+              Selbst ausprobieren.
+            </h2>
+            <p className="text-base leading-relaxed" style={{ color: C.neutral }}>
+              Zwei Perspektiven. Gast und Anbieter. Beide ohne Risiko und ohne Dateneingabe testbar.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Guest Demo */}
+            <div className="bg-white rounded-2xl p-8 border flex flex-col" style={{ borderColor: C.tint }}>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style={{ background: C.tint }}>
+                <QrCode className="w-6 h-6" style={{ color: C.primary }} />
+              </div>
+              <div className="text-xs font-medium px-2.5 py-0.5 rounded-full inline-block mb-3 self-start"
+                style={{ background: C.tint, color: C.primary }}>
+                Gast-Perspektive
+              </div>
+              <h3 className="text-xl font-medium mb-2" style={{ color: C.dark }}>Buchungsflow erleben</h3>
+              <p className="text-sm leading-relaxed mb-6 flex-1" style={{ color: C.neutral }}>
+                Erlebe genau das, was ein Hotelgast sieht: QR-Code scannen, Aktivität wählen, Termin buchen. In unter 60 Sekunden. Kein Login, keine Bezahlung.
+              </p>
+              <ul className="space-y-2 mb-7">
+                {["Echte Benutzeroberfläche", "Beispiel-Aktivitäten & Preise", "Demo-Buchung (keine Zahlung)"].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm" style={{ color: C.neutral }}>
+                    <Check className="w-4 h-4 flex-shrink-0" style={{ color: C.primary }} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <a href="/hotel/demo"
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-white font-medium text-sm transition-colors"
+                style={{ background: C.primary }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = C.light; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = C.primary; }}>
+                <MonitorPlay className="w-4 h-4" />
+                Buchungsflow starten
+              </a>
+            </div>
+
+            {/* Provider Dashboard Demo */}
+            <div className="bg-white rounded-2xl p-8 border flex flex-col" style={{ borderColor: C.tint }}>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style={{ background: C.tint }}>
+                <LayoutDashboard className="w-6 h-6" style={{ color: C.primary }} />
+              </div>
+              <div className="text-xs font-medium px-2.5 py-0.5 rounded-full inline-block mb-3 self-start"
+                style={{ background: C.tint, color: C.primary }}>
+                Anbieter-Perspektive
+              </div>
+              <h3 className="text-xl font-medium mb-2" style={{ color: C.dark }}>Dashboard erkunden</h3>
+              <p className="text-sm leading-relaxed mb-6 flex-1" style={{ color: C.neutral }}>
+                Sieh, was Anbieter täglich nutzen: Buchungsverwaltung, Flotte, Kalender, Auszahlungen und Statistiken. Mit echten Demo-Daten vorausgefüllt.
+              </p>
+              <ul className="space-y-2 mb-7">
+                {["Buchungen & Kalender", "Flottenmanagement", "Umsatz & Auszahlungen"].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm" style={{ color: C.neutral }}>
+                    <Check className="w-4 h-4 flex-shrink-0" style={{ color: C.primary }} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <a href="/demo"
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-medium text-sm transition-colors border"
+                style={{ color: C.primary, borderColor: C.primary, background: C.white }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = C.tint; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = C.white; }}>
+                <LayoutDashboard className="w-4 h-4" />
+                Demo-Dashboard öffnen
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Three Sides ────────────────────────────────────────── */}
       <section id="so-funktionierts" className="py-24 px-4" style={{ background: C.bg }}>
         <div className="max-w-7xl mx-auto">
@@ -196,7 +280,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               Drei Partner. Ein System.
             </h2>
             <p className="text-base leading-relaxed" style={{ color: C.neutral }}>
-              Lociva verbindet Hotels, Gäste und lokale Anbieter — jeder profitiert.
+              Lociva verbindet Hotels, Gäste und lokale Anbieter. Jeder profitiert.
             </p>
           </div>
 
@@ -220,7 +304,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 icon: Bike,
                 title: "Für Anbieter",
                 subtitle: "Nur bei Buchung",
-                points: ["Neue Kunden über Hotels", "Automatische Auszahlung via Stripe", "Eigenes Dashboard zur Verwaltung", "Keine Fixkosten — nur Provision"],
+                points: ["Neue Kunden über Hotels", "Automatische Auszahlung via Stripe", "Eigenes Dashboard zur Verwaltung", "Keine Fixkosten, nur Provision"],
                 highlight: false,
               },
             ].map(({ icon: Icon, title, subtitle, points, highlight }) => (
@@ -264,7 +348,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: Euro, title: "Keine Fixkosten", desc: "Hotels nutzen Lociva kostenlos. Anbieter zahlen nur bei erfolgreicher Buchung — 5-15% Provision." },
+              { icon: Euro, title: "Keine Fixkosten", desc: "Hotels nutzen Lociva kostenlos. Anbieter zahlen nur bei erfolgreicher Buchung, 5 bis 15% Provision." },
               { icon: Shield, title: "Sicher & DSGVO", desc: "Zahlungen über Stripe. Kein Login für Gäste. Alle Daten DSGVO-konform in der EU gehostet." },
               { icon: TrendingUp, title: "Mehr Umsatz", desc: "Hotels bieten echten Mehrwert. Anbieter gewinnen Kunden, die sie sonst nie erreicht hätten." },
               { icon: QrCode, title: "60-Sekunden-Buchung", desc: "Vom Scan bis zur Buchung. Keine App, kein Login, keine Wartezeit. Funktioniert auf jedem Smartphone." },
@@ -334,8 +418,8 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             {[
               { q: "Was kostet Lociva für Hotels?", a: "Nichts. Hotels nutzen Lociva komplett kostenlos. Wir verdienen ausschließlich über Provisionen auf Buchungen bei den Anbietern." },
               { q: "Brauchen Gäste eine App oder ein Konto?", a: "Nein. Gäste scannen einfach den QR-Code mit der Smartphone-Kamera und können sofort buchen. Kein Download, kein Login." },
-              { q: "Wie werden Anbieter bezahlt?", a: "Automatisch über Stripe Connect. Nach jeder Buchung wird der Anbieteranteil direkt ausgezahlt — abzüglich der vereinbarten Provision." },
-              { q: "Welche Aktivitäten können angeboten werden?", a: "Zum Start: E-Bikes und Fahrräder. Danach: Kanu, SUP, Kletterparks, Stadtführungen, Weinproben, Wellness — alle lokalen Erlebnisse." },
+              { q: "Wie werden Anbieter bezahlt?", a: "Automatisch über Stripe Connect. Nach jeder Buchung wird der Anbieteranteil direkt ausgezahlt, abzüglich der vereinbarten Provision." },
+              { q: "Welche Aktivitäten können angeboten werden?", a: "Zum Start: E-Bikes und Fahrräder. Danach: Kanu, SUP, Kletterparks, Stadtführungen, Weinproben, Wellness und alle lokalen Erlebnisse." },
               { q: "Wie funktioniert die Stornierung?", a: "Gäste erhalten per E-Mail einen Stornierungslink. Bis 24 Stunden vor Beginn ist die Stornierung kostenlos, danach fällt eine Gebühr von 50% an." },
               { q: "In welcher Region startet Lociva?", a: "Rhein-Main (Frankfurt, Bad Homburg, Rheingau) im Sommer 2026. Danach Expansion in den gesamten DACH-Raum." },
             ].map((faq, i) => (
@@ -363,7 +447,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             Dabei sein von Anfang an?
           </h2>
           <p className="text-base mb-10" style={{ color: "#9CA3AF" }}>
-            Wir suchen Hotels und Anbieter für unsere Pilotphase in Rhein-Main. Melden Sie sich — wir melden uns innerhalb von 24 Stunden.
+            Wir suchen Hotels und Anbieter für unsere Pilotphase in Rhein-Main. Melden Sie sich, wir melden uns innerhalb von 24 Stunden.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="mailto:info@lociva.de?subject=Pilotphase%20Interesse"

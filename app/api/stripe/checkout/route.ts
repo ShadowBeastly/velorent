@@ -1,12 +1,12 @@
 // app/api/stripe/checkout/route.ts
 // Proxy to the stripe-checkout Supabase Edge Function.
 // Creates a Stripe Checkout Session for a guest booking and returns the URL.
-// No authentication required — guests are unauthenticated.
+// No authentication required. Guests are unauthenticated.
 
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest } from "next/server";
 
-// Use anon key — the Edge Function uses service role internally
+// Use anon key. The Edge Function uses service role internally.
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

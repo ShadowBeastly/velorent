@@ -82,7 +82,7 @@ function typeColor(type) {
 function modifierIsPositive(rule) {
     if (rule.modifier_type === "multiplier") return Number(rule.modifier_value) >= 1;
     if (rule.modifier_type === "discount_percent") return false;
-    return null; // fixed_override – neutral
+    return null; // fixed_override. neutral
 }
 
 // ─── Rule Modal ───────────────────────────────────────────────────────────────
@@ -157,7 +157,7 @@ function RuleModal({ rule, bikeCategories, onSave, onClose, darkMode }) {
                             value={form.name}
                             onChange={e => set({ name: e.target.value })}
                             className={inputStyle}
-                            placeholder="z.B. Hochsaison Juli–August"
+                            placeholder="z.B. Hochsaison Juli - August"
                             autoFocus
                         />
                     </div>
@@ -358,7 +358,7 @@ function PricingPreview({ pricingRules, bikes, darkMode }) {
     const scenarios = [
         { label: "3 Tage ab heute", start: fmt(today), end: fmt(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2)) },
         { label: "7 Tage im Juli", start: `${today.getFullYear()}-07-01`, end: `${today.getFullYear()}-07-07` },
-        { label: "2 Tage, Sa–So", start: fmt((() => { const d = new Date(today); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7)); return d; })()), end: fmt((() => { const d = new Date(today); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7) + 1); return d; })()) }
+        { label: "2 Tage, Sa - So", start: fmt((() => { const d = new Date(today); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7)); return d; })()), end: fmt((() => { const d = new Date(today); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7) + 1); return d; })()) }
     ];
 
     const cardStyle = darkMode ? "bg-slate-800/60 border-slate-700" : "bg-slate-50 border-slate-200";
@@ -367,7 +367,7 @@ function PricingPreview({ pricingRules, bikes, darkMode }) {
         <div className={`rounded-2xl border p-5 ${cardStyle}`}>
             <h3 className={`text-sm font-semibold mb-4 flex items-center gap-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
                 <TrendingUp className="w-4 h-4 text-[#1A7D5A]" />
-                Vorschau — {sampleBike.name} ({fmtCurrency(sampleBike.price_per_day)}/Tag Basispreis)
+                Vorschau. {sampleBike.name} ({fmtCurrency(sampleBike.price_per_day)}/Tag Basispreis)
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {scenarios.map((sc, i) => {
@@ -527,7 +527,7 @@ export default function PricingPage() {
                                             </td>
                                             <td className={`px-6 py-4 text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                                                 {rule.type === "seasonal" && rule.start_date && rule.end_date && (
-                                                    <>{new Date(rule.start_date + "T00:00:00").toLocaleDateString("de-DE")} – {new Date(rule.end_date + "T00:00:00").toLocaleDateString("de-DE")}</>
+                                                    <>{new Date(rule.start_date + "T00:00:00").toLocaleDateString("de-DE")} - {new Date(rule.end_date + "T00:00:00").toLocaleDateString("de-DE")}</>
                                                 )}
                                                 {rule.type === "duration" && rule.min_days && (
                                                     <>ab {rule.min_days} Tage</>

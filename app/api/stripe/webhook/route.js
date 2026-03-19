@@ -1,5 +1,6 @@
 // app/api/stripe/webhook/route.js
-// Handles Stripe webhooks on Vercel (Next.js App Router).
+// ACTIVE Stripe webhook handler. Registered at /api/stripe/webhook in the Stripe Dashboard.
+// See also: supabase/functions/stripe-webhook/ (legacy, keep for reference)
 // Events: checkout.session.completed, account.updated, charge.refunded
 //
 // Configure in Stripe Dashboard → Webhooks → Endpoint URL:
@@ -75,7 +76,7 @@ export async function POST(req) {
             .eq("stripe_checkout_session_id", session.id)
             .maybeSingle();
           if (existingBooking) {
-            console.log("Duplicate webhook — booking already exists:", existingBooking.booking_number);
+            console.log("Duplicate webhook. Booking already exists:", existingBooking.booking_number);
             return Response.json({ received: true });
           }
 
@@ -163,7 +164,7 @@ export async function POST(req) {
                 data: {
                   guest_name: meta.guest_name,
                   booking_number: booking.booking_number,
-                  bike_name: bikeData?.name || "–",
+                  bike_name: bikeData?.name || "",
                   start_date: meta.start_date,
                   end_date: meta.end_date,
                   total_days: meta.total_days,
@@ -220,9 +221,7 @@ export async function POST(req) {
           );
         } else {
           console.log(
-            "Provider account updated:",
-            account.id,
-            "charges:",
+            "Provider account updated: charges:",
             account.charges_enabled,
             "payouts:",
             account.payouts_enabled
@@ -255,9 +254,7 @@ export async function POST(req) {
           .eq("stripe_payment_intent_id", piId);
 
         console.log(
-          "Refund processed for PI:",
-          piId,
-          "status:",
+          "Refund processed, status:",
           cancellationStatus
         );
         break;

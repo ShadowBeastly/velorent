@@ -45,7 +45,7 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                     </div>
                     {/*
                         Title block:
-                        - Mobile (< md): always shown — the drawer is always w-64 with labels
+                        - Mobile (< md): always shown. The drawer is always w-64 with labels
                         - Desktop (>= md): shown only when expanded (showLabels)
                     */}
                     {showLabels && (
@@ -69,7 +69,7 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                             </p>
                         </div>
                     )}
-                    {/* Close button — mobile only */}
+                    {/* Close button. Mobile only */}
                     <button
                         onClick={() => setSidebarOpen(false)}
                         className={`md:hidden p-2.5 rounded-lg transition-colors flex-shrink-0 ${darkMode ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"}`}
@@ -79,7 +79,7 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                     </button>
                 </div>
 
-                {/* Org Switcher — only when labels are shown */}
+                {/* Org Switcher. Only when labels are shown */}
                 {org.organizations.length > 1 && (
                     <div className={`px-4 mb-4 ${showLabels ? "block" : "hidden md:hidden"}`}>
                         <select

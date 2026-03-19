@@ -152,7 +152,7 @@ export function useMaintenance(orgId) {
     };
 
     const updateBikeHealth = async (bikeId, updates) => {
-        // Upsert — bike_health may not exist yet for older bikes
+        // Upsert. bike_health may not exist yet for older bikes.
         const { data, error } = await supabase
             .from("bike_health")
             .upsert(

@@ -12,7 +12,7 @@ export function useProvideAuth() {
         let mounted = true;
         let initialized = false;
 
-        // Initialize immediately from localStorage — no network call needed.
+        // Initialize immediately from localStorage. No network call needed.
         // This prevents infinite loading when onAuthStateChange is delayed
         // (e.g. Supabase refreshing an expired token in the background).
         supabase.auth.getSession().then(({ data: { session } }) => {

@@ -1,6 +1,6 @@
 -- ============================================================
 -- 005_rentcore_expansion.sql
--- RentCore Feature Expansion — All new tables and columns
+-- RentCore Feature Expansion. All new tables and columns
 -- Run AFTER: 001_lociva_extension.sql, 002_cancellation_token.sql,
 --            003_security_fixes.sql, 004_fix_hotel_rpc_price_per_hour.sql
 --
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS email_log (
 
 CREATE INDEX IF NOT EXISTS idx_email_log_booking ON email_log(booking_id);
 
--- email_log scoped via booking → organization; no direct org_id column.
+-- email_log scoped via booking -> organization; no direct org_id column.
 -- Access granted to org members through booking ownership.
 ALTER TABLE email_log ENABLE ROW LEVEL SECURITY;
 
@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS pricing_rule_conditions (
 
 CREATE INDEX IF NOT EXISTS idx_prc_rule ON pricing_rule_conditions(rule_id);
 
--- Scoped via rule → organization; inherits via pricing_rules.
+-- Scoped via rule -> organization; inherits via pricing_rules.
 ALTER TABLE pricing_rule_conditions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "PRC view" ON pricing_rule_conditions
@@ -269,7 +269,7 @@ CREATE TABLE IF NOT EXISTS bike_health (
 
 CREATE INDEX IF NOT EXISTS idx_bike_health_bike ON bike_health(bike_id);
 
--- Scoped via bike → organization.
+-- Scoped via bike -> organization.
 ALTER TABLE bike_health ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Bike health view" ON bike_health
@@ -369,7 +369,7 @@ CREATE TABLE IF NOT EXISTS coupon_usages (
 CREATE INDEX IF NOT EXISTS idx_cu_coupon  ON coupon_usages(coupon_id);
 CREATE INDEX IF NOT EXISTS idx_cu_booking ON coupon_usages(booking_id);
 
--- Scoped via booking → organization.
+-- Scoped via booking -> organization.
 ALTER TABLE coupon_usages ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Coupon usages view" ON coupon_usages
@@ -461,7 +461,7 @@ CREATE TABLE IF NOT EXISTS condition_photos (
 
 CREATE INDEX IF NOT EXISTS idx_cp_protocol ON condition_photos(protocol_id);
 
--- Scoped via protocol → booking → organization.
+-- Scoped via protocol -> booking -> organization.
 ALTER TABLE condition_photos ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Condition photos view" ON condition_photos

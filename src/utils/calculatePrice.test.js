@@ -24,7 +24,7 @@ describe('calculateDynamicPrice', () => {
 
     it('applies seasonal multiplier', () => {
         // Note: bestDayRule compares dateStr via .toISOString() (UTC). Dates created
-        // as local midnight (T00:00:00) are 1–2 hours behind UTC in Central Europe,
+        // as local midnight (T00:00:00) are 1-2 hours behind UTC in Central Europe,
         // so the UTC date string is one day earlier. The rule window therefore starts
         // one day before the booking start to ensure all enumerated days are covered.
         const rules = [{
@@ -80,7 +80,7 @@ describe('calculateDynamicPrice', () => {
             end_date: '2024-12-31',
             modifier_type: 'multiplier',
             modifier_value: 2,
-            is_active: false, // inactive — must be ignored
+            is_active: false, // inactive. Must be ignored.
             priority: 1,
             bike_category: null,
         }];

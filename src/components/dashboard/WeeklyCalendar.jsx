@@ -187,7 +187,7 @@ export default function WeeklyCalendar({ bikes, bookings, darkMode, onBookingCli
                                     </div>
                                 </div>
 
-                                {/* Booking cells — relative container */}
+                                {/* Booking cells. Relative container */}
                                 <div className="relative h-20" style={{ gridColumn: `2 / ${gridCols + 2}` }}>
                                     {/* Column backgrounds */}
                                     <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${gridCols}, 1fr)` }}>

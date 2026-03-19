@@ -18,7 +18,7 @@ export default {
           200: '#aad9c6',
           300: '#7bc4a9',
           400: '#3baa82',
-          500: '#1a7d5a', // Waldgrün — Primary
+          500: '#1a7d5a', // Waldgrün. Primary.
           600: '#156648',
           700: '#104d37',
           800: '#0a3325',

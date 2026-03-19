@@ -205,7 +205,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
 
         <p className={`text-sm mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
           Dieser Schlüssel wird benötigt, um das Widget auf Ihrer Website einzubetten.
-          Halten Sie ihn geheim – er identifiziert Ihren Account.
+          Halten Sie ihn geheim. Er identifiziert Ihren Account.
         </p>
 
         <div className="flex gap-2">

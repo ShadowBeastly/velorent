@@ -202,7 +202,7 @@ export default function GuestCancelPage({ slug, token }) {
                 <div className="flex justify-between items-center">
                   <span className="text-sm" style={{ color: C.neutral }}>{t.period}</span>
                   <span className="text-sm" style={{ color: C.dark }}>
-                    {booking.start_date} – {booking.end_date} ({booking.total_days} {t.days})
+                    {booking.start_date} - {booking.end_date} ({booking.total_days} {t.days})
                   </span>
                 </div>
                 {booking.provider_name && (

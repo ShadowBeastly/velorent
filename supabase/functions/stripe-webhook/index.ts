@@ -1,4 +1,6 @@
 // supabase/functions/stripe-webhook/index.ts
+// LEGACY webhook handler. The ACTIVE handler is app/api/stripe/webhook/route.js (Vercel).
+// Both have idempotency guards, but only ONE should be registered in Stripe Dashboard.
 // Deploy: supabase functions deploy stripe-webhook --no-verify-jwt
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -50,7 +52,7 @@ serve(async (req) => {
             .eq("stripe_checkout_session_id", session.id)
             .maybeSingle();
           if (existingBooking) {
-            console.log("Duplicate webhook — booking already exists:", existingBooking.booking_number);
+            console.log("Duplicate webhook. Booking already exists:", existingBooking.booking_number);
             return new Response(JSON.stringify({ received: true }), { headers: { "Content-Type": "application/json" } });
           }
 
@@ -101,7 +103,7 @@ serve(async (req) => {
                   data: {
                     guest_name:       meta.guest_name,
                     booking_number:   booking.booking_number,
-                    bike_name:        bikeData?.name || "–",
+                    bike_name:        bikeData?.name || "",
                     start_date:       meta.start_date,
                     end_date:         meta.end_date,
                     total_days:       meta.total_days,
@@ -117,7 +119,7 @@ serve(async (req) => {
               console.log("Confirmation email sent for booking:", booking.booking_number);
             } catch (emailErr) {
               console.error("Failed to send confirmation email:", emailErr);
-              // Non-fatal — booking was created successfully
+              // Non-fatal. Booking was created successfully
             }
           }
           break;

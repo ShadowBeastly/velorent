@@ -14,7 +14,7 @@ export default function DemoBanner({ userEmail, onExit }) {
             <div className="flex items-center gap-2 min-w-0">
                 <FlaskConical className="w-4 h-4 flex-shrink-0" />
                 <span className="text-xs font-medium truncate">
-                    Demo-Modus — Alle Daten sind Beispieldaten. Kein echter Betrieb.
+                    Demo-Modus. Alle Daten sind Beispieldaten. Kein echter Betrieb.
                 </span>
             </div>
             <button

@@ -41,17 +41,17 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
  *   - The Supabase project URL itself (edge-to-edge calls)
  *   - localhost:3000 for local development
  * Server-side calls (no Origin header) are allowed through without
- * CORS headers — they don't need them.
+ * CORS headers. They don't need them.
  */
 function getAllowedOrigin(origin: string | null): string | null {
-  if (!origin) return null; // server-side call — no CORS headers needed
+  if (!origin) return null; // server-side call. no CORS headers needed
   if (origin === "http://localhost:3000" || origin === "https://localhost:3000") {
     return origin;
   }
   if (SUPABASE_URL && origin === SUPABASE_URL) {
     return origin;
   }
-  return null; // origin not in allowlist — deny CORS but still process
+  return null; // origin not in allowlist. deny CORS but still process
 }
 
 const templates = {
@@ -70,8 +70,8 @@ const templates = {
     // URLs are not escaped but validated to start with https://
     const cancelUrl = (data.cancellation_url && data.cancellation_url.startsWith("https://")) ? data.cancellation_url : "";
     const subject = de
-      ? `Buchungsbestätigung #${bookingNumber} – ${providerName}`
-      : `Booking Confirmation #${bookingNumber} – ${providerName}`;
+      ? `Buchungsbestätigung #${bookingNumber} - ${providerName}`
+      : `Booking Confirmation #${bookingNumber} - ${providerName}`;
     const cancelSection = cancelUrl ? `
       <div style="margin:0 0 24px;padding:20px;background:#FFFBEB;border-radius:12px;border:1px solid #F59E0B30;">
         <p style="margin:0 0 8px;color:#92400E;font-weight:600;font-size:14px;">${de ? "Stornierung" : "Cancellation"}</p>
@@ -94,7 +94,7 @@ const templates = {
         <table style="width:100%;border-collapse:collapse;">
           <tr><td style="padding:8px 0;color:#6B7280;font-size:14px;">${de ? "Buchungsnummer" : "Booking #"}</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#1A7D5A;font-size:20px;">${bookingNumber}</td></tr>
           <tr style="border-top:1px solid #D4EDE2;"><td style="padding:12px 0 8px;color:#6B7280;font-size:14px;">${de ? "Artikel" : "Item"}</td><td style="padding:12px 0 8px;text-align:right;font-weight:500;color:#1E2D26;">${bikeName}</td></tr>
-          <tr><td style="padding:8px 0;color:#6B7280;font-size:14px;">${de ? "Zeitraum" : "Period"}</td><td style="padding:8px 0;text-align:right;color:#1E2D26;">${startDate} – ${endDate}</td></tr>
+          <tr><td style="padding:8px 0;color:#6B7280;font-size:14px;">${de ? "Zeitraum" : "Period"}</td><td style="padding:8px 0;text-align:right;color:#1E2D26;">${startDate} - ${endDate}</td></tr>
           <tr><td style="padding:8px 0;color:#6B7280;font-size:14px;">${de ? "Dauer" : "Duration"}</td><td style="padding:8px 0;text-align:right;color:#1E2D26;">${totalDays} ${de ? (Number(data.total_days) === 1 ? "Tag" : "Tage") : (Number(data.total_days) === 1 ? "day" : "days")}</td></tr>
           <tr style="border-top:1px solid #D4EDE2;"><td style="padding:16px 0 8px;color:#1E2D26;font-weight:600;font-size:15px;">${de ? "Gesamtbetrag" : "Total"}</td><td style="padding:16px 0 8px;text-align:right;font-weight:700;color:#1E2D26;font-size:20px;">${totalPrice}</td></tr>
         </table>
@@ -144,7 +144,7 @@ const templates = {
         <table style="width:100%;border-collapse:collapse;">
           <tr><td style="padding:8px 0;color:#64748b;">Buchungsnummer</td><td style="padding:8px 0;text-align:right;font-weight:600;color:#f97316;font-size:18px;">${bookingNumber}</td></tr>
           <tr><td style="padding:8px 0;color:#64748b;">Fahrrad</td><td style="padding:8px 0;text-align:right;font-weight:500;color:#1e293b;">${bikeName}</td></tr>
-          <tr><td style="padding:8px 0;color:#64748b;">Zeitraum</td><td style="padding:8px 0;text-align:right;color:#1e293b;">${startDate} – ${endDate}</td></tr>
+          <tr><td style="padding:8px 0;color:#64748b;">Zeitraum</td><td style="padding:8px 0;text-align:right;color:#1e293b;">${startDate} - ${endDate}</td></tr>
           <tr><td style="padding:8px 0;color:#64748b;">Dauer</td><td style="padding:8px 0;text-align:right;color:#1e293b;">${totalDays} Tage</td></tr>
           <tr style="border-top:1px solid #e2e8f0;"><td style="padding:16px 0 8px;color:#1e293b;font-weight:600;">Gesamtpreis</td><td style="padding:16px 0 8px;text-align:right;font-weight:700;color:#1e293b;font-size:20px;">${totalPrice}</td></tr>
           ${deposit ? `<tr><td style="padding:8px 0;color:#64748b;">Kaution</td><td style="padding:8px 0;text-align:right;color:#64748b;">${deposit}</td></tr>` : ""}
@@ -152,7 +152,7 @@ const templates = {
       </div>
       <div style="text-align:center;margin:0 0 24px;">
         <span style="display:inline-block;background:${data.status==="confirmed"?"#dcfce7":"#fef3c7"};color:${data.status==="confirmed"?"#16a34a":"#d97706"};padding:8px 16px;border-radius:20px;font-weight:500;">
-          ${data.status==="confirmed"?"✓ Bestätigt":"⏳ Reserviert – Bestätigung folgt"}
+          ${data.status==="confirmed"?"✓ Bestätigt":"⏳ Reserviert. Bestätigung folgt"}
         </span>
       </div>
       ${pickupLocation ? `<div style="background:#eff6ff;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="margin:0;color:#1e40af;font-weight:500;">📍 Abholung</p><p style="margin:8px 0 0;color:#3b82f6;">${pickupLocation}</p></div>` : ""}
@@ -180,10 +180,10 @@ const templates = {
     const totalDays = escapeHtml(String(data.total_days ?? ""));
     const totalPrice = escapeHtml(String(data.total_price ?? ""));
     const notes = escapeHtml(data.notes ?? "");
-    // dashboard_url is an internal URL — validate it starts with https://
+    // dashboard_url is an internal URL. validate it starts with https://
     const dashboardUrl = (data.dashboard_url && data.dashboard_url.startsWith("https://")) ? data.dashboard_url : "#";
     return {
-      subject: `🚴 Neue Buchung #${bookingNumber} – ${customerName}`,
+      subject: `🚴 Neue Buchung #${bookingNumber} - ${customerName}`,
       html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="font-family:-apple-system,sans-serif;background:#f8fafc;margin:0;padding:40px 20px;">
   <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;">
@@ -196,7 +196,7 @@ const templates = {
           ${customerEmail?`<tr><td style="padding:8px 0;color:#64748b;">E-Mail</td><td><a href="mailto:${customerEmail}" style="color:#3b82f6;">${customerEmail}</a></td></tr>`:""}
           ${customerPhone?`<tr><td style="padding:8px 0;color:#64748b;">Telefon</td><td><a href="tel:${customerPhone}" style="color:#3b82f6;">${customerPhone}</a></td></tr>`:""}
           <tr style="border-top:1px solid #e2e8f0;"><td style="padding:16px 0 8px;color:#64748b;">Fahrrad</td><td style="padding:16px 0 8px;font-weight:500;color:#1e293b;">${bikeName}</td></tr>
-          <tr><td style="padding:8px 0;color:#64748b;">Zeitraum</td><td style="padding:8px 0;color:#1e293b;">${startDate} – ${endDate} (${totalDays} Tage)</td></tr>
+          <tr><td style="padding:8px 0;color:#64748b;">Zeitraum</td><td style="padding:8px 0;color:#1e293b;">${startDate} - ${endDate} (${totalDays} Tage)</td></tr>
           <tr><td style="padding:8px 0;color:#64748b;">Preis</td><td style="padding:8px 0;font-weight:600;color:#16a34a;font-size:18px;">${totalPrice}</td></tr>
         </table>
       </div>
@@ -215,7 +215,7 @@ const templates = {
     const bookingNumber = escapeHtml(String(data.booking_number ?? ""));
     const dashboardUrl = (data.dashboard_url && data.dashboard_url.startsWith("https://")) ? data.dashboard_url : "#";
     return {
-      subject: `⏰ Erinnerung: Abholung heute – ${customerName}`,
+      subject: `⏰ Erinnerung: Abholung heute - ${customerName}`,
       html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="font-family:-apple-system,sans-serif;background:#f8fafc;margin:0;padding:40px 20px;">
   <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;">
@@ -224,7 +224,7 @@ const templates = {
       <div style="background:#f8fafc;border-radius:12px;padding:20px;">
         <p style="margin:0 0 8px;"><strong>Kunde:</strong> ${customerName}</p>
         <p style="margin:0 0 8px;"><strong>Fahrrad:</strong> ${bikeName}</p>
-        <p style="margin:0 0 8px;"><strong>Telefon:</strong> ${customerPhone||"–"}</p>
+        <p style="margin:0 0 8px;"><strong>Telefon:</strong> ${customerPhone||""}</p>
         <p style="margin:0;"><strong>Buchung:</strong> #${bookingNumber}</p>
       </div>
       <a href="${dashboardUrl}" style="display:block;margin-top:24px;text-align:center;background:#f97316;color:white;padding:14px;border-radius:8px;text-decoration:none;font-weight:600;">Buchung öffnen</a>
@@ -241,7 +241,7 @@ const templates = {
     const bookingNumber = escapeHtml(String(data.booking_number ?? ""));
     const dashboardUrl = (data.dashboard_url && data.dashboard_url.startsWith("https://")) ? data.dashboard_url : "#";
     return {
-      subject: `🔄 Erinnerung: Rückgabe heute – ${customerName}`,
+      subject: `🔄 Erinnerung: Rückgabe heute - ${customerName}`,
       html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="font-family:-apple-system,sans-serif;background:#f8fafc;margin:0;padding:40px 20px;">
   <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;">
@@ -291,7 +291,7 @@ serve(async (req) => {
   const origin = req.headers.get("Origin");
   const allowedOrigin = getAllowedOrigin(origin);
 
-  // Build CORS headers — only include Allow-Origin when the origin is permitted.
+  // Build CORS headers. Only include Allow-Origin when the origin is permitted.
   const corsHeaders: Record<string, string> = {
     "Access-Control-Allow-Methods": "POST",
     "Access-Control-Allow-Headers": "Content-Type, Authorization"
@@ -349,7 +349,8 @@ serve(async (req) => {
       headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("send-email error:", error);
+    return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...corsHeaders }
     });

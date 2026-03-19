@@ -23,7 +23,7 @@ export default function AdminLayout({ children }) {
         return (
             <div className={`flex flex-col items-center justify-center min-h-[60vh] gap-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                 <ShieldAlert className="w-12 h-12" />
-                <p className="text-lg font-medium">Kein Zugriff — nur für Plattform-Admins.</p>
+                <p className="text-lg font-medium">Kein Zugriff. Nur für Plattform-Admins.</p>
             </div>
         );
     }

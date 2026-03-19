@@ -73,7 +73,7 @@ export default function DashboardPage() {
         [periodDays]
     );
 
-    // Revenue filtered by period (use end_date — revenue is earned at return)
+    // Revenue filtered by period (use end_date. Revenue is earned at return)
     const periodRevenue = useMemo(() =>
         bookings.bookings
             .filter(b => REVENUE_STATUSES.includes(b.status) && b.end_date >= currentStart && b.end_date <= currentEnd)
@@ -241,7 +241,7 @@ export default function DashboardPage() {
                 <StatCard
                     title="Aktive Mieten"
                     value={periodActiveBookings}
-                    subtitle={`Buchungen – ${periodLabel}`}
+                    subtitle={`Buchungen - ${periodLabel}`}
                     icon={Bike}
                     color="orange"
                     darkMode={darkMode}

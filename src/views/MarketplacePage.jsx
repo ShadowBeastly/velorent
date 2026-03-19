@@ -5,6 +5,7 @@ import { useOrganization } from "@/src/context/OrgContext";
 import { supabase } from "@/src/utils/supabase";
 import { Store, CheckCircle, XCircle, Clock, Building2, Save, Loader2, ExternalLink, Ban } from "lucide-react";
 import CancellationPolicyVisualizer from "@/src/components/marketplace/CancellationPolicyVisualizer";
+import { STRIPE_TRUSTED_PREFIXES } from "@/src/utils/constants";
 
 function formatEur(n) {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n || 0);
@@ -81,8 +82,7 @@ export default function MarketplacePage() {
       });
       const json = await res.json();
       if (json.error || !json.url) throw new Error(json.error || "Fehler beim Stripe-Onboarding");
-      const TRUSTED_PREFIXES = ["https://checkout.stripe.com/", "https://connect.stripe.com/"];
-      if (!TRUSTED_PREFIXES.some(prefix => json.url.startsWith(prefix))) {
+      if (!STRIPE_TRUSTED_PREFIXES.some(prefix => json.url.startsWith(prefix))) {
         throw new Error("Ungültige Stripe-URL");
       }
       window.location.href = json.url;
@@ -279,10 +279,10 @@ export default function MarketplacePage() {
                 {bookings.map(b => (
                   <tr key={b.booking_number} className={`border-b last:border-0 ${darkMode ? "border-slate-700 hover:bg-slate-700/30" : "border-slate-100 hover:bg-slate-50"}`}>
                     <td className="px-4 py-3 text-xs text-slate-400">{new Date(b.created_at).toLocaleDateString("de-DE")}</td>
-                    <td className="px-4 py-3 text-sm">{b.hotels?.name || "–"}</td>
-                    <td className="px-4 py-3 text-sm">{b.guest_name || "–"}</td>
-                    <td className="px-4 py-3 text-sm">{b.bike?.name || "–"}</td>
-                    <td className="px-4 py-3 text-xs text-slate-400">{b.start_date} – {b.end_date}</td>
+                    <td className="px-4 py-3 text-sm">{b.hotels?.name || ""}</td>
+                    <td className="px-4 py-3 text-sm">{b.guest_name || ""}</td>
+                    <td className="px-4 py-3 text-sm">{b.bike?.name || ""}</td>
+                    <td className="px-4 py-3 text-xs text-slate-400">{b.start_date} - {b.end_date}</td>
                     <td className="px-4 py-3 font-semibold">{formatEur(b.total_price)}</td>
                     <td className="px-4 py-3 text-sm text-red-400">−{formatEur(b.platform_commission)}</td>
                     <td className="px-4 py-3">

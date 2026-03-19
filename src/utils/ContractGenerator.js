@@ -123,9 +123,9 @@ export const generateContract = (booking, organization) => {
     autoTable(doc, {
         startY: y,
         body: [
-            ['Fahrrad', booking?.bike?.name || '—'],
-            ['Kategorie', booking?.bike?.category || '—'],
-            ['Größe', booking?.bike?.size || '—'],
+            ['Fahrrad', booking?.bike?.name || ''],
+            ['Kategorie', booking?.bike?.category || ''],
+            ['Größe', booking?.bike?.size || ''],
             ['Rahmennummer', booking?.bike?.frame_number || '(siehe Rad)'],
             ['Zustand bei Übergabe', '___________________________'],
         ],

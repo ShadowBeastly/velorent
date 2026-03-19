@@ -94,7 +94,7 @@ export default function AdminHotelsPage() {
 
   const openQrModal = useCallback(async (hotel) => {
     setQrHotel(hotel);
-    const url = `https://lociva.de/hotel/${hotel.slug}`;
+    const url = `${window.location.origin}/hotel/${hotel.slug}`;
     try {
       const dataUrl = await QRCode.toDataURL(url, {
         width: 512, margin: 2, color: { dark: "#1A7D5A", light: "#FFFFFF" },
@@ -182,7 +182,7 @@ export default function AdminHotelsPage() {
   }
 
   function copyLink(slug) {
-    const url = `https://lociva.de/hotel/${slug}`;
+    const url = `${window.location.origin}/hotel/${slug}`;
     navigator.clipboard.writeText(url);
     setCopiedSlug(slug);
     setTimeout(() => setCopiedSlug(null), 2000);
@@ -241,7 +241,7 @@ export default function AdminHotelsPage() {
                         {hotel.address && <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{hotel.address}</p>}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{hotel.regions?.name || "–"}</span>
+                        <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{hotel.regions?.name || ""}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

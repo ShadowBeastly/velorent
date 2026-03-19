@@ -96,7 +96,7 @@ export default function AdminProvidersPage() {
                     </td>
                     <td className="px-4 py-3"><StripeStatus provider={provider} /></td>
                     <td className="px-4 py-3">
-                      <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{provider.provider_address || "–"}</p>
+                      <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{provider.provider_address || ""}</p>
                     </td>
                     <td className="px-4 py-3">
                       <button onClick={() => openEdit(provider)} className={`p-1.5 rounded transition-colors ${darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"}`}>

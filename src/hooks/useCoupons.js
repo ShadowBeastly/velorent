@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../utils/supabase";
 
 // ---------------------------------------------------------------------------
-// Standalone validation logic — usable without the hook (e.g. in BookingModal)
+// Standalone validation logic. Usable without the hook (e.g. in BookingModal).
 // ---------------------------------------------------------------------------
 
 /**
@@ -117,7 +117,7 @@ export function useCoupons(orgId) {
 
     useEffect(() => { load(); }, [load]);
 
-    const createCoupon = async (data) => {
+    const create = async (data) => {
         const { data: row, error } = await supabase
             .from("coupons")
             .insert({ ...data, organization_id: orgId })
@@ -127,7 +127,7 @@ export function useCoupons(orgId) {
         return { data: row, error };
     };
 
-    const updateCoupon = async (id, updates) => {
+    const update = async (id, updates) => {
         const { data: row, error } = await supabase
             .from("coupons")
             .update(updates)
@@ -139,7 +139,7 @@ export function useCoupons(orgId) {
         return { data: row, error };
     };
 
-    const deleteCoupon = async (id) => {
+    const remove = async (id) => {
         const { error } = await supabase
             .from("coupons")
             .delete()
@@ -199,5 +199,5 @@ export function useCoupons(orgId) {
         return { error: updateError };
     };
 
-    return { coupons, loading, reload: load, createCoupon, updateCoupon, deleteCoupon, validateCoupon, recordUsage };
+    return { coupons, loading, reload: load, create, update, remove, validateCoupon, recordUsage };
 }

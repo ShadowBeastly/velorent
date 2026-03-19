@@ -226,7 +226,7 @@ export default function FleetPage() {
                     <Loader2 className="w-8 h-8 animate-spin text-[#1A7D5A]" />
                 </div>
             ) : viewMode === "grid" ? (
-                /* GRID VIEW — Design Mockup Style */
+                /* GRID VIEW. Design Mockup Style */
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filtered.map((bike) => {
                         const globalIdx = bikes.bikes.findIndex(b => b.id === bike.id);
@@ -255,7 +255,7 @@ export default function FleetPage() {
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
                                             <span className="text-[#1A7D5A] text-[10px] font-bold uppercase tracking-widest block mb-1">
-                                                {bike.category || "—"}
+                                                {bike.category || ""}
                                             </span>
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{bike.name}</h3>
                                             {bike.frame_number && (

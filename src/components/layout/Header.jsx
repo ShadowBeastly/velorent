@@ -43,7 +43,7 @@ export default function Header() {
                     </h2>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                    {/* Search — desktop */}
+                    {/* Search. Desktop */}
                     <div className="relative hidden md:block">
                         <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
                         <input
@@ -59,7 +59,7 @@ export default function Header() {
                         />
                     </div>
 
-                    {/* Search toggle — mobile */}
+                    {/* Search toggle. Mobile */}
                     <button
                         onClick={() => setShowMobileSearch(prev => !prev)}
                         aria-label={showMobileSearch ? "Suche schließen" : "Suchen"}

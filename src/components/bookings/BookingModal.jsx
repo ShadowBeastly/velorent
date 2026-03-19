@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle, Tag } from "lucide-react";
 import { fmtISO, addDays, daysDiff, fmtCurrency } from "../../utils/formatters";
-import { STATUS } from "../../utils/constants";
+import { STATUS, CANCELLATION_WINDOW_HOURS } from "../../utils/constants";
 import ContractModal from "./ContractModal";
 import { calculateDynamicPrice } from "../../utils/calculatePrice";
 
@@ -11,14 +11,14 @@ function getCancellationScenario(startDate) {
     const start = new Date(startDate + "T00:00:00");
     const hoursUntilStart = (start - now) / (1000 * 60 * 60);
     if (hoursUntilStart < 0) return "no_show";
-    if (hoursUntilStart < 24) return "partial";
+    if (hoursUntilStart < CANCELLATION_WINDOW_HOURS) return "partial";
     return "free";
 }
 
 const CANCEL_SCENARIO_META = {
     free: {
         label: "Kostenlose Stornierung",
-        sublabel: "Mehr als 24h vor Mietbeginn — voller Refund",
+        sublabel: "Mehr als 24h vor Mietbeginn. Voller Refund.",
         color: "border-green-600/50 bg-green-900/20",
         badgeColor: "bg-green-700 text-green-100",
         guestBack: (total) => total,
@@ -42,7 +42,7 @@ const CANCEL_SCENARIO_META = {
     },
     no_show: {
         label: "No-Show",
-        sublabel: "Mietbeginn überschritten — kein Refund",
+        sublabel: "Mietbeginn überschritten. Kein Refund.",
         color: "border-red-700/50 bg-red-900/20",
         badgeColor: "bg-red-700 text-red-100",
         guestBack: () => 0,
@@ -130,7 +130,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const selectedBike = bikes.find(b => b.id === form.bike_id);
     const days = form.start_date && form.end_date ? Math.max(1, daysDiff(form.start_date, form.end_date)) : 1;
 
-    // Dynamic pricing result for the current selection (used in UI hints — single bike only)
+    // Dynamic pricing result for the current selection (used in UI hints. Single bike only)
     const pricingResult = useMemo(() => {
         if (isGroupBooking || !selectedBike || !form.start_date || !form.end_date) return null;
         return calculateDynamicPrice(selectedBike, form.start_date, form.end_date, pricingRules || []);
@@ -273,7 +273,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                 if (groupConflicts.length > 0) { setStepError(`Verfügbarkeitskonflikt: ${groupConflicts.map(b => b.name).join(", ")} ist/sind im gewählten Zeitraum bereits vergeben.`); return; }
             } else {
                 if (!form.bike_id) { setStepError("Bitte ein Rad wählen."); return; }
-                if (!isBikeAvailable) { setStepError(`Rad nicht verfügbar – Konflikt mit Buchung ${conflictingBooking.booking_number} (${new Date(conflictingBooking.start_date).toLocaleDateString()} – ${new Date(conflictingBooking.end_date).toLocaleDateString()}).`); return; }
+                if (!isBikeAvailable) { setStepError(`Rad nicht verfügbar. Konflikt mit Buchung ${conflictingBooking.booking_number} (${new Date(conflictingBooking.start_date).toLocaleDateString()} - ${new Date(conflictingBooking.end_date).toLocaleDateString()}).`); return; }
             }
         }
         if (step === 2) {
@@ -450,7 +450,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                 </div>
                             </div>
 
-                            {/* Group booking toggle — only for new bookings */}
+                            {/* Group booking toggle. Only for new bookings */}
                             {!booking && (
                                 <div
                                     onClick={() => {
@@ -795,7 +795,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         <span className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-medium">
                                             <Tag className="w-4 h-4" />
                                             <code className="font-bold">{appliedCoupon.coupon.code}</code>
-                                            {' — '}{appliedCoupon.coupon.type === 'percentage' ? `${appliedCoupon.coupon.value}%` : fmtCurrency(appliedCoupon.coupon.value)} Rabatt
+                                            {' - '}{appliedCoupon.coupon.type === 'percentage' ? `${appliedCoupon.coupon.value}%` : fmtCurrency(appliedCoupon.coupon.value)} Rabatt
                                             {' '}({fmtCurrency(appliedCoupon.discountAmount)} gespart)
                                         </span>
                                         <button onClick={removeCoupon} className="text-xs text-slate-500 hover:text-red-500 transition-colors underline">Entfernen</button>
@@ -843,7 +843,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         <span className="font-medium">{form.customer_name}</span>
                                     </div>
 
-                                    {/* Bike display — single vs group */}
+                                    {/* Bike display. Single vs group */}
                                     {isGroupBooking ? (
                                         <div>
                                             <div className="flex justify-between mb-1">

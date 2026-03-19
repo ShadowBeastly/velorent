@@ -8,6 +8,7 @@ import { useOrganization } from "../context/OrgContext";
 import { useToast } from "../components/ui/Toast";
 import { useI18n } from "../utils/i18n";
 import WidgetSettings from "./WidgetSettings";
+import { STRIPE_TRUSTED_PREFIXES } from "../utils/constants";
 import TeamManagement from "../components/settings/TeamManagement";
 
 const PLANS = [
@@ -174,8 +175,7 @@ export default function SettingsPage() {
             if (error) throw new Error(error.message || "Unbekannter Fehler");
             if (!data?.url) throw new Error("Keine Checkout-URL erhalten");
 
-            const TRUSTED_PREFIXES = ["https://checkout.stripe.com/", "https://connect.stripe.com/"];
-            if (!TRUSTED_PREFIXES.some(prefix => data.url.startsWith(prefix))) {
+            if (!STRIPE_TRUSTED_PREFIXES.some(prefix => data.url.startsWith(prefix))) {
                 throw new Error("Ungültige Checkout-URL");
             }
             window.location.href = data.url;
@@ -410,7 +410,7 @@ export default function SettingsPage() {
                             </button>
                             <span className={`text-sm font-medium ${billingInterval === "yearly" ? "" : darkMode ? "text-slate-500" : "text-slate-400"}`}>
                                 Jährlich
-                                <span className="ml-1.5 text-xs text-emerald-500 font-semibold">–17%</span>
+                                <span className="ml-1.5 text-xs text-emerald-500 font-semibold">-17%</span>
                             </span>
                         </div>
 

@@ -208,9 +208,9 @@ export default function HotelStatsPage() {
                     {bookings.map(b => (
                       <tr key={b.booking_number} className={`border-b last:border-0 ${darkMode ? "border-slate-700 hover:bg-slate-700/30" : "border-slate-100 hover:bg-slate-50"}`}>
                         <td className="px-4 py-3 text-xs text-slate-400">{new Date(b.created_at).toLocaleDateString("de-DE")}</td>
-                        <td className="px-4 py-3">{b.bike?.name || "–"}</td>
-                        <td className="px-4 py-3 text-sm">{b.guest_name || "–"}</td>
-                        <td className="px-4 py-3 text-xs text-slate-400">{b.start_date} – {b.end_date}</td>
+                        <td className="px-4 py-3">{b.bike?.name || ""}</td>
+                        <td className="px-4 py-3 text-sm">{b.guest_name || ""}</td>
+                        <td className="px-4 py-3 text-xs text-slate-400">{b.start_date} - {b.end_date}</td>
                         <td className="px-4 py-3 font-semibold">{formatEur(b.total_price)}</td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[b.status] || "bg-slate-700 text-slate-400"}`}>{b.status}</span>

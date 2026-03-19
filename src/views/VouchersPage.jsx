@@ -85,11 +85,11 @@ export default function VouchersPage() {
             valid_until: form.valid_until || null
         };
         if (editCoupon) {
-            const { error } = await coupons.updateCoupon(editCoupon.id, payload);
+            const { error } = await coupons.update(editCoupon.id, payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
             addToast("Gutschein gespeichert.", "success");
         } else {
-            const { error } = await coupons.createCoupon(payload);
+            const { error } = await coupons.create(payload);
             if (error) { addToast("Fehler: " + error.message, "error"); return; }
             addToast("Gutschein erstellt.", "success");
         }
@@ -97,14 +97,14 @@ export default function VouchersPage() {
     };
 
     const handleDelete = async (id) => {
-        const { error } = await coupons.deleteCoupon(id);
+        const { error } = await coupons.remove(id);
         if (error) { addToast("Fehler: " + error.message, "error"); return; }
         setConfirmDeleteId(null);
         addToast("Gutschein gelöscht.", "success");
     };
 
     const toggleActive = async (c) => {
-        const { error } = await coupons.updateCoupon(c.id, { is_active: !c.is_active });
+        const { error } = await coupons.update(c.id, { is_active: !c.is_active });
         if (error) addToast("Fehler: " + error.message, "error");
     };
 
@@ -123,7 +123,7 @@ export default function VouchersPage() {
         let created = 0;
         for (let i = 0; i < batchCount; i++) {
             const code = randomCode(6);
-            const { error } = await coupons.createCoupon({ ...basePayload, code });
+            const { error } = await coupons.create({ ...basePayload, code });
             if (!error) created++;
         }
         setBatchGenerating(false);
@@ -199,7 +199,7 @@ export default function VouchersPage() {
                                                 {c.min_order_value ? <div>Min. {fmtCurrency(c.min_order_value)}</div> : null}
                                                 {c.min_duration_days ? <div>Min. {c.min_duration_days} Tage</div> : null}
                                                 {c.min_quantity ? <div>Min. {c.min_quantity} Räder</div> : null}
-                                                {!c.min_order_value && !c.min_duration_days && !c.min_quantity ? <span className="text-slate-400">—</span> : null}
+                                                {!c.min_order_value && !c.min_duration_days && !c.min_quantity ? <span className="text-slate-400"></span> : null}
                                             </td>
                                             <td className="px-4 py-3 text-sm">
                                                 <span className={isExhausted ? "text-red-500" : ""}>{c.used_count || 0}</span>
@@ -208,7 +208,7 @@ export default function VouchersPage() {
                                             <td className="px-4 py-3 text-sm">
                                                 {c.valid_from || c.valid_until ? (
                                                     <span className={isExpired ? "text-red-500 line-through" : ""}>
-                                                        {c.valid_from ? fmtDate(c.valid_from) : "∞"} – {c.valid_until ? fmtDate(c.valid_until) : "∞"}
+                                                        {c.valid_from ? fmtDate(c.valid_from) : "∞"} - {c.valid_until ? fmtDate(c.valid_until) : "∞"}
                                                     </span>
                                                 ) : "Unbegrenzt"}
                                             </td>
@@ -270,7 +270,7 @@ export default function VouchersPage() {
                         </div>
                         <div className="space-y-4 px-6 pb-6">
                             <div>
-                                <label className="text-sm font-medium mb-1 block">Anzahl Codes (1–50)</label>
+                                <label className="text-sm font-medium mb-1 block">Anzahl Codes (1-50)</label>
                                 <input type="number" min={1} max={50} className={inputStyle} value={batchCount} onChange={e => setBatchCount(Math.min(50, Math.max(1, Number(e.target.value))))} />
                             </div>
                             <div className="grid grid-cols-2 gap-3">

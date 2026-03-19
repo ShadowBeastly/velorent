@@ -1,5 +1,5 @@
 -- =====================================================
--- RentCore — VIEWER ROLE RLS FIX
+-- RentCore. VIEWER ROLE RLS FIX
 -- Run in Supabase SQL Editor.
 -- Splits the FOR ALL policies on core tables so that
 -- "viewer" role members can read data but cannot write.
@@ -9,7 +9,7 @@
 -- =====================================================
 -- Helper: get_user_write_org_ids()
 -- Returns org IDs where the current user has a write
--- role (owner, admin, or member — NOT viewer).
+-- role (owner, admin, or member - NOT viewer).
 -- =====================================================
 CREATE OR REPLACE FUNCTION get_user_write_org_ids()
 RETURNS SETOF UUID AS $$
@@ -234,7 +234,7 @@ DO $$ BEGIN
                 booking_id IN (SELECT id FROM bookings WHERE organization_id IN (SELECT get_user_write_org_ids()))
             );
     ELSE
-        RAISE NOTICE 'booking_items table not found — run group-bookings.sql first, then re-run this file.';
+        RAISE NOTICE 'booking_items table not found. Run group-bookings.sql first, then re-run this file.';
     END IF;
 END $$;
 
@@ -261,6 +261,6 @@ DO $$ BEGIN
                 booking_id IN (SELECT id FROM bookings WHERE organization_id IN (SELECT get_user_write_org_ids()))
             );
     ELSE
-        RAISE NOTICE 'booking_addons table not found — run booking-addons.sql first, then re-run this file.';
+        RAISE NOTICE 'booking_addons table not found. Run booking-addons.sql first, then re-run this file.';
     END IF;
 END $$;

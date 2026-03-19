@@ -8,7 +8,7 @@ import { Globe, CheckCircle2, AlertCircle } from "lucide-react";
  * appears in at least one hotel_providers mapping.
  *
  * For now we derive status from org fields only (hotel_providers check
- * would require an extra query — can be added later).
+ * would require an extra query. Can be added later).
  */
 export default function LocivaBadge({ org, darkMode }) {
     const stripeReady = !!org?.stripe_account_id && !!org?.stripe_verified;
@@ -36,7 +36,7 @@ export default function LocivaBadge({ org, darkMode }) {
                     : "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
             }`}>
                 <Globe className="w-3.5 h-3.5" />
-                <span>Lociva — Verifizierung ausstehend</span>
+                <span>Lociva. Verifizierung ausstehend.</span>
             </div>
         );
     }
