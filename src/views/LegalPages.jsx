@@ -32,14 +32,13 @@ function LegalPage({ title, icon: Icon, children, onBack }) {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-500">
-        © {new Date().getFullYear()} Lociva. Alle Rechte vorbehalten.
+        © {new Date().getFullYear()} Lociva · funk-e.solutions. Alle Rechte vorbehalten.
       </footer>
     </div>
   );
 }
 
 // ============ IMPRESSUM ============
-// ⚠️ DIESE DATEN MÜSSEN ANGEPASST WERDEN!
 export function Impressum({ onBack }) {
   return (
     <LegalPage title="Impressum" icon={FileText} onBack={onBack}>
@@ -48,39 +47,48 @@ export function Impressum({ onBack }) {
       <h2>Angaben gemäß § 5 TMG</h2>
       <p>
         <strong>Lociva</strong><br />
-        {process.env.NEXT_PUBLIC_COMPANY_STREET || "Musterstraße 1"}<br />
-        {process.env.NEXT_PUBLIC_COMPANY_CITY || "10115 Berlin"}<br />
+        ein Produkt von funk-e.solutions<br />
+        Christopher Funke<br />
+        {process.env.NEXT_PUBLIC_COMPANY_STREET || "Adresse wird ergänzt"}<br />
+        {process.env.NEXT_PUBLIC_COMPANY_CITY || "PLZ Ort"}<br />
         Deutschland
       </p>
 
       <h2>Kontakt</h2>
       <p>
-        Telefon: {process.env.NEXT_PUBLIC_COMPANY_PHONE || "+49 30 12345678"}<br />
-        E-Mail: {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "info@lociva.de"}
-      </p>
-
-      <h2>Umsatzsteuer-ID</h2>
-      <p>
-        Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:<br />
-        {process.env.NEXT_PUBLIC_COMPANY_VAT_ID || "DE123456789"}
-      </p>
-
-      <h2>Handelsregister</h2>
-      <p>
-        Registergericht: {process.env.NEXT_PUBLIC_COMPANY_COURT || "Amtsgericht Berlin (Charlottenburg)"}<br />
-        Registernummer: {process.env.NEXT_PUBLIC_COMPANY_REG_NO || "HRB 123456 B"}
+        E-Mail: info@lociva.de
       </p>
 
       <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>
       <p>
-        {process.env.NEXT_PUBLIC_COMPANY_RESPONSIBLE || "Geschäftsführung Lociva"}<br />
-        {process.env.NEXT_PUBLIC_COMPANY_STREET || "Musterstraße 1"},{" "}
-        {process.env.NEXT_PUBLIC_COMPANY_CITY || "10115 Berlin"}
+        Christopher Funke<br />
+        {process.env.NEXT_PUBLIC_COMPANY_STREET || "Adresse wird ergänzt"},{" "}
+        {process.env.NEXT_PUBLIC_COMPANY_CITY || "PLZ Ort"}
       </p>
+
+      {process.env.NEXT_PUBLIC_COMPANY_VAT_ID && (
+        <>
+          <h2>Umsatzsteuer-ID</h2>
+          <p>
+            Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:<br />
+            {process.env.NEXT_PUBLIC_COMPANY_VAT_ID}
+          </p>
+        </>
+      )}
+
+      {process.env.NEXT_PUBLIC_COMPANY_REG_NO && (
+        <>
+          <h2>Handelsregister</h2>
+          <p>
+            Registergericht: {process.env.NEXT_PUBLIC_COMPANY_COURT || "—"}<br />
+            Registernummer: {process.env.NEXT_PUBLIC_COMPANY_REG_NO}
+          </p>
+        </>
+      )}
 
       <h2>EU-Streitschlichtung</h2>
       <p>
-        Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:
+        Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:{" "}
         <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener">
           https://ec.europa.eu/consumers/odr/
         </a>
@@ -97,7 +105,7 @@ export function Impressum({ onBack }) {
 
       <hr />
       <p className="text-sm text-slate-500">
-        Stand: {new Date().toLocaleDateString("de-DE", { month: "long", year: "numeric" })}
+        Stand: März 2026
       </p>
     </LegalPage>
   );
@@ -121,46 +129,45 @@ export function Datenschutz({ onBack }) {
       <h3>Datenerfassung auf dieser Website</h3>
       <p><strong>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</strong></p>
       <p>
-        Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten
-        können Sie dem Impressum dieser Website entnehmen.
+        Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber:
+        Lociva (funk-e.solutions, Christopher Funke). Kontaktdaten finden Sie im Impressum.
       </p>
 
       <p><strong>Wie erfassen wir Ihre Daten?</strong></p>
       <p>
-        Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese mitteilen. Hierbei kann es sich
-        z.B. um Daten handeln, die Sie bei der Registrierung oder bei einer Buchung eingeben.
-      </p>
-      <p>
-        Andere Daten werden automatisch oder nach Ihrer Einwilligung beim Besuch der Website durch unsere
-        IT-Systeme erfasst. Das sind vor allem technische Daten (z.B. Internetbrowser, Betriebssystem oder
-        Uhrzeit des Seitenaufrufs).
+        Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese mitteilen — z.B. bei einer Buchung
+        (Name, E-Mail, Telefonnummer). Andere Daten werden automatisch beim Besuch der Website durch unsere
+        IT-Systeme erfasst (z.B. Browsertyp, IP-Adresse, Uhrzeit des Zugriffs).
       </p>
 
       <p><strong>Wofür nutzen wir Ihre Daten?</strong></p>
       <p>
-        Ein Teil der Daten wird erhoben, um eine fehlerfreie Bereitstellung der Website zu gewährleisten.
-        Andere Daten können zur Analyse Ihres Nutzerverhaltens verwendet werden.
+        Ihre Daten werden verwendet, um: (a) Buchungen zwischen Ihnen und dem Aktivitätsanbieter abzuwickeln,
+        (b) Buchungsbestätigungen und Stornierungslinks per E-Mail zu senden,
+        (c) Zahlungen über Stripe abzuwickeln,
+        (d) die fehlerfreie Bereitstellung der Website zu gewährleisten.
       </p>
 
-      <h2>2. Hosting</h2>
-      <p>
-        Wir hosten die Inhalte unserer Website bei folgenden Anbietern:
-      </p>
+      <h2>2. Hosting und Auftragsverarbeiter</h2>
 
-      <h3>Vercel</h3>
+      <h3>Vercel (Hosting)</h3>
       <p>
         Anbieter ist die Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA.
         Die Übermittlung in die USA erfolgt auf Grundlage der EU-Standardvertragsklauseln (SCC) gemäß Art. 46 Abs. 2 lit. c DSGVO.
-        Details entnehmen Sie der Datenschutzerklärung von Vercel:{" "}
+        Details:{" "}
         <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">
           https://vercel.com/legal/privacy-policy
         </a>
       </p>
 
-      <h3>Supabase</h3>
+      <h3>Supabase (Datenbank und Authentifizierung)</h3>
       <p>
-        Für die Datenbankdienste nutzen wir Supabase mit Servern in der EU (Frankfurt).
-        Details: <a href="https://supabase.com/privacy" target="_blank" rel="noopener">
+        Für Datenbank, Authentifizierung und serverseitige Funktionen nutzen wir Supabase Inc.,
+        970 Toa Payoh North #07-04, Singapore 318992. Unser Supabase-Projekt ist in der EU-Region
+        (Frankfurt, eu-central-1) gehostet. Die Datenverarbeitung erfolgt auf Grundlage eines
+        Auftragsverarbeitungsvertrags (DPA).
+        Details:{" "}
+        <a href="https://supabase.com/privacy" target="_blank" rel="noopener">
           https://supabase.com/privacy
         </a>
       </p>
@@ -179,77 +186,75 @@ export function Datenschutz({ onBack }) {
         Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website ist:
       </p>
       <p>
-        Lociva<br />
-        {process.env.NEXT_PUBLIC_COMPANY_STREET || "Musterstraße 1"},{" "}
-        {process.env.NEXT_PUBLIC_COMPANY_CITY || "10115 Berlin"}<br />
-        Telefon: {process.env.NEXT_PUBLIC_COMPANY_PHONE || "+49 30 12345678"}<br />
-        E-Mail: {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "info@lociva.de"}
-      </p>
-
-      <h3>Datenschutzbeauftragter / Datenschutzkontakt</h3>
-      <p>
-        Bei Fragen zum Datenschutz wenden Sie sich bitte an:{" "}
-        <a href={`mailto:${process.env.NEXT_PUBLIC_COMPANY_EMAIL || "datenschutz@lociva.de"}`}>
-          {process.env.NEXT_PUBLIC_COMPANY_EMAIL || "datenschutz@lociva.de"}
-        </a>
+        Lociva (funk-e.solutions)<br />
+        Christopher Funke<br />
+        E-Mail: info@lociva.de
       </p>
 
       <h3>Rechtsgrundlagen der Verarbeitung</h3>
       <p>Wir verarbeiten personenbezogene Daten auf folgenden Rechtsgrundlagen gemäß Art. 6 DSGVO:</p>
       <ul>
-        <li><strong>Art. 6 Abs. 1 lit. b DSGVO</strong> — Vertragserfüllung: Registrierung, Nutzerkonto, Buchungsabwicklung, Rechnungsstellung</li>
-        <li><strong>Art. 6 Abs. 1 lit. c DSGVO</strong> — Rechtliche Verpflichtung: Aufbewahrung von Rechnungen und Buchungsbelegen (§ 147 AO)</li>
-        <li><strong>Art. 6 Abs. 1 lit. f DSGVO</strong> — Berechtigtes Interesse: Betrieb und Sicherheit der Plattform, Missbrauchsprävention</li>
+        <li><strong>Art. 6 Abs. 1 lit. b DSGVO</strong> — Vertragserfüllung: Buchungsabwicklung, Zahlungsverarbeitung, E-Mail-Bestätigungen</li>
+        <li><strong>Art. 6 Abs. 1 lit. c DSGVO</strong> — Rechtliche Verpflichtung: Aufbewahrung von Buchungsbelegen (§ 147 AO)</li>
+        <li><strong>Art. 6 Abs. 1 lit. f DSGVO</strong> — Berechtigtes Interesse: Betrieb und Sicherheit der Plattform, Missbrauchsprävention, Analyse der Buchungskonversion</li>
       </ul>
 
       <h3>Speicherdauer</h3>
       <p>
-        Soweit innerhalb dieser Datenschutzerklärung keine speziellere Speicherdauer genannt wurde,
-        verbleiben Ihre personenbezogenen Daten bei uns, bis der Zweck für die Datenverarbeitung entfällt.
+        Buchungsdaten werden für die Dauer der gesetzlichen Aufbewahrungspflichten (in der Regel 10 Jahre
+        für steuerrelevante Belege) gespeichert. Analysedaten (QR-Scans, Seitenaufrufe) werden anonymisiert
+        und enthalten keine personenbezogenen Daten.
       </p>
 
       <h3>Ihre Rechte</h3>
       <p>Sie haben jederzeit das Recht:</p>
       <ul>
-        <li>Auskunft über Ihre bei uns gespeicherten Daten zu erhalten</li>
-        <li>Berichtigung unrichtiger Daten zu verlangen</li>
-        <li>Löschung Ihrer Daten zu verlangen</li>
-        <li>Einschränkung der Verarbeitung zu verlangen</li>
-        <li>Datenübertragbarkeit zu verlangen</li>
-        <li>Widerspruch gegen die Verarbeitung einzulegen</li>
-        <li>Eine erteilte Einwilligung zu widerrufen</li>
+        <li>Auskunft über Ihre bei uns gespeicherten Daten zu erhalten (Art. 15 DSGVO)</li>
+        <li>Berichtigung unrichtiger Daten zu verlangen (Art. 16 DSGVO)</li>
+        <li>Löschung Ihrer Daten zu verlangen (Art. 17 DSGVO)</li>
+        <li>Einschränkung der Verarbeitung zu verlangen (Art. 18 DSGVO)</li>
+        <li>Datenübertragbarkeit zu verlangen (Art. 20 DSGVO)</li>
+        <li>Widerspruch gegen die Verarbeitung einzulegen (Art. 21 DSGVO)</li>
+        <li>Sich bei einer Aufsichtsbehörde zu beschweren (Art. 77 DSGVO)</li>
       </ul>
+      <p>
+        Wenden Sie sich dazu an: info@lociva.de
+      </p>
 
       <h2>4. Datenerfassung auf dieser Website</h2>
 
       <h3>Cookies</h3>
       <p>
-        Unsere Website verwendet nur technisch notwendige Cookies für die Authentifizierung.
-        Diese sind für den Betrieb der Seite unbedingt erforderlich.
+        Unsere Website verwendet ausschließlich technisch notwendige Cookies für die Authentifizierung
+        (Supabase Auth Session). Es werden keine Tracking- oder Marketing-Cookies eingesetzt.
       </p>
 
-      <h3>Anfrage per E-Mail oder Telefon</h3>
+      <h3>Gastbuchungen (ohne Registrierung)</h3>
       <p>
-        Wenn Sie uns per E-Mail oder Telefon kontaktieren, wird Ihre Anfrage inklusive aller
-        daraus hervorgehenden personenbezogenen Daten zum Zwecke der Bearbeitung bei uns
-        gespeichert und verarbeitet.
+        Hotelgäste können Buchungen ohne Erstellung eines Benutzerkontos vornehmen. Dabei werden
+        folgende Daten erhoben: Name, E-Mail-Adresse, optional Telefonnummer. Diese Daten werden
+        ausschließlich zur Buchungsabwicklung und zum Versand der Bestätigung verwendet und an den
+        jeweiligen Aktivitätsanbieter weitergegeben.
       </p>
 
-      <h3>Registrierung auf dieser Website</h3>
+      <h3>Analytik</h3>
       <p>
-        Sie können sich auf dieser Website registrieren, um zusätzliche Funktionen zu nutzen.
-        Die dazu eingegebenen Daten verwenden wir nur zum Zwecke der Nutzung des Angebotes.
+        Wir erfassen anonymisierte Analysedaten (QR-Scans, Seitenaufrufe, Buchungsstarts) pro Hotel,
+        um den Hotels Konversionsstatistiken zur Verfügung zu stellen. Diese Daten enthalten keine
+        personenbezogenen Informationen und werden nicht an Dritte weitergegeben.
       </p>
 
       <h2>5. Zahlungsanbieter</h2>
 
       <h3>Stripe</h3>
       <p>
-        Für die Zahlungsabwicklung nutzen wir Stripe. Anbieter ist die Stripe Payments Europe,
-        Ltd., 1 Grand Canal Street Lower, Grand Canal Dock, Dublin, Irland.
+        Für die Zahlungsabwicklung nutzen wir Stripe Connect. Anbieter ist die Stripe Payments Europe,
+        Ltd., 1 Grand Canal Street Lower, Grand Canal Dock, Dublin, Irland. Zahlungsdaten (Kreditkartennummer,
+        Bankdaten) werden ausschließlich von Stripe verarbeitet und erreichen zu keinem Zeitpunkt unsere Server.
       </p>
       <p>
-        Details: <a href="https://stripe.com/de/privacy" target="_blank" rel="noopener">
+        Details:{" "}
+        <a href="https://stripe.com/de/privacy" target="_blank" rel="noopener">
           https://stripe.com/de/privacy
         </a>
       </p>
@@ -258,7 +263,7 @@ export function Datenschutz({ onBack }) {
 
       <h3>Brevo (ehemals Sendinblue)</h3>
       <p>
-        Für den Versand von Transaktions-E-Mails (z.B. Buchungsbestätigungen) nutzen wir den Dienst Brevo.
+        Für den Versand von Transaktions-E-Mails (Buchungsbestätigungen, Stornierungslinks) nutzen wir Brevo.
         Anbieter ist die Sendinblue SAS, 7 rue de Madrid, 75008 Paris, Frankreich.
         Die Datenverarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
         Details:{" "}
@@ -267,9 +272,22 @@ export function Datenschutz({ onBack }) {
         </a>
       </p>
 
+      <h2>7. Übersicht der Auftragsverarbeiter</h2>
+      <table>
+        <thead>
+          <tr><th>Dienst</th><th>Anbieter</th><th>Zweck</th><th>Serverstandort</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Vercel</td><td>Vercel Inc., USA</td><td>Hosting, CDN</td><td>EU (Frankfurt)</td></tr>
+          <tr><td>Supabase</td><td>Supabase Inc., SG</td><td>Datenbank, Auth, Edge Functions</td><td>EU (Frankfurt)</td></tr>
+          <tr><td>Stripe</td><td>Stripe Payments Europe, IE</td><td>Zahlungsabwicklung</td><td>EU</td></tr>
+          <tr><td>Brevo</td><td>Sendinblue SAS, FR</td><td>Transaktions-E-Mails</td><td>EU</td></tr>
+        </tbody>
+      </table>
+
       <hr />
       <p className="text-sm text-slate-500">
-        Stand: {new Date().toLocaleDateString("de-DE", { month: "long", year: "numeric" })}
+        Stand: März 2026
       </p>
     </LegalPage>
   );
@@ -280,167 +298,175 @@ export function AGB({ onBack }) {
   return (
     <LegalPage title="Allgemeine Geschäftsbedingungen" icon={Scale} onBack={onBack}>
       <h1>Allgemeine Geschäftsbedingungen (AGB)</h1>
+      <p><strong>Lociva — Plattform für lokale Erlebnisse</strong></p>
+      <p>Betreiber: funk-e.solutions, Christopher Funke</p>
 
-      <h2>§ 1 Geltungsbereich</h2>
+      <h2>§ 1 Geltungsbereich und Begriffsbestimmungen</h2>
       <p>
-        (1) Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der Software
-        &quot;Lociva&quot; (nachfolgend &quot;Software&quot; oder &quot;Dienst&quot;), die von Lociva
-        (nachfolgend &quot;Anbieter&quot;) bereitgestellt wird.
+        (1) Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der Plattform
+        &quot;Lociva&quot; (nachfolgend &quot;Plattform&quot;), erreichbar unter lociva.de,
+        betrieben von funk-e.solutions, Christopher Funke (nachfolgend &quot;Lociva&quot;).
       </p>
       <p>
-        (2) Vertragspartner sind der Anbieter und der Nutzer (nachfolgend &quot;Kunde&quot;).
+        (2) Die Plattform richtet sich an drei Nutzergruppen:
       </p>
+      <ul>
+        <li><strong>Gäste:</strong> Hotelgäste, die über die Plattform lokale Aktivitäten buchen.</li>
+        <li><strong>Anbieter:</strong> Unternehmen, die ihre Aktivitäten (z.B. Fahrradverleih, Kanu, Stadtführungen) über die Plattform anbieten.</li>
+        <li><strong>Hotels:</strong> Beherbergungsbetriebe, die ihren Gästen den Zugang zur Plattform per QR-Code ermöglichen.</li>
+      </ul>
       <p>
-        (3) Abweichende Geschäftsbedingungen des Kunden werden nicht anerkannt.
-      </p>
-
-      <h2>§ 2 Vertragsgegenstand</h2>
-      <p>
-        (1) Der Anbieter stellt dem Kunden eine webbasierte Software zur Verwaltung von
-        Fahrradvermietungen zur Verfügung (Software as a Service, SaaS).
-      </p>
-      <p>
-        (2) Der Funktionsumfang richtet sich nach dem gewählten Tarif (Basic, Pro, Unlimited).
-      </p>
-      <p>
-        (3) Die Software wird über das Internet bereitgestellt und erfordert einen
-        aktuellen Webbrowser.
+        (3) Für Anbieter gelten zusätzlich die Anbieter-AGB, die im Rahmen des Stripe-Connect-Onboardings akzeptiert werden.
       </p>
 
-      <h2>§ 3 Vertragsschluss</h2>
+      <h2>§ 2 Rolle von Lociva — Vermittler, nicht Vertragspartei</h2>
       <p>
-        (1) Der Vertrag kommt durch die Registrierung des Kunden und Bestätigung durch
-        den Anbieter zustande.
+        (1) Lociva ist ausschließlich <strong>Vermittler</strong> (Intermediär). Lociva ist weder
+        Vermieter, Veranstalter noch Dienstleister der angebotenen Aktivitäten.
       </p>
       <p>
-        (2) Mit der Registrierung bestätigt der Kunde, diese AGB gelesen und akzeptiert
-        zu haben.
-      </p>
-
-      <h2>§ 4 Kostenlose Testphase</h2>
-      <p>
-        (1) Kostenpflichtige Tarife können 14 Tage kostenlos getestet werden.
+        (2) Der Vertrag über die gebuchte Aktivität kommt ausschließlich zwischen dem Gast und dem
+        jeweiligen Anbieter zustande. Lociva ist an diesem Vertrag nicht beteiligt.
       </p>
       <p>
-        (2) Nach Ablauf der Testphase wird der Tarif automatisch kostenpflichtig,
-        sofern nicht vorher gekündigt wurde.
+        (3) Hotels empfehlen lediglich die Plattform und übernehmen keine Haftung für die
+        vermittelten Leistungen.
       </p>
 
-      <h2>§ 5 Preise und Zahlung</h2>
+      <h2>§ 3 Buchung und Vertragsschluss</h2>
       <p>
-        (1) Die aktuellen Preise sind auf der Website veröffentlicht.
+        (1) Gäste können über die Plattform Aktivitäten lokaler Anbieter buchen. Eine Registrierung
+        oder ein Benutzerkonto ist dafür nicht erforderlich.
       </p>
       <p>
-        (2) Alle Preise verstehen sich zuzüglich der gesetzlichen Mehrwertsteuer.
+        (2) Durch das Absenden einer Buchung und die erfolgreiche Zahlung kommt ein Vertrag zwischen
+        dem Gast und dem Anbieter zustande.
       </p>
       <p>
-        (3) Die Zahlung erfolgt per Kreditkarte oder SEPA-Lastschrift über den
-        Zahlungsdienstleister Stripe.
-      </p>
-      <p>
-        (4) Bei monatlicher Zahlung wird jeweils zum Monatsersten abgebucht.
-      </p>
-
-      <h2>§ 6 Laufzeit und Kündigung</h2>
-      <p>
-        (1) Der Vertrag läuft auf unbestimmte Zeit.
-      </p>
-      <p>
-        (2) Bei monatlicher Zahlung kann jederzeit zum Monatsende gekündigt werden.
-      </p>
-      <p>
-        (3) Bei jährlicher Zahlung kann zum Ende der Laufzeit gekündigt werden.
-      </p>
-      <p>
-        (4) Die Kündigung erfolgt über das Kundenkonto oder per E-Mail.
-      </p>
-      <p>
-        (5) Nach Kündigung werden die Daten für 30 Tage aufbewahrt und können
-        exportiert werden. Danach erfolgt die Löschung.
+        (3) Der Gast erhält eine Buchungsbestätigung per E-Mail mit allen relevanten Details
+        (Buchungsnummer, Zeitraum, Abholadresse, Stornierungslink).
       </p>
 
-      <h2>§ 7 Verfügbarkeit</h2>
+      <h2>§ 4 Preise und Zahlung</h2>
       <p>
-        (1) Der Anbieter bemüht sich um eine Verfügbarkeit von 99,5% im Jahresmittel.
+        (1) Die auf der Plattform angezeigten Preise sind Endpreise inklusive gesetzlicher Mehrwertsteuer.
       </p>
       <p>
-        (2) Ausgenommen sind geplante Wartungsarbeiten, die vorab angekündigt werden.
+        (2) Die Zahlung erfolgt ausschließlich online über den Zahlungsdienstleister Stripe.
+        Akzeptierte Zahlungsmittel sind Kredit- und Debitkarten.
       </p>
       <p>
-        (3) Bei Störungen wird der Anbieter umgehend Maßnahmen zur Behebung einleiten.
-      </p>
-
-      <h2>§ 8 Datenschutz und Datensicherheit</h2>
-      <p>
-        (1) Der Anbieter verarbeitet personenbezogene Daten gemäß der Datenschutzerklärung
-        und den geltenden Datenschutzgesetzen.
-      </p>
-      <p>
-        (2) Der Kunde bleibt Eigentümer seiner Daten und kann diese jederzeit exportieren.
-      </p>
-      <p>
-        (3) Der Anbieter erstellt regelmäßige Backups der Daten.
-      </p>
-      <p>
-        (4) Ein Auftragsverarbeitungsvertrag (AVV) wird auf Anfrage bereitgestellt.
+        (3) Lociva erhält vom Anbieter eine Vermittlungsprovision. Der Gast zahlt den auf der
+        Plattform angezeigten Preis — es entstehen keine zusätzlichen Gebühren.
       </p>
 
-      <h2>§ 9 Pflichten des Kunden</h2>
+      <h2>§ 5 Stornierung und Rückerstattung</h2>
       <p>
-        (1) Der Kunde ist für die Geheimhaltung seiner Zugangsdaten verantwortlich.
+        (1) Gäste können Buchungen über den in der Bestätigungs-E-Mail enthaltenen Stornierungslink stornieren.
       </p>
       <p>
-        (2) Der Kunde darf die Software nur für rechtmäßige Zwecke nutzen.
+        (2) Es gelten folgende Stornierungsbedingungen:
       </p>
+      <table>
+        <thead>
+          <tr><th>Zeitpunkt</th><th>Rückerstattung</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Mehr als 24 Stunden vor Beginn</td><td>100 % Rückerstattung</td></tr>
+          <tr><td>Weniger als 24 Stunden vor Beginn</td><td>50 % Stornogebühr, 50 % Rückerstattung</td></tr>
+          <tr><td>Nichterscheinen (No-Show)</td><td>Keine Rückerstattung</td></tr>
+        </tbody>
+      </table>
       <p>
-        (3) Der Kunde ist für die Richtigkeit der eingegebenen Daten verantwortlich.
-      </p>
-
-      <h2>§ 10 Haftung</h2>
-      <p>
-        (1) Der Anbieter haftet unbeschränkt bei Vorsatz und grober Fahrlässigkeit.
-      </p>
-      <p>
-        (2) Bei leichter Fahrlässigkeit haftet der Anbieter nur bei Verletzung
-        wesentlicher Vertragspflichten, begrenzt auf den vorhersehbaren,
-        vertragstypischen Schaden.
-      </p>
-      <p>
-        (3) Eine Haftung für Datenverlust ist auf den typischen Wiederherstellungsaufwand
-        begrenzt, der bei regelmäßiger Datensicherung entstanden wäre.
+        (3) Die Rückerstattung erfolgt über den ursprünglichen Zahlungsweg (Stripe) und kann
+        je nach Kreditinstitut 5–10 Werktage in Anspruch nehmen.
       </p>
 
-      <h2>§ 11 Änderungen der AGB</h2>
+      <h2>§ 6 Pflichten des Gastes</h2>
       <p>
-        (1) Der Anbieter kann diese AGB mit angemessener Frist ändern.
+        (1) Der Gast ist verpflichtet, bei der Buchung wahrheitsgemäße Angaben zu machen
+        (insbesondere Name und E-Mail-Adresse).
       </p>
       <p>
-        (2) Änderungen werden per E-Mail mitgeteilt. Widerspricht der Kunde nicht
-        innerhalb von 30 Tagen, gelten die neuen AGB als akzeptiert.
+        (2) Der Gast erscheint pünktlich am vereinbarten Abholort und befolgt die Anweisungen
+        des Anbieters (insbesondere Sicherheitshinweise bei Sportgeräten).
+      </p>
+      <p>
+        (3) Bei Beschädigung oder Verlust gemieteter Gegenstände haftet der Gast gegenüber dem
+        Anbieter nach den Bestimmungen des jeweiligen Mietvertrags.
       </p>
 
-      <h2>§ 12 Schlussbestimmungen</h2>
+      <h2>§ 7 Pflichten der Anbieter</h2>
       <p>
-        (1) Es gilt deutsches Recht.
+        (1) Der Anbieter verpflichtet sich, eine gültige Betriebshaftpflichtversicherung zu unterhalten.
       </p>
       <p>
-        (2) Gerichtsstand ist {process.env.NEXT_PUBLIC_COMPANY_JURISDICTION || "Berlin"}, sofern der Kunde Kaufmann ist.
+        (2) Der Anbieter ist für die korrekte Angabe von Preisen, Verfügbarkeiten und
+        Leistungsbeschreibungen auf der Plattform verantwortlich.
       </p>
       <p>
-        (3) Sollten einzelne Bestimmungen unwirksam sein, bleibt der Vertrag im
-        Übrigen wirksam.
+        (3) Weitere Pflichten sind in den Anbieter-AGB geregelt.
+      </p>
+
+      <h2>§ 8 Haftung von Lociva</h2>
+      <p>
+        (1) Lociva haftet nicht für die Qualität, Sicherheit oder Verfügbarkeit der von Anbietern
+        angebotenen Leistungen.
+      </p>
+      <p>
+        (2) Lociva haftet nicht für Schäden, die aus dem Vertragsverhältnis zwischen Gast und
+        Anbieter entstehen.
+      </p>
+      <p>
+        (3) Lociva haftet unbeschränkt bei Vorsatz und grober Fahrlässigkeit. Bei leichter
+        Fahrlässigkeit haftet Lociva nur bei Verletzung wesentlicher Vertragspflichten
+        (Kardinalpflichten), begrenzt auf den vorhersehbaren, vertragstypischen Schaden.
+      </p>
+      <p>
+        (4) Lociva bemüht sich um eine Verfügbarkeit der Plattform von 99,5 % im Jahresmittel,
+        übernimmt jedoch keine Garantie für die ununterbrochene Erreichbarkeit.
+      </p>
+
+      <h2>§ 9 Datenschutz</h2>
+      <p>
+        Die Verarbeitung personenbezogener Daten erfolgt gemäß unserer{" "}
+        <a href="/datenschutz">Datenschutzerklärung</a>. Gastdaten werden ausschließlich zur
+        Buchungsabwicklung verwendet und an den jeweiligen Anbieter weitergegeben. Zahlungsdaten
+        werden ausschließlich von Stripe verarbeitet.
+      </p>
+
+      <h2>§ 10 Änderungen der AGB</h2>
+      <p>
+        (1) Lociva kann diese AGB mit angemessener Frist ändern.
+      </p>
+      <p>
+        (2) Änderungen werden auf der Plattform veröffentlicht. Für Anbieter und Hotels gelten
+        geänderte AGB ab dem Zeitpunkt der Veröffentlichung, sofern nicht innerhalb von 30 Tagen
+        widersprochen wird.
+      </p>
+
+      <h2>§ 11 Schlussbestimmungen</h2>
+      <p>
+        (1) Es gilt das Recht der Bundesrepublik Deutschland.
+      </p>
+      <p>
+        (2) Die EU-Plattform zur Online-Streitbeilegung finden Sie unter:{" "}
+        <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener">
+          https://ec.europa.eu/consumers/odr/
+        </a>
+      </p>
+      <p>
+        (3) Sollten einzelne Bestimmungen dieser AGB unwirksam sein, bleibt die Wirksamkeit der
+        übrigen Bestimmungen davon unberührt.
       </p>
 
       <hr />
       <p className="text-sm text-slate-500">
-        Stand: {new Date().toLocaleDateString("de-DE", { month: "long", year: "numeric" })}
+        Stand: März 2026 — Lociva (funk-e.solutions)
       </p>
     </LegalPage>
   );
 }
-
-// Named exports
-// Named exports are already defined above
 
 // Default export as object for lazy loading
 const LegalPages = { Impressum, Datenschutz, AGB };
