@@ -9,6 +9,7 @@ import { useToast } from "../components/ui/Toast";
 import { useI18n } from "../utils/i18n";
 import WidgetSettings from "./WidgetSettings";
 import TeamManagement from "../components/settings/TeamManagement";
+import ApiSettings from "../components/settings/ApiSettings";
 
 const PLANS = [
     {
@@ -651,6 +652,9 @@ export default function SettingsPage() {
 
             {/* Widget Settings */}
             <WidgetSettings supabase={supabase} orgId={org.currentOrg?.id} darkMode={darkMode} />
+
+            {/* API Settings */}
+            <ApiSettings orgId={org.currentOrg?.id} darkMode={darkMode} />
 
             {/* Danger Zone */}
             <div className={`rounded-2xl border p-6 ${darkMode ? "bg-slate-900 border-red-900/40" : "bg-white border-red-200"}`}>
