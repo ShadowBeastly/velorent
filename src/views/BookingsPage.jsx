@@ -32,7 +32,7 @@ const SOURCES = [
 
 export default function BookingsPage() {
     const { darkMode, searchQuery } = useApp();
-    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories } = useData();
+    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories, maintenanceDue, coupons } = useData();
     const org = useOrganization();
     const currentOrg = org.currentOrg;
     const { addToast } = useToast();
@@ -94,7 +94,8 @@ export default function BookingsPage() {
     const hasActiveFilters = categoryFilter !== "all" || paymentFilter !== "all" || sourceFilter !== "all" || dateFrom || dateTo;
 
     const handleSave = async (data) => {
-        let bookingData = { ...data };
+        const { _couponId, _couponDiscountAmount, ...rest } = data;
+        let bookingData = { ...rest };
 
         // Handle new customer creation
         if (!bookingData.customer_id && bookingData.customer_name) {
@@ -127,10 +128,13 @@ export default function BookingsPage() {
                 return;
             }
         } else {
-            const { error } = await bookings.create(bookingData, addOns.addOns);
+            const { data: newBooking, error } = await bookings.create(bookingData, addOns.addOns);
             if (error) {
                 addToast("Fehler beim Erstellen: " + error.message, "error");
                 return;
+            }
+            if (newBooking?.id && _couponId && _couponDiscountAmount) {
+                await coupons.recordUsage(_couponId, newBooking.id, _couponDiscountAmount);
             }
         }
         setShowModal(false);
@@ -614,6 +618,7 @@ export default function BookingsPage() {
                     existingBookings={bookings.bookings}
                     pricingRules={pricingRules?.rules || []}
                     addOns={addOns.addOns}
+                    validateCoupon={coupons?.validateCoupon}
                     onSave={handleSave}
                     onDelete={async (id, cancellationStatus) => {
                         const { error } = await bookings.remove(id, cancellationStatus);
