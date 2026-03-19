@@ -661,7 +661,7 @@ CREATE POLICY "Members can manage vouchers" ON vouchers
 -- SECURITY FIXES (apply after initial schema setup)
 -- =====================================================
 
--- FIX 1: booking_history — add INSERT policy (previously only SELECT)
+-- FIX 1: booking_history. Add INSERT policy (previously only SELECT)
 DROP POLICY IF EXISTS "Members can insert booking history" ON booking_history;
 CREATE POLICY "Members can insert booking history" ON booking_history
     FOR INSERT WITH CHECK (
@@ -671,7 +671,7 @@ CREATE POLICY "Members can insert booking history" ON booking_history
         )
     );
 
--- FIX 2: organization_members — prevent admin→owner role escalation
+-- FIX 2: organization_members. Prevent admin->owner role escalation
 -- Drop the broad FOR ALL policy and replace with fine-grained ones
 DROP POLICY IF EXISTS "Admins can manage org members" ON organization_members;
 
@@ -711,7 +711,7 @@ CREATE POLICY "Admins can delete org members" ON organization_members
         )
     );
 
--- FIX 3: locations and pricing_rules — require admin/owner role
+-- FIX 3: locations and pricing_rules. Require admin/owner role
 DROP POLICY IF EXISTS "Admins can manage locations" ON locations;
 CREATE POLICY "Admins can manage locations" ON locations
     FOR ALL USING (

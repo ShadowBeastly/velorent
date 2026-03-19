@@ -1,8 +1,8 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle } from "lucide-react";
+import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle, Tag } from "lucide-react";
 import { fmtISO, addDays, daysDiff, fmtCurrency } from "../../utils/formatters";
-import { STATUS } from "../../utils/constants";
+import { STATUS, CANCELLATION_WINDOW_HOURS } from "../../utils/constants";
 import ContractModal from "./ContractModal";
 import { calculateDynamicPrice } from "../../utils/calculatePrice";
 
@@ -11,14 +11,14 @@ function getCancellationScenario(startDate) {
     const start = new Date(startDate + "T00:00:00");
     const hoursUntilStart = (start - now) / (1000 * 60 * 60);
     if (hoursUntilStart < 0) return "no_show";
-    if (hoursUntilStart < 24) return "partial";
+    if (hoursUntilStart < CANCELLATION_WINDOW_HOURS) return "partial";
     return "free";
 }
 
 const CANCEL_SCENARIO_META = {
     free: {
         label: "Kostenlose Stornierung",
-        sublabel: "Mehr als 24h vor Mietbeginn — voller Refund",
+        sublabel: "Mehr als 24h vor Mietbeginn. Voller Refund.",
         color: "border-green-600/50 bg-green-900/20",
         badgeColor: "bg-green-700 text-green-100",
         guestBack: (total) => total,
@@ -42,7 +42,7 @@ const CANCEL_SCENARIO_META = {
     },
     no_show: {
         label: "No-Show",
-        sublabel: "Mietbeginn überschritten — kein Refund",
+        sublabel: "Mietbeginn überschritten. Kein Refund.",
         color: "border-red-700/50 bg-red-900/20",
         badgeColor: "bg-red-700 text-red-100",
         guestBack: () => 0,
@@ -65,12 +65,18 @@ const STEPS = [
     { id: 4, label: "Abschluss", icon: CheckCircle }
 ];
 
-export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, pricingRules, addOns, onSave, onDelete, onClose, darkMode }) {
+export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, pricingRules, addOns, validateCoupon, onSave, onDelete, onClose, darkMode }) {
     const [step, setStep] = useState(1);
     const [saving, setSaving] = useState(false);
     const [stepError, setStepError] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [showCancelBreakdown, setShowCancelBreakdown] = useState(false);
+
+    // M6: Coupon state
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [couponError, setCouponError] = useState('');
+    const [couponLoading, setCouponLoading] = useState(false);
 
     const isMarketplaceBooking = booking?.booking_source === "hotel_qr";
     const [customerSearch, setCustomerSearch] = useState("");
@@ -124,7 +130,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const selectedBike = bikes.find(b => b.id === form.bike_id);
     const days = form.start_date && form.end_date ? Math.max(1, daysDiff(form.start_date, form.end_date)) : 1;
 
-    // Dynamic pricing result for the current selection (used in UI hints — single bike only)
+    // Dynamic pricing result for the current selection (used in UI hints. Single bike only)
     const pricingResult = useMemo(() => {
         if (isGroupBooking || !selectedBike || !form.start_date || !form.end_date) return null;
         return calculateDynamicPrice(selectedBike, form.start_date, form.end_date, pricingRules || []);
@@ -267,7 +273,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                 if (groupConflicts.length > 0) { setStepError(`Verfügbarkeitskonflikt: ${groupConflicts.map(b => b.name).join(", ")} ist/sind im gewählten Zeitraum bereits vergeben.`); return; }
             } else {
                 if (!form.bike_id) { setStepError("Bitte ein Rad wählen."); return; }
-                if (!isBikeAvailable) { setStepError(`Rad nicht verfügbar – Konflikt mit Buchung ${conflictingBooking.booking_number} (${new Date(conflictingBooking.start_date).toLocaleDateString()} – ${new Date(conflictingBooking.end_date).toLocaleDateString()}).`); return; }
+                if (!isBikeAvailable) { setStepError(`Rad nicht verfügbar. Konflikt mit Buchung ${conflictingBooking.booking_number} (${new Date(conflictingBooking.start_date).toLocaleDateString()} - ${new Date(conflictingBooking.end_date).toLocaleDateString()}).`); return; }
             }
         }
         if (step === 2) {
@@ -278,7 +284,37 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
 
     const handleBack = () => setStep(s => s - 1);
 
-    const handleSave = async () => {
+    const applyCoupon = async () => {
+        if (!couponCode.trim()) return;
+        if (!validateCoupon) { setCouponError('Gutschein-Validierung nicht verfügbar.'); return; }
+        setCouponLoading(true);
+        setCouponError('');
+        setAppliedCoupon(null);
+        const bikeQty = isGroupBooking ? form.selectedBikes.length : 1;
+        const selectedBikeObj = bikes.find(b => b.id === form.bike_id);
+        const result = await validateCoupon(couponCode.trim().toUpperCase(), {
+            totalPrice: form.total_price,
+            durationDays: days,
+            quantity: bikeQty,
+            categoryId: selectedBikeObj?.category_id,
+            bikeId: form.bike_id,
+        });
+        setCouponLoading(false);
+        if (result.valid) {
+            setAppliedCoupon(result);
+            setCouponCode('');
+        } else {
+            setCouponError(result.reason || 'Ungültiger Gutschein.');
+        }
+    };
+
+    const removeCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponError('');
+        setCouponCode('');
+    };
+
+        const handleSave = async () => {
         if (!isGroupBooking && conflictingBooking) {
             console.error("Speichern blockiert: Buchungskonflikt erkannt");
             return;
@@ -289,10 +325,15 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         }
         setSaving(true);
         try {
+            const discountAmount = appliedCoupon?.discountAmount || 0;
+            const finalPrice = Math.max(0, form.total_price - discountAmount);
             // Pass selectedBikes for group bookings; hook handles booking_items insert
             await onSave({
                 ...form,
+                total_price: finalPrice,
                 selectedBikes: isGroupBooking ? form.selectedBikes : [],
+                _couponId: appliedCoupon?.coupon?.id || null,
+                _couponDiscountAmount: discountAmount || null,
             });
         } catch (err) {
             console.error("Fehler beim Speichern:", err);
@@ -409,7 +450,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                 </div>
                             </div>
 
-                            {/* Group booking toggle — only for new bookings */}
+                            {/* Group booking toggle. Only for new bookings */}
                             {!booking && (
                                 <div
                                     onClick={() => {
@@ -745,6 +786,46 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                     )}
                                 </div>
                             )}
+
+                            {/* Gutscheincode */}
+                            <div className="space-y-2">
+                                <label className={labelStyle}>Gutscheincode</label>
+                                {appliedCoupon ? (
+                                    <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-700/50">
+                                        <span className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-medium">
+                                            <Tag className="w-4 h-4" />
+                                            <code className="font-bold">{appliedCoupon.coupon.code}</code>
+                                            {' - '}{appliedCoupon.coupon.type === 'percentage' ? `${appliedCoupon.coupon.value}%` : fmtCurrency(appliedCoupon.coupon.value)} Rabatt
+                                            {' '}({fmtCurrency(appliedCoupon.discountAmount)} gespart)
+                                        </span>
+                                        <button onClick={removeCoupon} className="text-xs text-slate-500 hover:text-red-500 transition-colors underline">Entfernen</button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <div className="flex gap-2">
+                                            <input
+                                                className={inputStyle + ' font-mono uppercase tracking-wider'}
+                                                value={couponCode}
+                                                onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(''); }}
+                                                placeholder="GUTSCHEINCODE"
+                                                onKeyDown={e => e.key === 'Enter' && applyCoupon()}
+                                            />
+                                            <button
+                                                onClick={applyCoupon}
+                                                disabled={!couponCode.trim() || couponLoading}
+                                                className="px-3 py-2 bg-[#1A7D5A] hover:bg-[#156649] text-white rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap transition-colors"
+                                            >
+                                                {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Einlösen'}
+                                            </button>
+                                        </div>
+                                        {couponError && (
+                                            <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                                                <X className="w-3 h-3" /> {couponError}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
 
@@ -762,7 +843,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         <span className="font-medium">{form.customer_name}</span>
                                     </div>
 
-                                    {/* Bike display — single vs group */}
+                                    {/* Bike display. Single vs group */}
                                     {isGroupBooking ? (
                                         <div>
                                             <div className="flex justify-between mb-1">
@@ -817,7 +898,19 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         </div>
                                     )}
 
-                                    <div className="border-t my-2 pt-2 flex justify-between text-base">
+                                    {/* Coupon discount row */}
+                                    {appliedCoupon && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                                <Tag className="w-3.5 h-3.5" />
+                                                Gutschein ({appliedCoupon.coupon.code})
+                                            </span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                                                -{fmtCurrency(appliedCoupon.discountAmount)}
+                                            </span>
+                                        </div>
+                                    )}
+                                                                        <div className="border-t my-2 pt-2 flex justify-between text-base">
                                         <span className="font-medium">Gesamtbetrag</span>
                                         <div className="text-right">
                                             <span className="font-bold text-[#1A7D5A]">{fmtCurrency(form.total_price)}</span>

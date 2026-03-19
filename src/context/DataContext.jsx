@@ -9,7 +9,9 @@ import { useBikeCategories } from "../hooks/useBikeCategories";
 import { useAddOns } from "../hooks/useAddOns";
 import { useMaintenanceBlocks } from "../hooks/useMaintenanceBlocks";
 import { useVouchers } from "../hooks/useVouchers";
+import { useCoupons } from "../hooks/useCoupons";
 import { usePricingRules } from "../hooks/usePricingRules";
+import { useMaintenance } from "../hooks/useMaintenance";
 import { fmtISO, fmtCurrency } from "../utils/formatters";
 import { calculateLateFee } from "../utils/calculateLateFee";
 
@@ -27,7 +29,9 @@ export function DataProvider({ children }) {
     const addOns = useAddOns(orgId);
     const maintenanceBlocks = useMaintenanceBlocks(orgId);
     const vouchers = useVouchers(orgId);
+    const coupons = useCoupons(orgId);
     const pricingRules = usePricingRules(orgId);
+    const maintenanceDue = useMaintenance(orgId);
 
     const todayStr = fmtISO(new Date());
     const notifications = useMemo(() => {
@@ -48,8 +52,11 @@ export function DataProvider({ children }) {
                 n.push({ type: "info", msg: `Heute Abholung: ${customerName}`, id: b.id });
             }
         });
+        maintenanceDue.dueMaintenances.filter(m => m.is_overdue).forEach(m => {
+            n.push({ type: "warning", msg: `Wartung fällig: ${m.bike_name} (${m.type})`, id: `maint-${m.id}` });
+        });
         return n;
-    }, [bookings.bookings, todayStr, org.currentOrg]);
+    }, [bookings.bookings, todayStr, org.currentOrg, maintenanceDue.dueMaintenances]);
 
     return (
         <DataContext.Provider value={{
@@ -61,7 +68,9 @@ export function DataProvider({ children }) {
             addOns,
             maintenanceBlocks,
             vouchers,
+            coupons,
             pricingRules,
+            maintenanceDue,
             notifications
         }}>
             {children}

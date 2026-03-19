@@ -1,6 +1,6 @@
 -- ============================================================
 -- 001_lociva_extension.sql
--- Lociva Marketplace Extension — Consolidated Migration
+-- Lociva Marketplace Extension. Consolidated Migration
 -- Run AFTER: supabase-schema.sql
 --
 -- Creates: regions, hotels, hotel_providers, hotel_users,
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS analytics_events (
 );
 
 -- ============================================================
--- ALTER: organizations — Stripe Connect + provider fields
+-- ALTER: organizations. Stripe Connect + provider fields
 -- ============================================================
 
 ALTER TABLE organizations
@@ -164,7 +164,7 @@ ALTER TABLE organizations
   ADD COLUMN IF NOT EXISTS provider_photos            JSONB DEFAULT '[]';
 
 -- ============================================================
--- ALTER: bookings — marketplace fields
+-- ALTER: bookings. Marketplace fields
 -- ============================================================
 
 ALTER TABLE bookings
@@ -618,7 +618,7 @@ END;
 $$;
 
 -- ============================================================
--- GRANTS — allow anon + authenticated to call public RPCs
+-- GRANTS. Allow anon + authenticated to call public RPCs
 -- ============================================================
 
 GRANT EXECUTE ON FUNCTION is_platform_admin()

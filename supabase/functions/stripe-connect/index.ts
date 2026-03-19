@@ -96,6 +96,6 @@ serve(async (req) => {
     return Response.json({ url: accountLink.url }, { headers: CORS });
   } catch (err) {
     console.error("stripe-connect error:", err);
-    return Response.json({ error: (err as Error).message }, { status: 500, headers: CORS });
+    return Response.json({ error: "Internal error" }, { status: 500, headers: CORS });
   }
 });

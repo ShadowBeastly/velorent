@@ -80,7 +80,8 @@ export default function StripePayoutCard({ bookings = [], org, darkMode }) {
                             : darkMode ? "bg-amber-500/10 text-amber-400" : "bg-amber-50 text-amber-700"
                     }`}>
                         {stripeVerified
-                            ? <><CheckCircle2 className="w-4 h-4" /> Stripe verifiziert — Auszahlungen aktiv</>
+                            ? <><CheckCircle2 className="w-4 h-4" /> Stripe verifiziert. Auszahlungen aktiv.</>
+
                             : <><Clock className="w-4 h-4" /> Stripe-Verifizierung ausstehend</>
                         }
                     </div>

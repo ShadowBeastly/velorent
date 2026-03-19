@@ -22,7 +22,7 @@ const SCENARIOS = [
     guestLabel: "text-green-400",
     guestValue: "text-green-300",
     stripeCall: "Refund (full)",
-    stripeNote: "application_fee_amount wird ebenfalls erstattet. Stripe-Transaktionsgebühren (ca. 1,4% + 0,25€) werden NICHT erstattet — das ist dein einziger Kostenpunkt bei Stornierungen.",
+    stripeNote: "application_fee_amount wird ebenfalls erstattet. Stripe-Transaktionsgebühren (ca. 1,4% + 0,25€) werden NICHT erstattet. Das ist dein einziger Kostenpunkt bei Stornierungen.",
     steps: [
       { label: "Gast bucht und zahlt online", sub: "Stripe hält den vollen Betrag", dot: "blue" },
       { label: "Gast storniert > 24h vor Mietbeginn", sub: "Innerhalb der kostenlosen Frist", dot: "blue" },

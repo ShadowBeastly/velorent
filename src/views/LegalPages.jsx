@@ -80,7 +80,7 @@ export function Impressum({ onBack }) {
         <>
           <h2>Handelsregister</h2>
           <p>
-            Registergericht: {process.env.NEXT_PUBLIC_COMPANY_COURT || "—"}<br />
+            Registergericht: {process.env.NEXT_PUBLIC_COMPANY_COURT || ""}<br />
             Registernummer: {process.env.NEXT_PUBLIC_COMPANY_REG_NO}
           </p>
         </>
@@ -135,7 +135,7 @@ export function Datenschutz({ onBack }) {
 
       <p><strong>Wie erfassen wir Ihre Daten?</strong></p>
       <p>
-        Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese mitteilen — z.B. bei einer Buchung
+        Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese mitteilen, z.B. bei einer Buchung
         (Name, E-Mail, Telefonnummer). Andere Daten werden automatisch beim Besuch der Website durch unsere
         IT-Systeme erfasst (z.B. Browsertyp, IP-Adresse, Uhrzeit des Zugriffs).
       </p>
@@ -194,9 +194,9 @@ export function Datenschutz({ onBack }) {
       <h3>Rechtsgrundlagen der Verarbeitung</h3>
       <p>Wir verarbeiten personenbezogene Daten auf folgenden Rechtsgrundlagen gemäß Art. 6 DSGVO:</p>
       <ul>
-        <li><strong>Art. 6 Abs. 1 lit. b DSGVO</strong> — Vertragserfüllung: Buchungsabwicklung, Zahlungsverarbeitung, E-Mail-Bestätigungen</li>
-        <li><strong>Art. 6 Abs. 1 lit. c DSGVO</strong> — Rechtliche Verpflichtung: Aufbewahrung von Buchungsbelegen (§ 147 AO)</li>
-        <li><strong>Art. 6 Abs. 1 lit. f DSGVO</strong> — Berechtigtes Interesse: Betrieb und Sicherheit der Plattform, Missbrauchsprävention, Analyse der Buchungskonversion</li>
+        <li><strong>Art. 6 Abs. 1 lit. b DSGVO</strong>. Vertragserfüllung: Buchungsabwicklung, Zahlungsverarbeitung, E-Mail-Bestätigungen</li>
+        <li><strong>Art. 6 Abs. 1 lit. c DSGVO</strong>. Rechtliche Verpflichtung: Aufbewahrung von Buchungsbelegen (§ 147 AO)</li>
+        <li><strong>Art. 6 Abs. 1 lit. f DSGVO</strong>. Berechtigtes Interesse: Betrieb und Sicherheit der Plattform, Missbrauchsprävention, Analyse der Buchungskonversion</li>
       </ul>
 
       <h3>Speicherdauer</h3>
@@ -298,7 +298,7 @@ export function AGB({ onBack }) {
   return (
     <LegalPage title="Allgemeine Geschäftsbedingungen" icon={Scale} onBack={onBack}>
       <h1>Allgemeine Geschäftsbedingungen (AGB)</h1>
-      <p><strong>Lociva — Plattform für lokale Erlebnisse</strong></p>
+      <p><strong>Lociva. Plattform für lokale Erlebnisse</strong></p>
       <p>Betreiber: funk-e.solutions, Christopher Funke</p>
 
       <h2>§ 1 Geltungsbereich und Begriffsbestimmungen</h2>
@@ -319,7 +319,7 @@ export function AGB({ onBack }) {
         (3) Für Anbieter gelten zusätzlich die Anbieter-AGB, die im Rahmen des Stripe-Connect-Onboardings akzeptiert werden.
       </p>
 
-      <h2>§ 2 Rolle von Lociva — Vermittler, nicht Vertragspartei</h2>
+      <h2>§ 2 Rolle von Lociva. Vermittler, nicht Vertragspartei</h2>
       <p>
         (1) Lociva ist ausschließlich <strong>Vermittler</strong> (Intermediär). Lociva ist weder
         Vermieter, Veranstalter noch Dienstleister der angebotenen Aktivitäten.
@@ -357,7 +357,7 @@ export function AGB({ onBack }) {
       </p>
       <p>
         (3) Lociva erhält vom Anbieter eine Vermittlungsprovision. Der Gast zahlt den auf der
-        Plattform angezeigten Preis — es entstehen keine zusätzlichen Gebühren.
+        Plattform angezeigten Preis. Es entstehen keine zusätzlichen Gebühren.
       </p>
 
       <h2>§ 5 Stornierung und Rückerstattung</h2>
@@ -379,7 +379,7 @@ export function AGB({ onBack }) {
       </table>
       <p>
         (3) Die Rückerstattung erfolgt über den ursprünglichen Zahlungsweg (Stripe) und kann
-        je nach Kreditinstitut 5–10 Werktage in Anspruch nehmen.
+        je nach Kreditinstitut 5-10 Werktage in Anspruch nehmen.
       </p>
 
       <h2>§ 6 Pflichten des Gastes</h2>
@@ -462,7 +462,7 @@ export function AGB({ onBack }) {
 
       <hr />
       <p className="text-sm text-slate-500">
-        Stand: März 2026 — Lociva (funk-e.solutions)
+        Stand: März 2026. Lociva (funk-e.solutions)
       </p>
     </LegalPage>
   );

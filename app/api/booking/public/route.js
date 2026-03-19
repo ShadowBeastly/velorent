@@ -1,9 +1,11 @@
 // app/api/booking/public/route.js
-// Public booking API — no authentication required.
+// Public booking API. No authentication required.
 // GET:  Look up booking by cancellation token (?token=UUID)
 // POST: Cancel booking by cancellation token + trigger Stripe refund
 
 import { createClient } from "@supabase/supabase-js";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,6 +25,10 @@ export async function GET(req) {
 
   if (!token) {
     return Response.json({ error: "Token required" }, { status: 400 });
+  }
+
+  if (!UUID_RE.test(token)) {
+    return Response.json({ error: "Invalid token format" }, { status: 400 });
   }
 
   const { data, error } = await supabase.rpc("get_booking_by_token", {
@@ -53,6 +59,10 @@ export async function POST(req) {
     return Response.json({ error: "Token required" }, { status: 400 });
   }
 
+  if (!UUID_RE.test(token)) {
+    return Response.json({ error: "Invalid token format" }, { status: 400 });
+  }
+
   // 1. Cancel in DB (determines free vs partial)
   const { data: cancelResult, error: cancelErr } = await supabase.rpc(
     "cancel_booking_by_token",
@@ -78,7 +88,7 @@ export async function POST(req) {
       });
       if (stripeErr) {
         console.error("Stripe cancel failed:", stripeErr);
-        // Booking is already marked cancelled in DB — log but don't fail
+        // Booking is already marked cancelled in DB. Log but don't fail.
       }
     } catch (err) {
       console.error("Stripe cancel error:", err);

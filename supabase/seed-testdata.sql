@@ -49,14 +49,14 @@ SELECT
   '+49 000 0000002',
   'info@example-bikeshop.de',
   true,
-  'Familienbetrieb seit 2008. E-Bikes, City-Räder und Lastenräder — perfekt für Messe-Besucher und Tagesausflüge am Main.',
+  'Familienbetrieb seit 2008. E-Bikes, City-Räder und Lastenräder. Perfekt für Messe-Besucher und Tagesausflüge am Main.',
   'Bruchfeldstraße 42, 60528 Frankfurt am Main',
   '+49 000 0000002'
 WHERE NOT EXISTS (SELECT 1 FROM organizations WHERE slug = 'radhaus-niederrad');
 
 UPDATE organizations SET
   is_platform_provider = true,
-  provider_description = 'Familienbetrieb seit 2008. E-Bikes, City-Räder und Lastenräder — perfekt für Messe-Besucher und Tagesausflüge am Main.',
+  provider_description = 'Familienbetrieb seit 2008. E-Bikes, City-Räder und Lastenräder. Perfekt für Messe-Besucher und Tagesausflüge am Main.',
   provider_address = 'Bruchfeldstraße 42, 60528 Frankfurt am Main',
   provider_phone = '+49 000 0000002'
 WHERE slug = 'radhaus-niederrad';
@@ -103,7 +103,7 @@ INSERT INTO bikes (organization_id, name, category, brand, model, price_per_day,
   ('c0000000-0000-0000-0000-000000000001', 'Cube Touring Hybrid ONE 625', 'E-Bike', 'Cube', 'Touring Hybrid ONE 625', 45.00, 150, 'available', 'Komfortables Touren-E-Bike mit 625Wh Akku. Reichweite bis 120km.'),
   ('c0000000-0000-0000-0000-000000000001', 'Trek Marlin 7', 'Mountainbike', 'Trek', 'Marlin 7', 30.00, 100, 'available', 'Robustes Hardtail-MTB für Waldwege und leichtes Gelände.'),
   ('c0000000-0000-0000-0000-000000000001', 'Gazelle CityGo C7', 'City-Bike', 'Gazelle', 'CityGo C7', 20.00, 80, 'available', 'Klassisches Stadtrad mit 7-Gang Nabenschaltung und Lichtanlage.'),
-  ('c0000000-0000-0000-0000-000000000001', 'Riese & Müller Load 75', 'Lastenrad', 'Riese & Müller', 'Load 75', 55.00, 200, 'available', 'Elektrisches Lastenrad — ideal für Familien oder Großeinkäufe.');
+  ('c0000000-0000-0000-0000-000000000001', 'Riese & Müller Load 75', 'Lastenrad', 'Riese & Müller', 'Load 75', 55.00, 200, 'available', 'Elektrisches Lastenrad. Ideal für Familien oder Großeinkäufe.');
 
 -- 8. Bikes für Taunus E-Bike Verleih
 INSERT INTO bikes (organization_id, name, category, brand, model, price_per_day, deposit, status, description) VALUES

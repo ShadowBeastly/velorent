@@ -1,11 +1,11 @@
 -- =====================================================
--- RentCore — Group / Multi-Bike Booking Support
+-- RentCore. Group / Multi-Bike Booking Support
 -- Run ONCE in Supabase SQL Editor after missing-tables.sql
 -- Safe to re-run (IF NOT EXISTS / ADD COLUMN IF NOT EXISTS).
 -- =====================================================
 
 -- =====================================================
--- booking_items — one row per additional bike in a group booking
+-- booking_items. One row per additional bike in a group booking
 -- (the first / primary bike stays on bookings.bike_id for backward compat)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS booking_items (

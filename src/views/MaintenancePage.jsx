@@ -148,7 +148,7 @@ export default function MaintenancePage() {
                                     return (
                                         <tr key={block.id} className={darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"}>
                                             <td className="px-4 py-3">
-                                                <div className="font-medium">{block.bike?.name || "—"}</div>
+                                                <div className="font-medium">{block.bike?.name || ""}</div>
                                                 <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{block.bike?.category}</div>
                                             </td>
                                             <td className="px-4 py-3">
@@ -156,9 +156,9 @@ export default function MaintenancePage() {
                                                     {typeInfo.label}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-3 text-sm max-w-xs truncate">{block.description || "—"}</td>
+                                            <td className="px-4 py-3 text-sm max-w-xs truncate">{block.description || ""}</td>
                                             <td className="px-4 py-3 text-sm">{fmtDate(block.start_date)} → {fmtDate(block.end_date)}</td>
-                                            <td className="px-4 py-3 font-medium text-sm">{block.cost ? fmtCurrency(block.cost) : "—"}</td>
+                                            <td className="px-4 py-3 font-medium text-sm">{block.cost ? fmtCurrency(block.cost) : ""}</td>
                                             <td className="px-4 py-3">
                                                 <div className={`flex items-center gap-1.5 text-sm font-medium ${statusInfo.color}`}>
                                                     <StatusIcon className="w-4 h-4" /> {statusInfo.label}

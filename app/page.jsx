@@ -2,20 +2,28 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../src/context/AuthContext";
-import LandingPage from "../src/views/LandingPage";
+import RentCoreLandingPage from "../src/views/RentCoreLandingPage";
+
+function getHomeRoute(role) {
+    if (role === "superadmin") return "/app/admin";
+    if (role === "hotel") return "/app/hotel-stats";
+    return "/app";
+}
 
 export default function HomePage() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, profile, loading } = useAuth();
 
     useEffect(() => {
-        if (user) router.push("/app");
-    }, [user, router]);
+        if (loading) return;
+        if (user) router.push(getHomeRoute(profile?.role));
+    }, [user, profile, loading, router]);
 
     return (
-        <LandingPage
+        <RentCoreLandingPage
             onGetStarted={() => router.push("/signup")}
             onLogin={() => router.push("/login")}
+            onDemo={() => router.push("/demo")}
         />
     );
 }

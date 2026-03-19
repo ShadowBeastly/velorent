@@ -51,17 +51,18 @@ export default function AdminProvidersPage() {
   const filtered = providers.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className={`min-h-screen p-6 ${darkMode ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-900"}`}>
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <Store className={`w-7 h-7 ${darkMode ? "text-[#3BAA82]" : "text-[#1A7D5A]"}`} />
+    <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${darkMode ? "bg-[#1A7D5A]/20" : "bg-[#D4EDE2]"}`}>
+            <Store className="w-5 h-5 text-[#1A7D5A]" />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold">Anbieter verwalten</h1>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Anbieter verwalten</h2>
             <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{providers.filter(p => p.is_platform_provider).length} Plattform-Anbieter aktiv</p>
           </div>
         </div>
 
-        <div className="mb-4">
+        <div>
           <input type="text" placeholder="Anbieter suchen..." value={search} onChange={(e) => setSearch(e.target.value)} className={inputCls} />
         </div>
 
@@ -89,13 +90,13 @@ export default function AdminProvidersPage() {
                       {provider.provider_description && <p className={`text-xs mt-0.5 line-clamp-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{provider.provider_description}</p>}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${provider.is_platform_provider ? "bg-[#1A7D5A]/20 text-[#3BAA82]" : "bg-slate-700 text-slate-400"}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${provider.is_platform_provider ? "bg-[#1A7D5A]/20 text-[#3BAA82]" : darkMode ? "bg-slate-700 text-slate-400" : "bg-slate-100 text-slate-500"}`}>
                         {provider.is_platform_provider ? "Plattform-Anbieter" : "Intern"}
                       </span>
                     </td>
                     <td className="px-4 py-3"><StripeStatus provider={provider} /></td>
                     <td className="px-4 py-3">
-                      <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{provider.provider_address || "–"}</p>
+                      <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{provider.provider_address || ""}</p>
                     </td>
                     <td className="px-4 py-3">
                       <button onClick={() => openEdit(provider)} className={`p-1.5 rounded transition-colors ${darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"}`}>
@@ -108,7 +109,6 @@ export default function AdminProvidersPage() {
             </table>
           )}
         </div>
-      </div>
 
       {editingProvider && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">

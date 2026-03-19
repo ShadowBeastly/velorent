@@ -10,6 +10,7 @@ export default function AuthPage({ initialMode = "login" }) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { t } = useI18n();
+    const isRentCore = typeof window !== "undefined" && window.location.hostname.includes("rentcore");
 
     const urlMode = searchParams.get("mode");
     const [mode, setMode] = useState(urlMode === "update-password" ? "update-password" : initialMode);
@@ -22,10 +23,14 @@ export default function AuthPage({ initialMode = "login" }) {
     const [success, setSuccess] = useState("");
 
     useEffect(() => {
+        if (auth.loading) return;
         if (auth.user && mode !== "update-password") {
-            router.push("/app");
+            const role = auth.profile?.role;
+            if (role === "superadmin") router.push("/app/admin");
+            else if (role === "hotel") router.push("/app/hotel-stats");
+            else router.push("/app");
         }
-    }, [auth.user, router, mode]);
+    }, [auth.user, auth.profile, auth.loading, router, mode]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -42,7 +47,12 @@ export default function AuthPage({ initialMode = "login" }) {
             } else if (mode === "update-password") {
                 await auth.updatePassword(newPassword);
                 setSuccess("Passwort erfolgreich geändert. Du wirst weitergeleitet...");
-                setTimeout(() => router.push("/app"), 2000);
+                setTimeout(() => {
+                    const role = auth.profile?.role;
+                    if (role === "superadmin") router.push("/app/admin");
+                    else if (role === "hotel") router.push("/app/hotel-stats");
+                    else router.push("/app");
+                }, 2000);
             } else {
                 await auth.signUp(email, password, fullName);
                 setSuccess(t("auth.registerSuccess"));
@@ -58,7 +68,7 @@ export default function AuthPage({ initialMode = "login" }) {
 
     return (
         <div className="min-h-screen flex" style={{ background: "#F5FAF7" }}>
-            {/* Left panel — brand identity */}
+            {/* Left panel. Brand identity */}
             <div
                 className="hidden lg:flex lg:w-[420px] flex-col justify-between p-12 relative overflow-hidden"
                 style={{ background: "#1E2D26" }}
@@ -76,18 +86,32 @@ export default function AuthPage({ initialMode = "login" }) {
                     {/* Logo mark */}
                     <div className="flex items-center gap-3 mb-16">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#1A7D5A" }}>
-                            <span className="text-white font-light text-lg tracking-widest">L</span>
+                            <span className="text-white font-light text-lg tracking-widest">{isRentCore ? "R" : "L"}</span>
                         </div>
-                        <span className="text-white font-light tracking-[6px] text-sm uppercase">LOCIVA</span>
+                        <span className="text-white font-light tracking-[6px] text-sm uppercase">{isRentCore ? "RENTCORE" : "LOCIVA"}</span>
                     </div>
 
-                    <h2 className="text-3xl font-light text-white leading-relaxed mb-4">
-                        Lokale Erlebnisse.<br />
-                        <span style={{ color: "#3BAA82" }}>Einfach. Hier.</span>
-                    </h2>
-                    <p className="text-sm leading-relaxed" style={{ color: "#6B7280" }}>
-                        Die Plattform für Hotels, Anbieter und Gäste — automatisierte Buchungen, transparente Abrechnungen.
-                    </p>
+                    {isRentCore ? (
+                        <>
+                            <h2 className="text-3xl font-light text-white leading-relaxed mb-4">
+                                Dein Buchungssystem.<br />
+                                <span style={{ color: "#3BAA82" }}>Einfach. Digital.</span>
+                            </h2>
+                            <p className="text-sm leading-relaxed" style={{ color: "#6B7280" }}>
+                                Fahrrad- und E-Bike-Verleih. Online buchbar, automatisch abgerechnet.
+                            </p>
+                        </>
+                    ) : (
+                        <>
+                            <h2 className="text-3xl font-light text-white leading-relaxed mb-4">
+                                Lokale Erlebnisse.<br />
+                                <span style={{ color: "#3BAA82" }}>Einfach. Hier.</span>
+                            </h2>
+                            <p className="text-sm leading-relaxed" style={{ color: "#6B7280" }}>
+                                Die Plattform für Hotels, Anbieter und Gäste. Automatisierte Buchungen, transparente Abrechnungen.
+                            </p>
+                        </>
+                    )}
                 </div>
 
                 <div className="relative space-y-4">
@@ -105,20 +129,20 @@ export default function AuthPage({ initialMode = "login" }) {
                         </div>
                     ))}
                     <p className="text-xs pt-4" style={{ color: "#4B5563" }}>
-                        © 2026 Lociva · funk-e.solutions
+                        {isRentCore ? "© 2026 RentCore · funk-e.solutions" : "© 2026 Lociva · funk-e.solutions"}
                     </p>
                 </div>
             </div>
 
-            {/* Right panel — form */}
+            {/* Right panel. Form */}
             <div className="flex-1 flex items-center justify-center p-6">
                 <div className="w-full max-w-sm">
                     {/* Mobile logo */}
                     <div className="lg:hidden text-center mb-8">
                         <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: "#1A7D5A" }}>
-                            <span className="text-white font-light text-xl tracking-widest">L</span>
+                            <span className="text-white font-light text-xl tracking-widest">{isRentCore ? "R" : "L"}</span>
                         </div>
-                        <span className="font-light tracking-[6px] text-sm uppercase" style={{ color: "#1E2D26" }}>LOCIVA</span>
+                        <span className="font-light tracking-[6px] text-sm uppercase" style={{ color: "#1E2D26" }}>{isRentCore ? "RENTCORE" : "LOCIVA"}</span>
                     </div>
 
                     <div className="bg-white rounded-2xl p-8 shadow-sm border" style={{ borderColor: "#D4EDE2" }}>

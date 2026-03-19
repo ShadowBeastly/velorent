@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/src/utils/supabase";
+import { STRIPE_TRUSTED_PREFIXES } from "@/src/utils/constants";
 
 // ============================================================
 // TRANSLATIONS
@@ -9,7 +10,7 @@ const T = {
   de: {
     welcome: "Willkommen",
     welcomeSub: "Entdecke lokale Erlebnisse in deiner Nähe",
-    demoBanner: "Demo-Modus — Keine echte Buchung",
+    demoBanner: "Demo-Modus. Keine echte Buchung",
     allProviders: "Alle Anbieter",
     selectBike: "Auswählen",
     perDay: "/ Tag",
@@ -76,7 +77,7 @@ const T = {
   en: {
     welcome: "Welcome",
     welcomeSub: "Discover local experiences nearby",
-    demoBanner: "Demo mode — No real booking",
+    demoBanner: "Demo mode. No real booking",
     allProviders: "All providers",
     selectBike: "Select",
     perDay: "/ day",
@@ -312,7 +313,7 @@ export default function HotelLandingPage({ slug }) {
   const totalHours = (() => { if (!startTime || !endTime) return 0; const d = (timeToMinutes(endTime) - timeToMinutes(startTime)) / 60; return d >= 1 ? d : 0; })();
   const totalPrice = (() => { if (!selectedBike) return 0; if (rentalType === "hourly") return totalHours > 0 ? totalHours * (selectedBike.price_per_hour || 0) : 0; return totalDays > 0 ? totalDays * selectedBike.price_per_day : 0; })();
   const step2Valid = rentalType === "daily" ? totalDays >= 1 : (bookingDate !== "" && totalHours >= 1);
-  const periodLabel = rentalType === "hourly" ? `${bookingDate} · ${startTime}–${endTime} (${totalHours} ${t.hours})` : `${startDate} – ${endDate} (${totalDays} ${t.days})`;
+  const periodLabel = rentalType === "hourly" ? `${bookingDate} · ${startTime}-${endTime} (${totalHours} ${t.hours})` : `${startDate} - ${endDate} (${totalDays} ${t.days})`;
   const priceSummary = rentalType === "hourly" ? `${totalHours} ${t.hours} · ${selectedBike?.name || ""}` : `${totalDays} ${t.days} · ${selectedBike?.name || ""}`;
 
   function handleSelectBike(bike, provider) { setSelectedBike(bike); setSelectedProvider(provider); setRentalType(bike.price_per_hour ? "hourly" : "daily"); setStep(2); trackEvent("booking_start", { bike_id: bike.id }); }
@@ -334,8 +335,7 @@ export default function HotelLandingPage({ slug }) {
       const res = await fetch("/api/stripe/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ bike_id: selectedBike.id, hotel_id: hotelData.hotel.id, org_id: selectedProvider.id, start_date: sd, end_date: ed, guest_name: guestName.trim(), guest_email: guestEmail.trim(), guest_phone: guestPhone.trim() || null, lang, hotel_slug: slug, rental_type: rentalType, start_time: rentalType === "hourly" ? startTime : null, end_time: rentalType === "hourly" ? endTime : null, total_hours: rentalType === "hourly" ? totalHours : null }) });
       const json = await res.json();
       if (json.error || !json.url) { setSubmitError(json.error || t.errorOccurred); setSubmitting(false); return; }
-      const TRUSTED = ["https://checkout.stripe.com/", "https://connect.stripe.com/"];
-      if (!TRUSTED.some(p => json.url.startsWith(p))) { setSubmitError(t.errorOccurred); setSubmitting(false); return; }
+      if (!STRIPE_TRUSTED_PREFIXES.some(p => json.url.startsWith(p))) { setSubmitError(t.errorOccurred); setSubmitting(false); return; }
       // Save booking context so Step 4 can restore it after Stripe redirect
       try { sessionStorage.setItem("lociva_booking_context", JSON.stringify({ selectedProvider, selectedBike, total_price: totalPrice, deposit_amount: selectedBike?.deposit ?? 0 })); } catch { /* ignore */ }
       window.location.href = json.url;
@@ -376,7 +376,7 @@ export default function HotelLandingPage({ slug }) {
   return (
     <div className="relative mx-auto h-screen max-w-[430px] bg-white shadow-2xl overflow-x-hidden overflow-y-auto antialiased text-slate-900 select-none" style={{ WebkitTapHighlightColor: "transparent", cursor: "default", WebkitOverflowScrolling: "touch" }}>
 
-      {/* ==================== STEP 1 — BROWSE ==================== */}
+      {/* ==================== STEP 1. BROWSE ==================== */}
       {step === 1 && (<>
         {/* Header */}
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 py-3">
@@ -412,7 +412,7 @@ export default function HotelLandingPage({ slug }) {
           </div>
         )}
 
-        {/* Category filter — drag-to-scroll */}
+        {/* Category filter. drag-to-scroll */}
         <div
           ref={filterRef}
           onMouseDown={e => { dragState.current = { active: true, startX: e.pageX, scrollLeft: filterRef.current.scrollLeft, moved: false }; filterRef.current.style.cursor = "grabbing"; }}
@@ -515,7 +515,7 @@ export default function HotelLandingPage({ slug }) {
         </footer>
       </>)}
 
-      {/* ==================== STEP 2 — DATE ==================== */}
+      {/* ==================== STEP 2. DATE ==================== */}
       {step === 2 && selectedBike && (<>
         <header className="sticky top-0 z-30 bg-white pt-4 px-4 border-b border-[#1A7D5A]/10">
           <div className="flex items-center justify-between mb-2">
@@ -617,7 +617,7 @@ export default function HotelLandingPage({ slug }) {
         <footer className="fixed bottom-0 left-0 right-0 mx-auto max-w-[430px] bg-white border-t border-slate-100 p-5 z-40">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <span className="text-xl font-bold text-[#1A7D5A]">{totalPrice > 0 ? formatEur(totalPrice) : "—"}</span>
+              <span className="text-xl font-bold text-[#1A7D5A]">{totalPrice > 0 ? formatEur(totalPrice) : ""}</span>
               {totalPrice > 0 && <p className="text-[10px] text-slate-500 font-medium">{priceSummary}</p>}
             </div>
             <button onClick={() => setStep(3)} disabled={!step2Valid}
@@ -629,7 +629,7 @@ export default function HotelLandingPage({ slug }) {
         </footer>
       </>)}
 
-      {/* ==================== STEP 3 — CONTACT ==================== */}
+      {/* ==================== STEP 3. CONTACT ==================== */}
       {step === 3 && (<>
         <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md px-4 pt-4 pb-2">
           <div className="flex items-center justify-between mb-3">
@@ -712,7 +712,7 @@ export default function HotelLandingPage({ slug }) {
         </footer>
       </>)}
 
-      {/* ==================== STEP 4 — CONFIRMED ==================== */}
+      {/* ==================== STEP 4. CONFIRMED ==================== */}
       {step === 4 && confirmedBooking && (<>
         <style>{`
           /* ===== GPU LAYER PROMOTION ===== */
@@ -741,7 +741,7 @@ export default function HotelLandingPage({ slug }) {
             100% { opacity:1; transform:translateY(0); }
           }
 
-          /* ===== BREATHING — pure sine-wave ===== */
+          /* ===== BREATHING. pure sine-wave ===== */
           @keyframes coreBreathe {
             0%,100% { transform: scale(1);    box-shadow: 0 0 20px 0 rgba(26,125,90,0.18); }
             50%     { transform: scale(1.06); box-shadow: 0 0 36px 10px rgba(26,125,90,0.28); }

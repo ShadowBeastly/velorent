@@ -133,7 +133,7 @@ export default function InvoiceList({ invoices, onViewInvoice, onDownloadInvoice
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusStyle(effectiveStatus)}`}>
                                             {getStatusLabel(effectiveStatus)}
                                         </span>
-                                        {/* Double badge removed — effectiveStatus already shows "Überfällig" */}
+                                        {/* Double badge removed. effectiveStatus already shows "Überfällig" */}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-right">

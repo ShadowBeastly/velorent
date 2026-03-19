@@ -669,7 +669,7 @@ export default function RentCoreBookingWidget({
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "#64748b" }}>Zeitraum</span>
-                  <span style={{ fontWeight: "500" }}>{formatDate(startDate)} – {formatDate(endDate)}</span>
+                  <span style={{ fontWeight: "500" }}>{formatDate(startDate)} - {formatDate(endDate)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "#64748b" }}>Dauer</span>
@@ -825,7 +825,7 @@ export default function RentCoreBookingWidget({
               </p>
               <p style={{ margin: "16px 0 0", fontSize: "14px", color: "#64748b" }}>
                 Status: <span style={{ fontWeight: "500", color: bookingResult.status === "confirmed" ? "#16a34a" : "#f59e0b" }}>
-                  {bookingResult.status === "confirmed" ? "Bestätigt" : "Reserviert – Bestätigung folgt"}
+                  {bookingResult.status === "confirmed" ? "Bestätigt" : "Reserviert. Bestätigung folgt."}
                 </span>
               </p>
             </div>

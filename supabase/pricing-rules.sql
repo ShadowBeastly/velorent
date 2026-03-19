@@ -1,5 +1,5 @@
 -- =====================================================
--- RentCore — PRICING RULES MIGRATION
+-- RentCore. PRICING RULES MIGRATION
 -- Run this in Supabase SQL Editor to add the
 -- dynamic/seasonal pricing table.
 -- Safe to run multiple times (IF NOT EXISTS).
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS pricing_rules (
     end_date DATE,
     -- duration: book X+ days = discount
     min_days INTEGER,
-    -- weekend: Fri–Sun surcharge
+    -- weekend: Fri-Sun surcharge
     days_of_week INTEGER[],         -- 0=Sun, 1=Mon … 5=Fri, 6=Sat
     -- the modifier
     modifier_type TEXT NOT NULL DEFAULT 'multiplier'

@@ -123,12 +123,9 @@ export default function InvoicesPage() {
     };
 
     return (
-        <div className="p-6 max-w-7xl mx-auto space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Rechnungen</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Verwalte deine Rechnungen und Zahlungseingänge.</p>
-                </div>
+        <div className="space-y-6">
+            <div className="flex items-center justify-between gap-4">
+                <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Rechnungen</h2>
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => exportToCSV(filteredInvoices, [

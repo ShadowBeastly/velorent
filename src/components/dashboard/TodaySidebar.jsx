@@ -23,7 +23,7 @@ export default function TodaySidebar({ bookings, bikes, darkMode, onAction }) {
 
     const getBikeName = (bikeId) => {
         const bike = bikes.find(b => b.id === bikeId);
-        return bike?.name || "—";
+        return bike?.name || "";
     };
 
     const getTimeSlot = (booking, type) => {

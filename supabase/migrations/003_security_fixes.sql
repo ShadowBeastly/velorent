@@ -191,7 +191,7 @@ DO $$ BEGIN
             )
         );
   ELSE
-    RAISE NOTICE 'booking_items table not found — skipping booking_items policies.';
+    RAISE NOTICE 'booking_items table not found. Skipping booking_items policies.';
   END IF;
 END $$;
 
@@ -386,7 +386,7 @@ CREATE POLICY "Members can delete pricing" ON pricing_rules
 --
 -- The previous "analytics_events_insert_all" policy accepted
 -- any INSERT with WITH CHECK (true), allowing anyone (including
--- anon) to insert arbitrary rows with any hotel_id — including
+-- anon) to insert arbitrary rows with any hotel_id - including
 -- NULL or IDs of inactive hotels. This fix requires that
 -- hotel_id is non-null and references an active hotel, preventing
 -- data pollution and DoS-style event flooding.
@@ -427,7 +427,7 @@ REVOKE EXECUTE ON FUNCTION create_guest_booking(UUID, UUID, UUID, DATE, DATE, TE
 --
 -- booking_history is an append-only audit log. The base schema
 -- (supabase-schema.sql) only created a SELECT policy, leaving
--- UPDATE and DELETE implicitly denied by RLS default — but no
+-- UPDATE and DELETE implicitly denied by RLS default - but no
 -- explicit policy meant a future "FOR ALL" policy could
 -- accidentally open mutation. These policies make immutability
 -- explicit and permanent.
@@ -451,7 +451,7 @@ CREATE POLICY "booking_history_no_delete" ON booking_history
 -- can access a hotel's analytics.
 --
 -- Function body is preserved exactly from 001_lociva_extension.sql
--- (lines 514–579). Only the authorization prologue is new.
+-- (lines 514-579). Only the authorization prologue is new.
 -- The signature default for p_since is changed from NULL to
 -- NOW() - INTERVAL '30 days' to match the task spec.
 -- ============================================================

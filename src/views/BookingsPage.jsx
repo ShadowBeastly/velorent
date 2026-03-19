@@ -32,7 +32,7 @@ const SOURCES = [
 
 export default function BookingsPage() {
     const { darkMode, searchQuery } = useApp();
-    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories } = useData();
+    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories, coupons } = useData();
     const org = useOrganization();
     const currentOrg = org.currentOrg;
     const { addToast } = useToast();
@@ -62,7 +62,7 @@ export default function BookingsPage() {
             if (statusFilter !== "all" && b.status !== statusFilter) return false;
             if (searchQuery && !(b.customer_name || "").toLowerCase().includes(searchQuery.toLowerCase())) return false;
 
-            // Category filter — match on bike's category
+            // Category filter. match on bike's category
             if (categoryFilter !== "all") {
                 const bike = bikes.bikes.find(bk => bk.id === b.bike_id);
                 if (!bike || bike.category !== categoryFilter) return false;
@@ -94,7 +94,8 @@ export default function BookingsPage() {
     const hasActiveFilters = categoryFilter !== "all" || paymentFilter !== "all" || sourceFilter !== "all" || dateFrom || dateTo;
 
     const handleSave = async (data) => {
-        let bookingData = { ...data };
+        const { _couponId, _couponDiscountAmount, ...rest } = data;
+        let bookingData = { ...rest };
 
         // Handle new customer creation
         if (!bookingData.customer_id && bookingData.customer_name) {
@@ -127,10 +128,13 @@ export default function BookingsPage() {
                 return;
             }
         } else {
-            const { error } = await bookings.create(bookingData, addOns.addOns);
+            const { data: newBooking, error } = await bookings.create(bookingData, addOns.addOns);
             if (error) {
                 addToast("Fehler beim Erstellen: " + error.message, "error");
                 return;
+            }
+            if (newBooking?.id && _couponId && _couponDiscountAmount) {
+                await coupons.recordUsage(_couponId, newBooking.id, _couponDiscountAmount);
             }
         }
         setShowModal(false);
@@ -314,7 +318,7 @@ export default function BookingsPage() {
                                 placeholder="Von"
                             />
                         </div>
-                        <span className="text-slate-400 text-sm">—</span>
+                        <span className="text-slate-400 text-sm"></span>
                         <input
                             type="date"
                             value={dateTo}
@@ -458,7 +462,7 @@ export default function BookingsPage() {
                                             <td className="px-6 py-4">
                                                 <span className="font-semibold text-[#1A7D5A] text-sm">{b.booking_number}</span>
                                             </td>
-                                            {/* Kunde — Avatar + Name + Email/Phone */}
+                                            {/* Kunde. Avatar + Name + Email/Phone */}
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 rounded-full bg-[#D4EDE2] dark:bg-[#1A7D5A]/20 flex items-center justify-center text-[#1A7D5A] text-xs font-bold shrink-0">
@@ -467,14 +471,14 @@ export default function BookingsPage() {
                                                     <div className="min-w-0">
                                                         <div className="text-sm font-bold truncate">{b.customer_name}</div>
                                                         <div className={`text-[10px] truncate ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                                            {b.customer_email || b.customer_phone || "—"}
+                                                            {b.customer_email || b.customer_phone || ""}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
                                             {/* Fahrrad */}
                                             <td className="px-6 py-4 hidden sm:table-cell">
-                                                <div className="text-sm font-medium">{b.bike?.name || "—"}</div>
+                                                <div className="text-sm font-medium">{b.bike?.name || ""}</div>
                                                 {b.is_group_booking && (
                                                     <span className="text-xs px-1.5 py-0.5 rounded bg-[#1A7D5A]/10 text-[#1A7D5A] mt-0.5 inline-flex items-center gap-1">
                                                         <Users className="w-3 h-3" /> {b.bike_count || "?"}x
@@ -599,8 +603,17 @@ export default function BookingsPage() {
                 )}
 
                 {!bookings.loading && filtered.length === 0 && (
-                    <div className={`text-center py-12 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                        Keine Buchungen gefunden
+                    <div className={`text-center py-16 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                        <FileText className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                        <p className="text-lg font-medium">Keine Buchungen gefunden</p>
+                        {statusFilter === "all" && !hasActiveFilters && (
+                            <button
+                                onClick={() => { setEditBooking(null); setShowModal(true); }}
+                                className="mt-4 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg text-sm font-medium shadow-lg shadow-[#1A7D5A]/25"
+                            >
+                                Erste Buchung erstellen
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
@@ -614,6 +627,7 @@ export default function BookingsPage() {
                     existingBookings={bookings.bookings}
                     pricingRules={pricingRules?.rules || []}
                     addOns={addOns.addOns}
+                    validateCoupon={coupons?.validateCoupon}
                     onSave={handleSave}
                     onDelete={async (id, cancellationStatus) => {
                         const { error } = await bookings.remove(id, cancellationStatus);

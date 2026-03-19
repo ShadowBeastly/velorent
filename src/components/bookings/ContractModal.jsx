@@ -91,7 +91,7 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
                             <div>
                                 <p className="font-semibold text-gray-500 mb-1">Vermieter</p>
-                                <p className="font-medium">{currentOrg?.name || '—'}</p>
+                                <p className="font-medium">{currentOrg?.name || ''}</p>
                                 {currentOrg?.address && <p>{currentOrg.address}</p>}
                                 {(currentOrg?.postal_code || currentOrg?.city) && (
                                     <p>{[currentOrg.postal_code, currentOrg.city].filter(Boolean).join(' ')}</p>
@@ -101,7 +101,7 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                             </div>
                             <div>
                                 <p className="font-semibold text-gray-500 mb-1">Mieter</p>
-                                <p className="font-medium">{booking?.customer_name || '—'}</p>
+                                <p className="font-medium">{booking?.customer_name || ''}</p>
                                 {booking?.customer_address && <p>{booking.customer_address}</p>}
                                 {(booking?.customer_id_number || booking?.id_number) && <p>Ausweis-Nr.: {booking?.customer_id_number || booking?.id_number}</p>}
                                 {booking?.customer_phone && <p>{booking.customer_phone}</p>}
@@ -117,15 +117,15 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                             <tbody>
                                 <tr className="border-b border-gray-100">
                                     <td className="py-2 w-1/3 font-semibold text-gray-500">Fahrrad</td>
-                                    <td className="py-2">{booking?.bike?.name || '—'}</td>
+                                    <td className="py-2">{booking?.bike?.name || ''}</td>
                                 </tr>
                                 <tr className="border-b border-gray-100">
                                     <td className="py-2 font-semibold text-gray-500">Kategorie</td>
-                                    <td className="py-2">{booking?.bike?.category || '—'}</td>
+                                    <td className="py-2">{booking?.bike?.category || ''}</td>
                                 </tr>
                                 <tr className="border-b border-gray-100">
                                     <td className="py-2 font-semibold text-gray-500">Größe</td>
-                                    <td className="py-2">{booking?.bike?.size || '—'}</td>
+                                    <td className="py-2">{booking?.bike?.size || ''}</td>
                                 </tr>
                                 <tr className="border-b border-gray-100">
                                     <td className="py-2 font-semibold text-gray-500">Rahmennummer</td>

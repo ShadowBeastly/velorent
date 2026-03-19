@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 // ============ ONBOARDING WIZARD ============
-export default function OnboardingWizard({ supabase, user, onComplete }) {
+export default function SetupWizard({ supabase, user, onComplete }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -90,7 +90,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
             }
           });
         } catch {
-          // Silently ignore — email failure must not block onboarding
+          // Silently ignore. Email failure must not block onboarding
         }
       }
 
@@ -343,7 +343,7 @@ export default function OnboardingWizard({ supabase, user, onComplete }) {
               <div className="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                 <h3 className="text-emerald-400 font-semibold mb-2">✓ Zusammenfassung</h3>
                 <ul className="text-sm text-emerald-300/80 space-y-1">
-                  <li>• Unternehmen: <strong>{orgName || "—"}</strong></li>
+                  <li>• Unternehmen: <strong>{orgName || ""}</strong></li>
                   <li>• Fahrräder: <strong>{bikes.filter(b => b.name.trim()).length || "Keine"}</strong></li>
                   <li>• Online-Widget: <strong>{settings.enableWidget ? "Aktiv" : "Deaktiviert"}</strong></li>
                 </ul>

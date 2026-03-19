@@ -71,7 +71,7 @@ export default function RevenueChart({ bookings = [], darkMode }) {
                     .reduce((sum, b) => sum + (Number(b.total_price) || 0), 0);
 
                 const label = `${weekStart.getDate()}.${weekStart.getMonth() + 1}.`;
-                result.push({ name: label, value: weekRevenue, fullDate: `${weekStartStr} – ${weekEndStr}` });
+                result.push({ name: label, value: weekRevenue, fullDate: `${weekStartStr} - ${weekEndStr}` });
             }
             return result;
         }

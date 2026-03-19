@@ -86,7 +86,7 @@ serve(async (req) => {
     const totalCents = Math.round((booking.total_price || 0) * 100);
 
     if (cancellation_type === "no_show") {
-      // No Stripe call — full amount retained
+      // No Stripe call. Full amount retained
       await supabase.from("bookings").update({
         status: "cancelled",
         cancellation_status: "no_show",
@@ -95,7 +95,7 @@ serve(async (req) => {
     }
 
     if (!booking.stripe_payment_intent_id) {
-      return Response.json({ error: "No payment intent on file — cannot issue refund" }, { status: 400, headers: CORS });
+      return Response.json({ error: "No payment intent on file. Cannot issue refund" }, { status: 400, headers: CORS });
     }
 
     let refundedCents = 0;

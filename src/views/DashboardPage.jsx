@@ -73,7 +73,7 @@ export default function DashboardPage() {
         [periodDays]
     );
 
-    // Revenue filtered by period (use end_date — revenue is earned at return)
+    // Revenue filtered by period (use end_date. Revenue is earned at return)
     const periodRevenue = useMemo(() =>
         bookings.bookings
             .filter(b => REVENUE_STATUSES.includes(b.status) && b.end_date >= currentStart && b.end_date <= currentEnd)
@@ -169,7 +169,7 @@ export default function DashboardPage() {
                 <div>
                     <div className="flex items-center gap-3 flex-wrap">
                         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            Willkommen zurück, {org.currentOrg?.name || "Admin"} 👋
+                            Willkommen zurück, {org.currentOrg?.name || "Admin"}
                         </h1>
                         <LocivaBadge org={org.currentOrg} darkMode={darkMode} />
                     </div>
@@ -241,7 +241,7 @@ export default function DashboardPage() {
                 <StatCard
                     title="Aktive Mieten"
                     value={periodActiveBookings}
-                    subtitle={`Buchungen – ${periodLabel}`}
+                    subtitle={`Buchungen - ${periodLabel}`}
                     icon={Bike}
                     color="orange"
                     darkMode={darkMode}

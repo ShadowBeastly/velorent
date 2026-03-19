@@ -94,7 +94,7 @@ export default function AdminHotelsPage() {
 
   const openQrModal = useCallback(async (hotel) => {
     setQrHotel(hotel);
-    const url = `https://lociva.de/hotel/${hotel.slug}`;
+    const url = `${window.location.origin}/hotel/${hotel.slug}`;
     try {
       const dataUrl = await QRCode.toDataURL(url, {
         width: 512, margin: 2, color: { dark: "#1A7D5A", light: "#FFFFFF" },
@@ -182,7 +182,7 @@ export default function AdminHotelsPage() {
   }
 
   function copyLink(slug) {
-    const url = `https://lociva.de/hotel/${slug}`;
+    const url = `${window.location.origin}/hotel/${slug}`;
     navigator.clipboard.writeText(url);
     setCopiedSlug(slug);
     setTimeout(() => setCopiedSlug(null), 2000);
@@ -193,13 +193,14 @@ export default function AdminHotelsPage() {
   );
 
   return (
-    <div className={`min-h-screen p-6 ${darkMode ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-900"}`}>
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Building2 className={`w-7 h-7 ${darkMode ? "text-[#3BAA82]" : "text-[#1A7D5A]"}`} />
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${darkMode ? "bg-[#1A7D5A]/20" : "bg-[#D4EDE2]"}`}>
+              <Building2 className="w-5 h-5 text-[#1A7D5A]" />
+            </div>
             <div>
-              <h1 className="text-2xl font-bold">Hotels verwalten</h1>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Hotels verwalten</h2>
               <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{hotels.length} Hotels insgesamt</p>
             </div>
           </div>
@@ -208,7 +209,7 @@ export default function AdminHotelsPage() {
           </button>
         </div>
 
-        <div className="mb-4">
+        <div>
           <input type="text" placeholder="Hotel suchen..." value={search} onChange={(e) => setSearch(e.target.value)} className={inputCls} />
         </div>
 
@@ -240,7 +241,7 @@ export default function AdminHotelsPage() {
                         {hotel.address && <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{hotel.address}</p>}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{hotel.regions?.name || "–"}</span>
+                        <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{hotel.regions?.name || ""}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -284,7 +285,6 @@ export default function AdminHotelsPage() {
             </div>
           )}
         </div>
-      </div>
 
       {/* Add/Edit Modal */}
       {showModal && (

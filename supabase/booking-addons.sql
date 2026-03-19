@@ -1,10 +1,10 @@
 -- =====================================================
--- RentCore — Booking Add-Ons Junction Table
+-- RentCore. Booking Add-Ons Junction Table
 -- Run in Supabase SQL Editor after missing-tables.sql
 -- Safe to re-run (IF NOT EXISTS).
 -- =====================================================
 
--- booking_addons — one row per selected add-on per booking
+-- booking_addons. One row per selected add-on per booking
 CREATE TABLE IF NOT EXISTS booking_addons (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE NOT NULL,

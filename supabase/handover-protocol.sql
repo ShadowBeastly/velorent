@@ -1,5 +1,5 @@
 -- =====================================================
--- RentCore — Handover Protocol Columns
+-- RentCore. Handover Protocol Columns
 -- Run in Supabase SQL Editor.
 -- Safe to re-run (ADD COLUMN IF NOT EXISTS).
 -- =====================================================

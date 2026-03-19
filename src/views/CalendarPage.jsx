@@ -549,7 +549,7 @@ export default function CalendarPage() {
                                                 })()}
                                             </div>
 
-                                            {/* Maintenance Blocks — rendered in a grid overlay like bookings */}
+                                            {/* Maintenance Blocks. Rendered in a grid overlay like bookings */}
                                             {bikeMaintenance.length > 0 && (
                                                 <div className="absolute inset-y-0 left-0 right-0 grid items-stretch pointer-events-none z-[5]" style={{ gridTemplateColumns: gridCols }}>
                                                     {bikeMaintenance.map(block => {
@@ -568,7 +568,7 @@ export default function CalendarPage() {
                                                                     gridColumnEnd: `span ${duration}`,
                                                                     backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(239,68,68,0.08) 6px, rgba(239,68,68,0.08) 12px)'
                                                                 }}
-                                                                title={`Wartung: ${block.description || block.type} (${fmtDate(block.start_date)} – ${fmtDate(block.end_date || block.start_date)})`}
+                                                                title={`Wartung: ${block.description || block.type} (${fmtDate(block.start_date)} - ${fmtDate(block.end_date || block.start_date)})`}
                                                             >
                                                                 <Wrench className="w-3 h-3 flex-shrink-0" />
                                                                 <span className="truncate">{block.description || 'Wartung'}</span>

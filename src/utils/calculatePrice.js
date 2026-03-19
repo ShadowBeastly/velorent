@@ -2,16 +2,16 @@
  * Dynamic / seasonal pricing calculation.
  *
  * Schema assumptions for pricing_rules rows:
- *   type            – 'seasonal' | 'duration' | 'weekend'
- *   modifier_type   – 'multiplier' | 'discount_percent' | 'fixed_override'
- *   modifier_value  – numeric value for the modifier
- *   start_date / end_date  – for seasonal rules (YYYY-MM-DD strings)
- *   min_days        – for duration rules
- *   days_of_week    – int[] for weekend rules (0=Sun,1=Mon,…,6=Sat)
- *   bike_category   – TEXT category name to scope (null = all)
- *   bike_category_id – UUID to scope (null = all)
- *   is_active       – boolean
- *   priority        – higher wins when multiple rules match a day
+ *   type            - 'seasonal' | 'duration' | 'weekend'
+ *   modifier_type   - 'multiplier' | 'discount_percent' | 'fixed_override'
+ *   modifier_value  - numeric value for the modifier
+ *   start_date / end_date  - forseasonal rules (YYYY-MM-DD strings)
+ *   min_days        - forduration rules
+ *   days_of_week    - int[] for weekend rules (0=Sun,1=Mon,…,6=Sat)
+ *   bike_category   - TEXT category name to scope (null = all)
+ *   bike_category_id - UUID to scope (null = all)
+ *   is_active       - boolean
+ *   priority        - higher wins when multiple rules match a day
  */
 
 /**
@@ -48,7 +48,7 @@ function enumerateDays(startDate, endDate) {
  * Only 'seasonal' and 'weekend' rules are evaluated per day.
  * @param {Date} date
  * @param {Object} bike
- * @param {Array}  rules  – all pricing_rules for the org
+ * @param {Array}  rules  -all pricing_rules for the org
  * @returns {{ rule: Object|null, priority: number }}
  */
 function bestDayRule(date, bike, rules) {
@@ -137,10 +137,10 @@ function bestDurationRule(totalDays, bike, rules) {
 /**
  * Calculate dynamic price for a booking.
  *
- * @param {Object}        bike         – must have `.price_per_day` and `.category`
- * @param {string|Date}   startDate    – booking start (inclusive)
- * @param {string|Date}   endDate      – booking end   (inclusive)
- * @param {Array}         pricingRules – all org pricing_rules rows
+ * @param {Object}        bike         -must have `.price_per_day` and `.category`
+ * @param {string|Date}   startDate    -booking start (inclusive)
+ * @param {string|Date}   endDate      -booking end   (inclusive)
+ * @param {Array}         pricingRules -all org pricing_rules rows
  * @returns {{
  *   totalPrice: number,
  *   baseTotal: number,

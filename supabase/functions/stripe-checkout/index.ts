@@ -78,7 +78,7 @@ serve(async (req) => {
       return Response.json({ error: "Provider Stripe account not ready" }, { status: 400, headers: CORS });
     }
 
-    // 2b. Verify hotel–provider relationship is active (only if hotel_id is provided)
+    // 2b. Verify hotel-provider relationship is active (only if hotel_id is provided)
     if (hotel_id) {
       const { data: hotelProvider } = await supabase
         .from("hotel_providers")
@@ -111,15 +111,15 @@ serve(async (req) => {
         return Response.json({ error: "Maximum 720 hours (30 days)" }, { status: 400, headers: CORS });
       }
       totalPriceEur = hours * bike.price_per_hour;
-      productName = `${bike.name} — ${hours} Std.`;
-      productDescription = `${start_date} · ${start_time} – ${end_time} · ${org.name}`;
+      productName = `${bike.name}. ${hours} Std.`;
+      productDescription = `${start_date} · ${start_time} - ${end_time} · ${org.name}`;
     } else {
       // Daily pricing
       const d1 = new Date(start_date);
       const d2 = new Date(end_date);
       const totalDays = Math.max(1, Math.floor((d2.getTime() - d1.getTime()) / 86400000) + 1);
       totalPriceEur = totalDays * bike.price_per_day;
-      productName = `${bike.name} — ${totalDays} ${totalDays === 1 ? "Tag" : "Tage"}`;
+      productName = `${bike.name}. ${totalDays} ${totalDays === 1 ? "Tag" : "Tage"}`;
       productDescription = `${start_date} bis ${end_date} · ${org.name}`;
     }
 

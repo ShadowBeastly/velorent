@@ -91,7 +91,7 @@ export default function HotelBookingsCard({ bookings = [], darkMode, onViewAll }
                                         )}
                                     </td>
                                     <td className={`py-3 hidden sm:table-cell ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                        {fmtDateShort(b.start_date)} – {fmtDateShort(b.end_date)}
+                                        {fmtDateShort(b.start_date)} - {fmtDateShort(b.end_date)}
                                     </td>
                                     <td className="py-3">
                                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${SOURCE_STYLES[b.booking_source] || SOURCE_STYLES.direct}`}>
