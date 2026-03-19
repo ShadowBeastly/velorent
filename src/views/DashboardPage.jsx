@@ -169,7 +169,7 @@ export default function DashboardPage() {
                 <div>
                     <div className="flex items-center gap-3 flex-wrap">
                         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            Willkommen zurück, {org.currentOrg?.name || "Admin"} 👋
+                            Willkommen zurück, {org.currentOrg?.name || "Admin"}
                         </h1>
                         <LocivaBadge org={org.currentOrg} darkMode={darkMode} />
                     </div>

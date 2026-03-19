@@ -54,7 +54,7 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                                 {org.currentOrg?.name || "Lociva"}
                             </h1>
                             <p className={`text-xs truncate font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                Pro Cloud
+                                RentCore
                             </p>
                         </div>
                     )}
@@ -65,7 +65,7 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
                                 {org.currentOrg?.name || "Lociva"}
                             </h1>
                             <p className={`text-xs truncate font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                Pro Cloud
+                                RentCore
                             </p>
                         </div>
                     )}
@@ -96,42 +96,67 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
 
                 {/* Navigation */}
                 <nav aria-label="Hauptnavigation" className="flex-1 px-3 space-y-1 overflow-y-auto py-2">
-                    {NAVIGATION_ITEMS.filter(item => {
-                        const adminItems = ["admin-hotels", "admin-providers", "admin-regions", "admin-analytics"];
-                        if (adminItems.includes(item.id)) {
-                            return auth.profile?.role === "superadmin";
-                        }
-                        return true;
-                    }).map(item => {
-                        const isActive = item.path === "/app"
-                            ? pathname === "/app" || pathname === "/app/"
-                            : pathname.startsWith(item.path);
-                        return (
-                            <Link
-                                key={item.id}
-                                href={item.path}
-                                onClick={() => {
-                                    if (typeof window !== "undefined" && window.innerWidth < 768) {
-                                        setSidebarOpen(false);
-                                    }
-                                }}
-                                title={!showLabels ? t(item.labelKey) : undefined}
-                                aria-current={isActive ? "page" : undefined}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
-                                    ? "text-white"
-                                    : darkMode
-                                        ? "text-slate-400 hover:text-white hover:bg-slate-800"
-                                        : "text-slate-500 hover:text-slate-900 hover:bg-[#F5FAF7]"
-                                    }`}
-                                style={isActive ? { background: "#1A7D5A" } : undefined}
-                            >
-                                <item.icon className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive ? "text-white" : darkMode ? "group-hover:text-white" : "group-hover:text-[#1A7D5A]"}`} />
-                                <span className={showLabels ? "font-medium" : "font-medium md:hidden"}>
-                                    {t(item.labelKey)}
-                                </span>
-                            </Link>
+                    {(() => {
+                        const adminIds = ["admin-hotels", "admin-providers", "admin-regions", "admin-analytics"];
+                        const isAdmin = auth.profile?.role === "superadmin";
+                        const visibleItems = NAVIGATION_ITEMS.filter(item =>
+                            adminIds.includes(item.id) ? isAdmin : true
                         );
-                    })}
+                        const regularItems = visibleItems.filter(item => !adminIds.includes(item.id));
+                        const adminItems = visibleItems.filter(item => adminIds.includes(item.id));
+
+                        const renderLink = (item) => {
+                            const isActive = item.path === "/app"
+                                ? pathname === "/app" || pathname === "/app/"
+                                : pathname.startsWith(item.path);
+                            return (
+                                <Link
+                                    key={item.id}
+                                    href={item.path}
+                                    onClick={() => {
+                                        if (typeof window !== "undefined" && window.innerWidth < 768) {
+                                            setSidebarOpen(false);
+                                        }
+                                    }}
+                                    title={!showLabels ? t(item.labelKey) : undefined}
+                                    aria-current={isActive ? "page" : undefined}
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
+                                        ? "text-white"
+                                        : darkMode
+                                            ? "text-slate-400 hover:text-white hover:bg-slate-800"
+                                            : "text-slate-500 hover:text-slate-900 hover:bg-[#F5FAF7]"
+                                        }`}
+                                    style={isActive ? { background: "#1A7D5A" } : undefined}
+                                >
+                                    <item.icon className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive ? "text-white" : darkMode ? "group-hover:text-white" : "group-hover:text-[#1A7D5A]"}`} />
+                                    <span className={showLabels ? "font-medium" : "font-medium md:hidden"}>
+                                        {t(item.labelKey)}
+                                    </span>
+                                </Link>
+                            );
+                        };
+
+                        return (
+                            <>
+                                {regularItems.map(renderLink)}
+                                {adminItems.length > 0 && (
+                                    <>
+                                        <div className={`pt-3 pb-1 ${showLabels ? "" : "md:hidden"}`}>
+                                            <p className={`px-3 text-[10px] font-bold uppercase tracking-widest ${darkMode ? "text-slate-600" : "text-slate-400"}`}>
+                                                Admin
+                                            </p>
+                                        </div>
+                                        {adminItems.length > 0 && !showLabels && (
+                                            <div className={`hidden md:flex justify-center py-1`}>
+                                                <div className={`w-5 h-px ${darkMode ? "bg-slate-700" : "bg-slate-200"}`} />
+                                            </div>
+                                        )}
+                                        {adminItems.map(renderLink)}
+                                    </>
+                                )}
+                            </>
+                        );
+                    })()}
 
                     {/* Erweitert toggle */}
                     <div className="pt-2">

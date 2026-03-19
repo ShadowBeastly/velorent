@@ -10,7 +10,13 @@ function formatEur(n) {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n || 0);
 }
 
-const STATUS_BADGE = { reserved: "bg-slate-700 text-slate-300", confirmed: "bg-blue-900/40 text-blue-400", picked_up: "bg-yellow-900/40 text-yellow-400", returned: "bg-green-900/40 text-green-400", cancelled: "bg-red-900/40 text-red-400" };
+const STATUS_BADGE = {
+  reserved:  "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
+  confirmed: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
+  picked_up: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400",
+  returned:  "bg-emerald-100 text-emerald-700 dark:bg-green-900/40 dark:text-green-400",
+  cancelled: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400",
+};
 
 export default function MarketplacePage() {
   const { darkMode } = useApp();
@@ -136,7 +142,7 @@ export default function MarketplacePage() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${darkMode ? "bg-slate-900" : "bg-slate-50"}`}>
+      <div className="flex items-center justify-center h-64">
         <div className="w-10 h-10 border-4 border-[#1A7D5A] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -144,19 +150,20 @@ export default function MarketplacePage() {
 
   return (
     <>
-    <div className={`min-h-screen p-6 ${darkMode ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-900"}`}>
-      <div className="max-w-5xl mx-auto">
+    <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <Store className={`w-7 h-7 ${darkMode ? "text-[#1A7D5A]" : "text-[#1A7D5A]"}`} />
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${darkMode ? "bg-[#1A7D5A]/20" : "bg-[#D4EDE2]"}`}>
+            <Store className="w-5 h-5 text-[#1A7D5A]" />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold">Marktplatz</h1>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Marktplatz</h2>
             <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Lociva Buchungsplattform für Hotelgäste</p>
           </div>
         </div>
 
         {/* Section 1: Platform Status */}
-        <div className={`border rounded-xl p-5 mb-6 ${card}`}>
+        <div className={`rounded-xl border p-5 ${card}`}>
           <h2 className={`text-xs font-semibold uppercase tracking-wider mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Plattform-Status</h2>
           {!org?.is_platform_provider ? (
             <div className={`rounded-xl p-4 border ${darkMode ? "bg-slate-700/50 border-slate-600" : "bg-slate-50 border-slate-200"}`}>
@@ -223,7 +230,7 @@ export default function MarketplacePage() {
         )}
 
         {/* Section 2: Linked Hotels */}
-        <div className={`border rounded-xl p-5 mb-6 ${card}`}>
+        <div className={`rounded-xl border p-5 ${card}`}>
           <h2 className={`text-xs font-semibold uppercase tracking-wider mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Verknüpfte Hotels</h2>
           {hotels.length === 0 ? (
             <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Noch keine Hotels verknüpft. Der Plattform-Admin ordnet Hotels zu.</p>
@@ -249,7 +256,7 @@ export default function MarketplacePage() {
 
         {/* Section 3: Platform Bookings */}
         {bookings.length > 0 && (
-          <div className={`border rounded-xl overflow-hidden mb-6 ${card}`}>
+          <div className={`rounded-xl border overflow-hidden ${card}`}>
             <div className={`px-5 py-4 border-b ${darkMode ? "border-slate-700" : "border-slate-200"}`}>
               <div className="flex items-center justify-between">
                 <h2 className={`text-xs font-semibold uppercase tracking-wider ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Plattform-Buchungen</h2>
@@ -300,12 +307,10 @@ export default function MarketplacePage() {
         )}
 
         {/* Section 4: Cancellation Policy */}
-        <div className="mb-6">
-          <CancellationPolicyVisualizer darkMode={darkMode} />
-        </div>
+        <CancellationPolicyVisualizer darkMode={darkMode} />
 
         {/* Section 5: Public Profile */}
-        <div className={`border rounded-xl p-5 ${card}`}>
+        <div className={`rounded-xl border p-5 ${card}`}>
           <h2 className={`text-xs font-semibold uppercase tracking-wider mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Mein Profil (für Hotelgäste)</h2>
           <div className="space-y-4">
             <div>
@@ -328,7 +333,6 @@ export default function MarketplacePage() {
             </button>
           </div>
         </div>
-      </div>
     </div>
 
     {/* Cancellation Modal */}

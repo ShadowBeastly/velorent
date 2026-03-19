@@ -150,12 +150,13 @@ export default function AdminAnalyticsPage() {
   const renderTooltip = (props) => <ChartTooltip {...props} darkMode={darkMode} />;
 
   return (
-    <div className={`min-h-screen p-6 ${darkMode ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-900"}`}>
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BarChart3 className={`w-7 h-7 ${darkMode ? "text-[#3BAA82]" : "text-[#1A7D5A]"}`} />
-            <h1 className="text-2xl font-bold">Plattform-Analytics</h1>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${darkMode ? "bg-[#1A7D5A]/20" : "bg-[#D4EDE2]"}`}>
+              <BarChart3 className="w-5 h-5 text-[#1A7D5A]" />
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Plattform-Analytics</h2>
           </div>
           <div className="flex gap-1">
             {PERIODS.map((p, i) => (
@@ -337,7 +338,6 @@ export default function AdminAnalyticsPage() {
             </div>
           </>
         )}
-      </div>
     </div>
   );
 }

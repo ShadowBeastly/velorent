@@ -84,13 +84,14 @@ export default function AdminRegionsPage() {
   }
 
   return (
-    <div className={`min-h-screen p-6 ${darkMode ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-900"}`}>
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <MapPin className={`w-7 h-7 ${darkMode ? "text-[#3BAA82]" : "text-[#1A7D5A]"}`} />
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${darkMode ? "bg-[#1A7D5A]/20" : "bg-[#D4EDE2]"}`}>
+              <MapPin className="w-5 h-5 text-[#1A7D5A]" />
+            </div>
             <div>
-              <h1 className="text-2xl font-bold">Regionen verwalten</h1>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Regionen verwalten</h2>
               <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{regions.length} Regionen</p>
             </div>
           </div>
@@ -165,7 +166,6 @@ export default function AdminRegionsPage() {
             </table>
           )}
         </div>
-      </div>
 
       {/* Add/Edit Modal */}
       {showModal && (
