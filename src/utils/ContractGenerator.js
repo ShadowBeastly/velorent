@@ -278,13 +278,32 @@ export const generateContract = (booking, organization) => {
 
     // Signature lines
     doc.setDrawColor(15, 23, 42);
+    // Left side: blank line for Vermieter
     doc.line(sigBoxLeft, y, sigBoxLeft + sigBoxWidth, y);
-    doc.line(sigBoxRight, y, sigBoxRight + sigBoxWidth, y);
-    y += 5;
 
-    doc.setFontSize(8);
-    doc.text(`${organization?.name || 'Vermieter'} (Unterschrift)`, sigBoxLeft, y);
-    doc.text(`${booking?.customer_name || 'Mieter'} (Unterschrift)`, sigBoxRight, y);
+    // Right side: embed signature image if provided, otherwise blank line
+    if (signatureDataUrl) {
+        const imgW = 60;
+        const imgH = 22;
+        doc.addImage(signatureDataUrl, 'PNG', sigBoxRight, y - imgH - 2, imgW, imgH);
+        doc.line(sigBoxRight, y, sigBoxRight + sigBoxWidth, y);
+        y += 5;
+        doc.setFontSize(8);
+        doc.text(`${organization?.name || 'Vermieter'} (Unterschrift)`, sigBoxLeft, y);
+        const signedAt = booking?.signed_at ? new Date(booking.signed_at) : new Date();
+        const dateStr = signedAt.toLocaleDateString('de-DE');
+        const timeStr = signedAt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+        doc.text(`Unterschrieben am ${dateStr} um ${timeStr} Uhr`, sigBoxRight, y);
+        y += 4;
+        doc.setFontSize(8);
+        doc.text(`${booking?.customer_name || 'Mieter'}`, sigBoxRight, y);
+    } else {
+        doc.line(sigBoxRight, y, sigBoxRight + sigBoxWidth, y);
+        y += 5;
+        doc.setFontSize(8);
+        doc.text(`${organization?.name || 'Vermieter'} (Unterschrift)`, sigBoxLeft, y);
+        doc.text(`${booking?.customer_name || 'Mieter'} (Unterschrift)`, sigBoxRight, y);
+    }
 
     // ─── FOOTER ───────────────────────────────────────────────────────────────
 

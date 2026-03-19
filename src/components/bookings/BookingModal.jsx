@@ -1,10 +1,14 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle } from "lucide-react";
+import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle, PenLine } from "lucide-react";
 import { fmtISO, addDays, daysDiff, fmtCurrency } from "../../utils/formatters";
 import { STATUS } from "../../utils/constants";
 import ContractModal from "./ContractModal";
 import { calculateDynamicPrice } from "../../utils/calculatePrice";
+import { useOrganization } from "../../context/OrgContext";
+import { supabase } from "../../utils/supabase";
+import { generateContract } from "../../utils/ContractGenerator";
+import SignaturePad from "../SignaturePad";
 
 function getCancellationScenario(startDate) {
     const now = new Date();
@@ -62,7 +66,8 @@ const STEPS = [
     { id: 1, label: "Zeitraum & Rad", icon: Calendar },
     { id: 2, label: "Kunde", icon: User },
     { id: 3, label: "Details", icon: CreditCard },
-    { id: 4, label: "Abschluss", icon: CheckCircle }
+    { id: 4, label: "Abschluss", icon: CheckCircle },
+    { id: 5, label: "Unterschrift", icon: PenLine }
 ];
 
 export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, pricingRules, addOns, onSave, onDelete, onClose, darkMode }) {
@@ -71,6 +76,8 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const [stepError, setStepError] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [showCancelBreakdown, setShowCancelBreakdown] = useState(false);
+    const [signatureData, setSignatureData] = useState(null);
+    const [agbAccepted, setAgbAccepted] = useState(false);
 
     const isMarketplaceBooking = booking?.booking_source === "hotel_qr";
     const [customerSearch, setCustomerSearch] = useState("");
@@ -78,6 +85,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const [showContract, setShowContract] = useState(false);
 
     const [isGroupBooking, setIsGroupBooking] = useState(Boolean(booking?.is_group_booking));
+    const { currentOrg } = useOrganization();
 
     const [form, setForm] = useState(() => {
         if (booking) return {
@@ -173,7 +181,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             if (alreadySelected) {
                 nextSelected = prev.selectedBikes.filter(b => b.id !== bike.id);
             } else {
-                const subtotal = calculateDynamicPrice(bike, prev.start_date, prev.end_date, pricingRules || []).totalPrice;
+                const subtotal = calculatePriceSync(bike, prev.start_date, prev.end_date, 1, pricingRules || []).totalPrice;
                 nextSelected = [...prev.selectedBikes, { ...bike, subtotal }];
             }
             const firstBike = nextSelected[0] || null;
@@ -289,17 +297,58 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         }
         setSaving(true);
         try {
+            const finalPrice = form.total_price;
+
+            // ── M4: Upload signature + signed PDF before saving ──────────────
+            let signatureUrl = null;
+            let signedContractUrl = null;
+            const orgId = currentOrg?.id || '';
+
+            if (signatureData && orgId) {
+                const fileId = crypto.randomUUID();
+                try {
+                    const base64 = signatureData.split(',')[1];
+                    const byteChars = atob(base64);
+                    const bytes = new Uint8Array(byteChars.length);
+                    for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+                    const sigBlob = new Blob([bytes], { type: 'image/png' });
+                    const sigPath = `signatures/${orgId}/${fileId}.png`;
+                    const { error: sigErr } = await supabase.storage.from('signatures').upload(sigPath, sigBlob, { contentType: 'image/png', upsert: true });
+                    if (!sigErr) {
+                        const { data: sigUrl } = supabase.storage.from('signatures').getPublicUrl(sigPath);
+                        signatureUrl = sigUrl.publicUrl;
+                    }
+                    const bikeForPdf = bikes.find(b => b.id === form.bike_id);
+                    const pdfBooking = { ...form, bike: bikeForPdf, signed_at: new Date().toISOString(), customer_id_number: form.id_number };
+                    const doc = generateContract(pdfBooking, currentOrg, signatureData);
+                    const pdfBytes = doc.output('arraybuffer');
+                    const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+                    const pdfPath = `contracts/${orgId}/${fileId}-signed.pdf`;
+                    const { error: pdfErr } = await supabase.storage.from('contracts').upload(pdfPath, pdfBlob, { contentType: 'application/pdf', upsert: true });
+                    if (!pdfErr) {
+                        const { data: pdfUrl } = supabase.storage.from('contracts').getPublicUrl(pdfPath);
+                        signedContractUrl = pdfUrl.publicUrl;
+                    }
+                } catch (storageErr) {
+                    console.warn('Storage upload failed, saving booking without signature URLs:', storageErr);
+                }
+            }
+            // ─────────────────────────────────────────────────────────────────
+
             // Pass selectedBikes for group bookings; hook handles booking_items insert
             await onSave({
                 ...form,
+                total_price: finalPrice,
                 selectedBikes: isGroupBooking ? form.selectedBikes : [],
+                ...(signatureUrl ? { signature_url: signatureUrl, signed_at: new Date().toISOString() } : {}),
+                ...(signedContractUrl ? { signed_contract_url: signedContractUrl } : {}),
             });
         } catch (err) {
             console.error("Fehler beim Speichern:", err);
         } finally {
             setSaving(false);
         }
-    };
+    }
 
     const handleCustomerSelect = (c) => {
         setForm(f => ({
@@ -343,7 +392,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                         <div>
                             <h3 id="booking-modal-title" className="text-lg font-semibold">{booking ? "Buchung bearbeiten" : "Neue Buchung"}</h3>
                             <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                Schritt {step} von 4
+                                Schritt {step} von {STEPS.length}
                             </p>
                         </div>
                     </div>
@@ -773,7 +822,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                             </div>
                                             <div className="space-y-1 pl-2">
                                                 {form.selectedBikes.map(bike => {
-                                                    const bikeTotal = calculateDynamicPrice(bike, form.start_date, form.end_date, pricingRules || []).totalPrice;
+                                                    const bikeTotal = calculatePriceSync(bike, form.start_date, form.end_date, form.selectedBikes.length, pricingRules || []).totalPrice;
                                                     return (
                                                         <div key={bike.id} className="flex justify-between text-xs">
                                                             <span className={darkMode ? "text-slate-400" : "text-slate-600"}>{bike.name}</span>
@@ -832,6 +881,63 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* STEP 5: UNTERSCHRIFT */}
+                    {step === 5 && (
+                        <div className="space-y-6">
+                            {booking?.signature_url && (
+                                <div className={`p-3 rounded-lg border text-sm flex items-center gap-2 ${darkMode ? "border-emerald-700/40 bg-emerald-900/20 text-emerald-400" : "border-emerald-500/30 bg-emerald-50 text-emerald-700"}`}>
+                                    <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                                    Bereits unterschrieben am {new Date(booking.signed_at).toLocaleString("de-DE")}
+                                </div>
+                            )}
+                            <div className={`p-4 rounded-xl border text-sm space-y-2 ${darkMode ? "bg-slate-800 border-slate-700" : "bg-slate-50 border-slate-200"}`}>
+                                <h4 className="font-semibold mb-3">Vertragsübersicht</h4>
+                                <div className="flex justify-between">
+                                    <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Mieter</span>
+                                    <span className="font-medium">{form.customer_name}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Fahrrad</span>
+                                    <span className="font-medium">{bikes.find(b => b.id === form.bike_id)?.name || "—"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Zeitraum</span>
+                                    <span className="font-medium">{new Date(form.start_date).toLocaleDateString("de-DE")} – {new Date(form.end_date).toLocaleDateString("de-DE")} ({days} Tage)</span>
+                                </div>
+                                <div className="flex justify-between border-t pt-2 mt-1">
+                                    <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Gesamtpreis</span>
+                                    <span className="font-bold text-[#1A7D5A]">{fmtCurrency(form.total_price)}</span>
+                                </div>
+                            </div>
+                            <label className="flex items-start gap-3 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={agbAccepted}
+                                    onChange={(e) => setAgbAccepted(e.target.checked)}
+                                    className="mt-0.5 w-4 h-4 accent-[#1A7D5A]"
+                                />
+                                <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+                                    Ich bestätige die Richtigkeit der Angaben und akzeptiere die{" "}
+                                    <span className="text-[#1A7D5A] font-medium">Allgemeinen Mietbedingungen</span>.
+                                </span>
+                            </label>
+                            <div>
+                                <label className={`${labelStyle} mb-2 flex items-center justify-between`}>
+                                    <span>Unterschrift des Mieters</span>
+                                    {signatureData && (
+                                        <span className="text-emerald-500 text-xs font-normal">✓ Unterschrift erfasst</span>
+                                    )}
+                                </label>
+                                <SignaturePad
+                                    key={step}
+                                    onSave={(data) => setSignatureData(data)}
+                                    onClear={() => setSignatureData(null)}
+                                    darkMode={darkMode}
+                                />
                             </div>
                         </div>
                     )}
@@ -923,13 +1029,13 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                         </div>
 
                         <button
-                            onClick={step === 4 ? handleSave : handleNext}
-                            disabled={saving}
+                            onClick={step === 5 ? handleSave : handleNext}
+                            disabled={saving || (step === 5 && (!agbAccepted || !signatureData))}
                             className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2 disabled:opacity-50"
                         >
                             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                            {step === 4 ? "Buchung speichern" : "Weiter"}
-                            {step < 4 && <ChevronRight className="w-4 h-4" />}
+                            {step === 5 ? "Buchung speichern" : "Weiter"}
+                            {step < 5 && <ChevronRight className="w-4 h-4" />}
                         </button>
                     </div>
                 </div>
