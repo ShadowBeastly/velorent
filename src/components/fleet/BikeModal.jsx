@@ -9,6 +9,9 @@ export default function BikeModal({ bike, onSave, onDelete, onClose, darkMode })
         size: "M",
         price_per_day: 35,
         deposit: 50,
+        deposit_type: "fixed",
+        deposit_amount: 50,
+        deposit_percentage: 0,
         battery: "500Wh",
         motor: "Mittelmotor",
         color: "Schwarz",
@@ -81,9 +84,53 @@ export default function BikeModal({ bike, onSave, onDelete, onClose, darkMode })
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Preis/Tag (€)</label>
                             <input type="number" value={form.price_per_day} onChange={(e) => setForm(f => ({ ...f, price_per_day: Number(e.target.value) }))} className={inputStyle} />
                         </div>
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Kaution (€)</label>
-                            <input type="number" value={form.deposit} onChange={(e) => setForm(f => ({ ...f, deposit: Number(e.target.value) }))} className={inputStyle} />
+                        <div className="sm:col-span-2">
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Kaution</label>
+                            <div className="flex flex-wrap gap-3 mb-3">
+                                {[
+                                    { value: "none", label: "Kein Deposit" },
+                                    { value: "fixed", label: "Fixbetrag (€)" },
+                                    { value: "percentage", label: "Prozent vom Mietpreis" },
+                                ].map(opt => (
+                                    <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="deposit_type"
+                                            value={opt.value}
+                                            checked={form.deposit_type === opt.value}
+                                            onChange={() => setForm(f => ({ ...f, deposit_type: opt.value }))}
+                                            className="accent-[#1A7D5A]"
+                                        />
+                                        <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{opt.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            {form.deposit_type === "fixed" && (
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={form.deposit_amount}
+                                    onChange={(e) => setForm(f => ({ ...f, deposit_amount: Number(e.target.value) }))}
+                                    className={inputStyle}
+                                    placeholder="50.00"
+                                />
+                            )}
+                            {form.deposit_type === "percentage" && (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="0.1"
+                                        value={form.deposit_percentage}
+                                        onChange={(e) => setForm(f => ({ ...f, deposit_percentage: Number(e.target.value) }))}
+                                        className={`${inputStyle} flex-1`}
+                                        placeholder="20"
+                                    />
+                                    <span className={`text-sm font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>%</span>
+                                </div>
+                            )}
                         </div>
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Farbe</label>
@@ -100,6 +147,25 @@ export default function BikeModal({ bike, onSave, onDelete, onClose, darkMode })
                         <div className="sm:col-span-2">
                             <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Rahmennummer</label>
                             <input type="text" value={form.frame_number} onChange={(e) => setForm(f => ({ ...f, frame_number: e.target.value }))} className={inputStyle} />
+                        </div>
+                        <div className="sm:col-span-2">
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Individueller Puffer (Minuten)</label>
+                            <input
+                                type="number"
+                                min={0}
+                                max={360}
+                                step={30}
+                                placeholder="Globalen Standard verwenden"
+                                value={form.buffer_minutes ?? ""}
+                                onChange={(e) => setForm(f => ({
+                                    ...f,
+                                    buffer_minutes: e.target.value === "" ? null : parseInt(e.target.value, 10)
+                                }))}
+                                className={inputStyle}
+                            />
+                            <p className={`text-xs mt-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                Leer = globalen Standard aus den Einstellungen verwenden. E-Bikes empfohlen: 180 Min.
+                            </p>
                         </div>
                     </div>
                 </div>

@@ -577,6 +577,58 @@ export default function CalendarPage() {
                                                     })}
                                                 </div>
                                             )}
+
+                                            {/* Buffer Blocks — hatched amber overlay after each booking's end date */}
+                                            {(() => {
+                                                const bufferMins = bike.buffer_minutes ?? 0;
+                                                if (!bufferMins) return null;
+                                                // Buffer spans ceil(bufferMins / 1440) days, min 1 column
+                                                const bufferDays = Math.max(1, Math.ceil(bufferMins / 1440));
+                                                const validBookings = bikeBookings.filter(b =>
+                                                    !["cancelled", "returned", "deleted"].includes(b.status)
+                                                );
+                                                if (validBookings.length === 0) return null;
+                                                return (
+                                                    <div className="absolute inset-y-0 left-0 right-0 grid items-stretch pointer-events-none z-[4]" style={{ gridTemplateColumns: gridCols }}>
+                                                        {validBookings.map(b => {
+                                                            // Buffer starts the day after the booking ends
+                                                            const bufferStart = new Date(b.end_date);
+                                                            bufferStart.setDate(bufferStart.getDate() + 1);
+                                                            const bufferEnd = new Date(bufferStart);
+                                                            bufferEnd.setDate(bufferEnd.getDate() + bufferDays - 1);
+
+                                                            const effectiveStart = bufferStart < viewStart ? viewStart : bufferStart;
+                                                            const effectiveEnd = bufferEnd > viewEnd ? viewEnd : bufferEnd;
+                                                            if (effectiveStart > viewEnd || effectiveEnd < viewStart) return null;
+
+                                                            const startIndex = daysDiff(viewStartStr, fmtISO(effectiveStart)) - 1;
+                                                            const duration = daysDiff(fmtISO(effectiveStart), fmtISO(effectiveEnd));
+
+                                                            const hours = Math.floor(bufferMins / 60);
+                                                            const mins = bufferMins % 60;
+                                                            const label = hours > 0 && mins > 0 ? `${hours}h ${mins}m Puffer` : hours > 0 ? `${hours}h Puffer` : `${mins}m Puffer`;
+
+                                                            return (
+                                                                <div
+                                                                    key={`buf-${b.id}`}
+                                                                    className="opacity-70 border border-amber-400/50 border-dashed rounded-lg flex items-center px-1 text-amber-600 dark:text-amber-400 text-[9px] font-semibold"
+                                                                    style={{
+                                                                        gridColumnStart: startIndex + 1,
+                                                                        gridColumnEnd: `span ${duration}`,
+                                                                        backgroundImage: 'repeating-linear-gradient(135deg, transparent, transparent 5px, rgba(251,191,36,0.15) 5px, rgba(251,191,36,0.15) 10px)',
+                                                                        backgroundColor: 'rgba(251,191,36,0.05)',
+                                                                        marginTop: '2px',
+                                                                        marginBottom: '2px',
+                                                                    }}
+                                                                    title={`${label} nach Buchung (${fmtDate(b.end_date)})`}
+                                                                >
+                                                                    <span className="truncate pl-1">{label}</span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 );

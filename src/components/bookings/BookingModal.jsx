@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle } from "lucide-react";
+import { X, Trash2, Loader2, Calendar, User, CreditCard, CheckCircle, ChevronRight, Search, Plus, FileText, Phone, TrendingUp, TrendingDown, Users, AlertTriangle, Tag } from "lucide-react";
 import { fmtISO, addDays, daysDiff, fmtCurrency } from "../../utils/formatters";
 import { STATUS } from "../../utils/constants";
 import ContractModal from "./ContractModal";
@@ -65,12 +65,18 @@ const STEPS = [
     { id: 4, label: "Abschluss", icon: CheckCircle }
 ];
 
-export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, pricingRules, addOns, onSave, onDelete, onClose, darkMode }) {
+export default function BookingModal({ booking, initialDate, initialBikeId, bikes, customers, existingBookings, pricingRules, addOns, validateCoupon, onSave, onDelete, onClose, darkMode }) {
     const [step, setStep] = useState(1);
     const [saving, setSaving] = useState(false);
     const [stepError, setStepError] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [showCancelBreakdown, setShowCancelBreakdown] = useState(false);
+
+    // Coupon state
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState(null); // { coupon, discountAmount }
+    const [couponError, setCouponError] = useState('');
+    const [couponLoading, setCouponLoading] = useState(false);
 
     const isMarketplaceBooking = booking?.booking_source === "hotel_qr";
     const [customerSearch, setCustomerSearch] = useState("");
@@ -222,6 +228,36 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         });
     };
 
+    const applyCoupon = async () => {
+        if (!couponCode.trim()) return;
+        if (!validateCoupon) { setCouponError('Gutschein-Validierung nicht verfügbar.'); return; }
+        setCouponLoading(true);
+        setCouponError('');
+        setAppliedCoupon(null);
+        const bikeQty = isGroupBooking ? form.selectedBikes.length : 1;
+        const selectedBikeObj = bikes.find(b => b.id === form.bike_id);
+        const result = await validateCoupon(couponCode.trim().toUpperCase(), {
+            totalPrice: form.total_price,
+            durationDays: days,
+            quantity: bikeQty,
+            categoryId: selectedBikeObj?.category_id,
+            bikeId: form.bike_id,
+        });
+        setCouponLoading(false);
+        if (result.valid) {
+            setAppliedCoupon(result);
+            setCouponCode('');
+        } else {
+            setCouponError(result.reason || 'Ungültiger Gutschein.');
+        }
+    };
+
+    const removeCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponError('');
+        setCouponCode('');
+    };
+
     // Filtered Customers
     const filteredCustomers = useMemo(() => {
         return customers.filter(c =>
@@ -230,7 +266,17 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         );
     }, [customers, customerSearch]);
 
-    // Availability Check (single bike)
+    // Helper: get effective end of an existing booking including its buffer
+    const getBufferedEnd = (existingBooking) => {
+        const bikeData = bikes.find(bk => bk.id === existingBooking.bike_id);
+        const bufferMins = bikeData?.buffer_minutes ?? 0;
+        if (!bufferMins) return new Date(existingBooking.end_date);
+        const end = new Date(existingBooking.end_date);
+        end.setMinutes(end.getMinutes() + bufferMins);
+        return end;
+    };
+
+    // Availability Check (single bike) — buffer extends the blocked window after end_date
     const conflictingBooking = useMemo(() => {
         if (isGroupBooking) return null; // handled separately for group
         if (!form.bike_id || !form.start_date || !form.end_date) return null;
@@ -239,9 +285,10 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             b.bike_id === form.bike_id &&
             !["cancelled", "returned", "deleted"].includes(b.status) &&
             new Date(b.start_date) <= new Date(form.end_date) &&
-            new Date(b.end_date) >= new Date(form.start_date)
+            getBufferedEnd(b) >= new Date(form.start_date)
         );
-    }, [isGroupBooking, form.bike_id, form.start_date, form.end_date, existingBookings, booking]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isGroupBooking, form.bike_id, form.start_date, form.end_date, existingBookings, booking, bikes]);
 
     // Availability check for ALL bikes in a group selection
     const groupConflicts = useMemo(() => {
@@ -252,10 +299,11 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                 b.bike_id === bike.id &&
                 !["cancelled", "returned", "deleted"].includes(b.status) &&
                 new Date(b.start_date) <= new Date(form.end_date) &&
-                new Date(b.end_date) >= new Date(form.start_date)
+                getBufferedEnd(b) >= new Date(form.start_date)
             )
         );
-    }, [isGroupBooking, form.selectedBikes, form.start_date, form.end_date, existingBookings, booking]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isGroupBooking, form.selectedBikes, form.start_date, form.end_date, existingBookings, booking, bikes]);
 
     const isBikeAvailable = !conflictingBooking;
 
@@ -289,10 +337,15 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         }
         setSaving(true);
         try {
+            const discountAmount = appliedCoupon?.discountAmount || 0;
+            const finalPrice = Math.max(0, form.total_price - discountAmount);
             // Pass selectedBikes for group bookings; hook handles booking_items insert
             await onSave({
                 ...form,
+                total_price: finalPrice,
                 selectedBikes: isGroupBooking ? form.selectedBikes : [],
+                _couponId: appliedCoupon?.coupon?.id || null,
+                _couponDiscountAmount: discountAmount || null,
             });
         } catch (err) {
             console.error("Fehler beim Speichern:", err);
@@ -831,6 +884,14 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                             )}
                                         </div>
                                     </div>
+                                    {form.deposit_amount > 0 && (
+                                        <div className="flex justify-between items-center pt-1">
+                                            <span className="text-slate-500">Kaution</span>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300`}>
+                                                {fmtCurrency(form.deposit_amount)} · Ausstehend
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

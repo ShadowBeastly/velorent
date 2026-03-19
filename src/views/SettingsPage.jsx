@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Building, Loader2, Check, Key, Copy, CreditCard, Palette, Zap, Star, Rocket, ExternalLink, Clock, Languages, Trash2, AlertTriangle } from "lucide-react";
+import { Building, Loader2, Check, Key, Copy, CreditCard, Palette, Zap, Star, Rocket, ExternalLink, Clock, Languages, Trash2, AlertTriangle, Timer } from "lucide-react";
 import { supabase } from "../utils/supabase";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
@@ -145,7 +145,10 @@ export default function SettingsPage() {
             iban: form.iban,
             bic: form.bic,
             logo_url: form.logo_url,
-            settings: form.settings,
+            settings: {
+                ...form.settings,
+                default_buffer_minutes: parseInt(form.settings?.default_buffer_minutes ?? 120, 10),
+            },
             late_fee_enabled: form.late_fee_enabled ?? false,
             late_fee_type: form.late_fee_type || "fixed",
             late_fee_amount: Math.max(0, parseFloat(form.late_fee_amount) || 10),
@@ -592,6 +595,72 @@ export default function SettingsPage() {
                             </div>
                         </>
                     )}
+                </div>
+
+                <div className="flex items-center gap-3 mt-6">
+                    <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2">
+                        {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                        Speichern
+                    </button>
+                    {saved && <span className="text-emerald-500 flex items-center gap-1"><Check className="w-4 h-4" /> Gespeichert!</span>}
+                </div>
+            </div>
+
+            {/* Buffer Time Settings */}
+            <div className={`rounded-2xl border p-6 ${cardStyle}`}>
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                        <Timer className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-lg">Puffer-Zeit zwischen Buchungen</h3>
+                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Mindestzeit zur Reinigung / Vorbereitung nach jeder Rückgabe</p>
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    {(() => {
+                        const bufferVal = parseInt(form.settings?.default_buffer_minutes ?? 120, 10);
+                        const hours = Math.floor(bufferVal / 60);
+                        const mins = bufferVal % 60;
+                        const bufferLabel = bufferVal === 0 ? "Kein Puffer" : hours > 0 && mins > 0 ? `${hours} Std. ${mins} Min.` : hours > 0 ? `${hours} Std.` : `${mins} Min.`;
+                        return (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+                                        Globaler Standard-Puffer
+                                    </label>
+                                    <span className={`text-sm font-semibold px-3 py-1 rounded-lg ${darkMode ? "bg-slate-800 text-amber-400" : "bg-amber-50 text-amber-700"}`}>
+                                        {bufferLabel}
+                                    </span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={360}
+                                    step={30}
+                                    value={bufferVal}
+                                    onChange={(e) => setForm(f => ({
+                                        ...f,
+                                        settings: { ...f.settings, default_buffer_minutes: parseInt(e.target.value, 10) }
+                                    }))}
+                                    className="w-full accent-amber-500"
+                                />
+                                <div className={`flex justify-between text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                    <span>0 Min.</span>
+                                    <span>1 Std.</span>
+                                    <span>2 Std.</span>
+                                    <span>3 Std.</span>
+                                    <span>4 Std.</span>
+                                    <span>5 Std.</span>
+                                    <span>6 Std.</span>
+                                </div>
+                                <p className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                    Einzelne Räder können diesen Wert in der Flottenverwaltung überschreiben. E-Bikes empfohlen: 3 Std.
+                                </p>
+                            </>
+                        );
+                    })()}
                 </div>
 
                 <div className="flex items-center gap-3 mt-6">
