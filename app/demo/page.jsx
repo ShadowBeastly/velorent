@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../src/context/AuthContext";
 import { Loader2, Bike, AlertCircle } from "lucide-react";
@@ -7,10 +7,11 @@ import { Loader2, Bike, AlertCircle } from "lucide-react";
 const C = { primary: "#1A7D5A", dark: "#1E2D26", bg: "#F5FAF7", neutral: "#6B7280" };
 
 export default function DemoPage() {
-    const { signIn, user, loading } = useAuth();
+    const { signIn, signOut, user, loading } = useAuth();
     const router = useRouter();
     const demoEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL;
     const demoPassword = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
+    const signingIn = useRef(false);
     const [error, setError] = useState(
         !demoEmail || !demoPassword
             ? "Demo-Account ist nicht konfiguriert. Bitte wende dich an info@rentcore.de."
@@ -20,12 +21,24 @@ export default function DemoPage() {
     useEffect(() => {
         if (loading || error) return;
 
-        if (user) {
+        // Already signed in as demo user → redirect
+        if (user?.email === demoEmail) {
             router.push("/app");
             return;
         }
 
+        // Signed in as someone else → sign out first, then re-run will trigger signIn
+        if (user) {
+            signOut();
+            return;
+        }
+
+        // Not signed in → sign in as demo (guard against duplicate calls)
+        if (signingIn.current) return;
+        signingIn.current = true;
+
         signIn(demoEmail, demoPassword).catch((err) => {
+            signingIn.current = false;
             setError(
                 err.message?.includes("Invalid login")
                     ? "Demo-Account nicht gefunden. Bitte Demo zuerst in Supabase einrichten."
