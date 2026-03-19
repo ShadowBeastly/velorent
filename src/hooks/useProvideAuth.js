@@ -10,9 +10,26 @@ export function useProvideAuth() {
 
     useEffect(() => {
         let mounted = true;
+        let initialized = false;
+
+        // Initialize immediately from localStorage — no network call needed.
+        // This prevents infinite loading when onAuthStateChange is delayed
+        // (e.g. Supabase refreshing an expired token in the background).
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!mounted || initialized) return;
+            initialized = true;
+            setSession(session);
+            setUser(session?.user ?? null);
+            if (session?.user) {
+                loadProfile(session.user.id);
+            } else {
+                setLoading(false);
+            }
+        });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             if (!mounted) return;
+            initialized = true;
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
