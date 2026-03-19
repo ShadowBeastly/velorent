@@ -11,7 +11,7 @@ export default function DemoPage() {
     const router = useRouter();
     const demoEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL;
     const demoPassword = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
-    const signingIn = useRef(false);
+    const started = useRef(false);
     const [error, setError] = useState(
         !demoEmail || !demoPassword
             ? "Demo-Account ist nicht konfiguriert. Bitte wende dich an info@rentcore.de."
@@ -19,34 +19,34 @@ export default function DemoPage() {
     );
 
     useEffect(() => {
-        if (loading || error) return;
+        if (loading || error || started.current) return;
 
-        // Already signed in as demo user → set demo org and redirect
-        if (user?.email === demoEmail) {
-            localStorage.setItem("currentOrgId", "d0000000-0000-0000-0000-000000000001");
-            router.push("/app");
-            return;
+        async function run() {
+            started.current = true;
+            try {
+                // Sign out first if anyone is logged in (even demo user, to get clean state)
+                if (user) {
+                    await signOut();
+                }
+
+                // Sign in as demo
+                await signIn(demoEmail, demoPassword);
+
+                // Set demo org and redirect
+                localStorage.setItem("currentOrgId", "d0000000-0000-0000-0000-000000000001");
+                router.push("/app");
+            } catch (err) {
+                started.current = false;
+                setError(
+                    err.message?.includes("Invalid login")
+                        ? "Demo-Account nicht gefunden. Bitte Demo zuerst in Supabase einrichten."
+                        : "Demo-Login fehlgeschlagen: " + (err.message || "Unbekannter Fehler.")
+                );
+            }
         }
 
-        // Signed in as someone else → sign out first, then re-run will trigger signIn
-        if (user) {
-            signOut();
-            return;
-        }
-
-        // Not signed in → sign in as demo (guard against duplicate calls)
-        if (signingIn.current) return;
-        signingIn.current = true;
-
-        signIn(demoEmail, demoPassword).catch((err) => {
-            signingIn.current = false;
-            setError(
-                err.message?.includes("Invalid login")
-                    ? "Demo-Account nicht gefunden. Bitte Demo zuerst in Supabase einrichten."
-                    : "Demo-Login fehlgeschlagen: " + (err.message || "Unbekannter Fehler.")
-            );
-        });
-    }, [loading, user]); // eslint-disable-line react-hooks/exhaustive-deps
+        run();
+    }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (error) {
         return (
