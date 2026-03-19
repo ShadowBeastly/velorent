@@ -4,7 +4,7 @@ import {
     Plus, Pencil, Trash2, X, Check, Zap, Loader2, AlertCircle,
     ToggleLeft, ToggleRight,
 } from "lucide-react";
-import { useLocivaHotel } from "@/app/hotel/layout";
+import { useLocivaHotel } from "@/src/context/LocivaHotelContext";
 import { useApp } from "@/src/context/AppContext";
 import { useHotelActivities } from "@/src/hooks/useHotelActivities";
 

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { MapPin, Bike, Users, AlertCircle } from "lucide-react";
-import { useLocivaHotel } from "@/app/hotel/layout";
+import { useLocivaHotel } from "@/src/context/LocivaHotelContext";
 import { useApp } from "@/src/context/AppContext";
 import { supabase } from "@/src/utils/supabase";
 

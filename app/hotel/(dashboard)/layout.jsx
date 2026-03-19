@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Menu, Sun, Moon, Building2 } from "lucide-react";
 
@@ -9,18 +9,7 @@ import { supabase } from "../../../src/utils/supabase";
 import LocivaSidebar from "../../../src/components/layout/LocivaSidebar";
 import LoadingScreen from "../../../src/components/ui/LoadingScreen";
 import DemoBanner from "../../../src/components/ui/DemoBanner";
-
-// ---------------------------------------------------------------------------
-// Context
-// ---------------------------------------------------------------------------
-const LocivaHotelContext = createContext(null);
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useLocivaHotel() {
-    const ctx = useContext(LocivaHotelContext);
-    if (!ctx) throw new Error("useLocivaHotel must be used inside LocivaLayout");
-    return ctx;
-}
+import LocivaHotelContext from "../../../src/context/LocivaHotelContext";
 
 // ---------------------------------------------------------------------------
 // Inner shell — needs AppProvider already mounted above it
