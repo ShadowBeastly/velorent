@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Plus, Loader2, Check, RefreshCw, LayoutGrid, List, MoreHorizontal, Battery, Gauge, Download, Edit } from "lucide-react";
+import { Plus, Loader2, Check, RefreshCw, LayoutGrid, List, MoreHorizontal, Battery, Gauge, Download, Edit, Bike } from "lucide-react";
 import { BIKE_COLORS } from "../utils/constants";
 import { fmtCurrency } from "../utils/formatters";
 import BikeModal from "../components/fleet/BikeModal";
@@ -398,7 +398,16 @@ export default function FleetPage() {
                         </table>
                         {filtered.length === 0 && (
                             <div className={`p-12 text-center ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                Keine Räder gefunden.
+                                <Bike className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                                <p className="text-lg font-medium">Keine Räder gefunden</p>
+                                {statusFilter === "all" && categoryFilter === "all" && sizeFilter === "all" && (
+                                    <button
+                                        onClick={() => { setEditBike(null); setShowModal(true); }}
+                                        className="mt-4 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg text-sm font-medium shadow-lg shadow-[#1A7D5A]/25"
+                                    >
+                                        Erstes Fahrrad hinzufügen
+                                    </button>
+                                )}
                             </div>
                         )}
                     </div>

@@ -603,8 +603,17 @@ export default function BookingsPage() {
                 )}
 
                 {!bookings.loading && filtered.length === 0 && (
-                    <div className={`text-center py-12 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                        Keine Buchungen gefunden
+                    <div className={`text-center py-16 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                        <FileText className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                        <p className="text-lg font-medium">Keine Buchungen gefunden</p>
+                        {statusFilter === "all" && !hasActiveFilters && (
+                            <button
+                                onClick={() => { setEditBooking(null); setShowModal(true); }}
+                                className="mt-4 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg text-sm font-medium shadow-lg shadow-[#1A7D5A]/25"
+                            >
+                                Erste Buchung erstellen
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
