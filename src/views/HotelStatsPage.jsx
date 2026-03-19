@@ -86,7 +86,7 @@ export default function HotelStatsPage() {
         <div className="text-center max-w-md">
           <Building2 className={`w-16 h-16 mx-auto mb-4 ${darkMode ? "text-slate-600" : "text-slate-300"}`} />
           <h1 className="text-xl font-bold mb-2">Kein Hotel zugeordnet</h1>
-          <p className={darkMode ? "text-slate-400" : "text-slate-500"}>Ihr Account ist noch keinem Hotel zugeordnet. Bitte kontaktieren Sie den Support unter <span className="text-[#3BAA82]">info@rentcore.app</span>.</p>
+          <p className={darkMode ? "text-slate-400" : "text-slate-500"}>Ihr Account ist noch keinem Hotel zugeordnet. Bitte kontaktieren Sie den Support unter <span className="text-[#3BAA82]">info@lociva.de</span>.</p>
         </div>
       </div>
     );
@@ -167,7 +167,7 @@ export default function HotelStatsPage() {
                   <div className="flex-1 min-w-0">
                     <h2 className="font-semibold mb-1">Ihr Buchungslink</h2>
                     <p className={`text-sm font-mono truncate mb-2 ${darkMode ? "text-[#3BAA82]" : "text-[#1A7D5A]"}`}>
-                      {typeof window !== "undefined" ? window.location.origin : "https://rentcore.app"}/hotel/{hotel.slug}
+                      {typeof window !== "undefined" ? window.location.origin : "https://lociva.de"}/hotel/{hotel.slug}
                     </p>
                     <p className={`text-xs mb-3 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                       Erstellen Sie einen QR-Code aus diesem Link und platzieren Sie ihn in Ihren Zimmern und an der Rezeption.

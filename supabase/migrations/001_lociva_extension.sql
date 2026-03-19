@@ -392,7 +392,11 @@ CREATE OR REPLACE FUNCTION create_guest_booking(
   p_guest_name      TEXT,
   p_guest_email     TEXT,
   p_guest_phone     TEXT DEFAULT NULL,
-  p_language        TEXT DEFAULT 'de'
+  p_language        TEXT DEFAULT 'de',
+  p_rental_type     TEXT DEFAULT 'daily',
+  p_total_hours     INTEGER DEFAULT NULL,
+  p_start_time      TEXT DEFAULT NULL,
+  p_end_time        TEXT DEFAULT NULL
 )
 RETURNS JSONB
 LANGUAGE plpgsql SECURITY DEFINER AS $$
@@ -407,6 +411,7 @@ DECLARE
   v_booking_id       UUID;
   v_booking_number   TEXT;
   v_conflict_count   INTEGER;
+  v_price_per_unit   DECIMAL(10,2);
 BEGIN
   -- Validation
   IF p_start_date > p_end_date THEN
@@ -417,7 +422,7 @@ BEGIN
   END IF;
 
   -- Fetch bike (must belong to org and be available)
-  SELECT id, name, price_per_day, deposit, status, category, organization_id
+  SELECT id, name, price_per_day, price_per_hour, deposit, status, category, organization_id
   INTO v_bike
   FROM bikes
   WHERE id = p_bike_id
@@ -439,9 +444,23 @@ BEGIN
     RAISE EXCEPTION 'Bike not available for selected dates';
   END IF;
 
-  -- Inclusive day count (matches codebase daysDiff convention)
-  v_total_days  := (p_end_date - p_start_date) + 1;
-  v_total_price := v_total_days * v_bike.price_per_day;
+  -- Calculate price based on rental type
+  IF p_rental_type = 'hourly' THEN
+    IF v_bike.price_per_hour IS NULL OR v_bike.price_per_hour <= 0 THEN
+      RAISE EXCEPTION 'Bike does not support hourly rentals';
+    END IF;
+    IF p_total_hours IS NULL OR p_total_hours < 1 THEN
+      RAISE EXCEPTION 'Minimum 1 hour required';
+    END IF;
+    v_total_days  := p_total_hours; -- store hours in total_days for hourly bookings
+    v_price_per_unit := v_bike.price_per_hour;
+    v_total_price := p_total_hours * v_bike.price_per_hour;
+  ELSE
+    -- Daily pricing: inclusive day count (matches codebase daysDiff convention)
+    v_total_days  := (p_end_date - p_start_date) + 1;
+    v_price_per_unit := v_bike.price_per_day;
+    v_total_price := v_total_days * v_bike.price_per_day;
+  END IF;
 
   -- Category-based commission (per CLAUDE.md / Lociva pricing)
   v_commission_rate := CASE v_bike.category
@@ -485,7 +504,7 @@ BEGIN
     customer_name, customer_email, customer_phone
   ) VALUES (
     p_organization_id, p_bike_id, p_start_date, p_end_date,
-    v_bike.price_per_day, v_total_days, v_total_price, v_total_price, v_bike.deposit,
+    v_price_per_unit, v_total_days, v_total_price, v_total_price, v_bike.deposit,
     'reserved', 'website', p_hotel_id, 'hotel_qr',
     v_platform_comm, v_hotel_comm,
     p_guest_email, p_guest_phone, p_guest_name, p_language,

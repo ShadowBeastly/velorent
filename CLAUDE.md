@@ -130,7 +130,7 @@ app/                        # Next.js App Router
     ├── marketplace/        # Provider Stripe Connect + AGB + hotel bookings
     ├── hotel-stats/        # Hotel read-only dashboard
     └── admin/
-        ├── layout.jsx      # Admin guard (role === "platform_admin")
+        ├── layout.jsx      # Admin guard (role === "superadmin")
         ├── hotels/ providers/ regions/ analytics/
 
 src/
@@ -182,7 +182,7 @@ AuthProvider (app/layout.jsx — root)
 
 **Org guard**: `app/app/layout.jsx` shows `OnboardingPage` if `!org.currentOrg`. Middleware handles unauthenticated redirects.
 
-**Admin guard**: `app/app/admin/layout.jsx` checks `auth.profile?.role === "platform_admin"` client-side.
+**Admin guard**: `app/app/admin/layout.jsx` checks `auth.profile?.role === "superadmin"` client-side.
 
 ### Supabase Data Hooks Pattern
 
@@ -213,7 +213,7 @@ All hooks import `supabase` from `../utils/supabase` (browser singleton). Changi
 | `cancel_booking_by_token` | Public: cancels booking, determines free vs partial based on 24h threshold |
 | `get_hotel_analytics` | Admin: aggregated analytics for a hotel |
 | `track_analytics_event` | Public: inserts analytics event (qr_scan, page_view, etc.) |
-| `is_platform_admin()` | Helper: checks if current user has platform_admin role |
+| `is_platform_admin()` | Helper: checks if current user has `superadmin` role |
 
 ### Architecture Gotchas
 

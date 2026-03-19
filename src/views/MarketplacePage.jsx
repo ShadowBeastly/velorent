@@ -340,21 +340,17 @@ export default function MarketplacePage() {
             <p className={`text-sm mt-0.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{cancelModal.guest_name} · {cancelModal.start_date}</p>
           </div>
           <div className="px-6 py-4 space-y-4">
-            <div className="space-y-2">
-              {[
-                { value: "free",     label: "Kostenlose Stornierung",     desc: "100 % Rückerstattung, keine Provision" },
-                { value: "partial",  label: "Teilstorno (<24h)",           desc: "50 % Rückerstattung, Provision auf Restbetrag" },
-                { value: "no_show",  label: "No-Show",                    desc: "Kein Refund, volle Provision" },
-              ].map(opt => (
-                <label key={opt.value} className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${cancelType === opt.value ? "border-[#1A7D5A] bg-[#1A7D5A]/10" : darkMode ? "border-slate-700 hover:border-slate-600" : "border-slate-200 hover:border-slate-300"}`}>
-                  <input type="radio" name="cancelType" value={opt.value} checked={cancelType === opt.value} onChange={() => setCancelType(opt.value)} className="mt-0.5" />
-                  <div>
-                    <p className="font-medium text-sm">{opt.label}</p>
-                    <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{opt.desc}</p>
-                  </div>
-                </label>
-              ))}
+            <div className={`p-4 rounded-lg border ${cancelType === "free" ? "border-green-500/30 bg-green-500/10" : cancelType === "partial" ? "border-amber-500/30 bg-amber-500/10" : "border-red-500/30 bg-red-500/10"}`}>
+              <p className="font-medium text-sm mb-1">
+                {cancelType === "free" ? "Kostenlose Stornierung" : cancelType === "partial" ? "Teilstorno (< 24h vor Start)" : "No-Show"}
+              </p>
+              <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                {cancelType === "free" ? "100 % Rückerstattung, keine Provision. Start liegt mehr als 24h in der Zukunft." : cancelType === "partial" ? "50 % Rückerstattung, Provision auf den einbehaltenen Betrag. Start liegt weniger als 24h in der Zukunft." : "Kein Refund, volle Provision. Start liegt in der Vergangenheit."}
+              </p>
             </div>
+            <p className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+              Die Stornierungsstufe wird automatisch anhand des Buchungszeitraums ermittelt.
+            </p>
             {cancelError && <p className="text-sm text-red-400 flex items-center gap-1"><XCircle className="w-4 h-4" />{cancelError}</p>}
           </div>
           <div className={`px-6 py-4 border-t flex justify-end gap-3 ${darkMode ? "border-slate-700" : "border-slate-200"}`}>

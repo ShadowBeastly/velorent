@@ -79,9 +79,7 @@ export async function POST(req) {
             return Response.json({ received: true });
           }
 
-          const { data: booking, error: rpcErr } = await supabase.rpc(
-            "create_guest_booking",
-            {
+          const rpcParams = {
               p_organization_id: meta.org_id,
               p_bike_id: meta.bike_id,
               p_hotel_id: meta.hotel_id || null,
@@ -91,7 +89,17 @@ export async function POST(req) {
               p_guest_email: meta.guest_email,
               p_guest_phone: meta.guest_phone || null,
               p_language: meta.lang || "de",
-            }
+              p_rental_type: meta.rental_type || "daily",
+            };
+          if (meta.rental_type === "hourly") {
+            rpcParams.p_total_hours = parseInt(meta.total_hours, 10) || 1;
+            rpcParams.p_start_time = meta.start_time || null;
+            rpcParams.p_end_time = meta.end_time || null;
+          }
+
+          const { data: booking, error: rpcErr } = await supabase.rpc(
+            "create_guest_booking",
+            rpcParams
           );
 
           if (rpcErr) {

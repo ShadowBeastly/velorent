@@ -1,5 +1,5 @@
 // =====================================================
-// RENTCORE - E-MAIL SERVICE (Brevo)
+// LOCIVA - E-MAIL SERVICE (Brevo)
 // Supabase Edge Function
 // =====================================================
 //
@@ -162,7 +162,7 @@ const templates = {
       </div>
     </div>
     <div style="background:#f8fafc;padding:24px;text-align:center;border-top:1px solid #e2e8f0;">
-      <p style="color:#94a3b8;font-size:12px;margin:0;">${organizationName} • ${organizationAddress}<br>Diese E-Mail wurde automatisch versendet via RentCore</p>
+      <p style="color:#94a3b8;font-size:12px;margin:0;">${organizationName} • ${organizationAddress}<br>Diese E-Mail wurde automatisch versendet via Lociva</p>
     </div>
   </div>
 </body></html>`
@@ -264,18 +264,22 @@ const templates = {
     const name = escapeHtml(data.name);
     const dashboardUrl = (data.dashboard_url && data.dashboard_url.startsWith("https://")) ? data.dashboard_url : "#";
     return {
-      subject: `Willkommen bei RentCore! 🚴`,
+      subject: `Willkommen bei Lociva!`,
       html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
-<body style="font-family:-apple-system,sans-serif;background:#f8fafc;margin:0;padding:40px 20px;">
-  <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;">
-    <div style="background:linear-gradient(135deg,#f97316,#fbbf24);padding:40px;text-align:center;">
-      <h1 style="color:white;margin:0;font-size:28px;">Willkommen bei RentCore!</h1>
-      <p style="color:rgba(255,255,255,.9);margin:16px 0 0;">Ihr Fahrradverleih, digital.</p>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F5FAF7;margin:0;padding:40px 20px;">
+  <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06);">
+    <div style="background:#1A7D5A;padding:40px;text-align:center;">
+      <p style="color:rgba(255,255,255,.6);margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:300;">LOCIVA</p>
+      <h1 style="color:white;margin:0;font-size:28px;font-weight:500;">Willkommen!</h1>
+      <p style="color:rgba(255,255,255,.8);margin:16px 0 0;">Ihr Verleih, digital verwaltet.</p>
     </div>
     <div style="padding:32px;">
-      <p style="font-size:18px;color:#1e293b;margin:0 0 16px;">Hallo ${name},</p>
-      <p style="color:#475569;line-height:1.6;margin:0 0 24px;">schön, dass Sie dabei sind!</p>
-      <a href="${dashboardUrl}" style="display:block;text-align:center;background:linear-gradient(135deg,#f97316,#fbbf24);color:white;padding:16px 32px;border-radius:12px;text-decoration:none;font-weight:600;font-size:16px;">Zum Dashboard →</a>
+      <p style="font-size:18px;color:#1E2D26;margin:0 0 16px;">Hallo ${name},</p>
+      <p style="color:#6B7280;line-height:1.6;margin:0 0 24px;">schön, dass Sie dabei sind!</p>
+      <a href="${dashboardUrl}" style="display:block;text-align:center;background:#1A7D5A;color:white;padding:16px 32px;border-radius:12px;text-decoration:none;font-weight:600;font-size:16px;">Zum Dashboard →</a>
+    </div>
+    <div style="background:#F5FAF7;padding:24px;text-align:center;border-top:1px solid #D4EDE2;">
+      <p style="color:#1A7D5A;font-size:12px;letter-spacing:.06em;font-weight:300;margin:0;">LOCIVA · lociva.de</p>
     </div>
   </div>
 </body></html>`

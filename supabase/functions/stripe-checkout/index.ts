@@ -161,8 +161,9 @@ serve(async (req) => {
         lang:                lang || "de",
         hotel_slug:          hotel_slug || "",
         rental_type:         rental_type,
-        // Daily fields
+        // Price fields
         total_price:         String(totalPriceEur),
+        total_days:          rental_type === "hourly" ? String(total_hours) : String(Math.max(1, Math.floor((new Date(end_date).getTime() - new Date(start_date).getTime()) / 86400000) + 1)),
         commission_rate:     String(commissionRate),
         platform_commission: String(Math.round(totalPriceEur * commissionRate * 100) / 100),
         // Hourly fields (empty string if daily)
