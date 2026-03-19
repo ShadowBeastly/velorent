@@ -1,2 +1,2 @@
-import CalendarPage from "../../../src/views/CalendarPage";
-export default CalendarPage;
+import CalendarView from "../../../src/views/CalendarView";
+export default CalendarView;
