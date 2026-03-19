@@ -34,7 +34,7 @@ export default function DemoPage() {
 
                 // Set demo org and redirect to Lociva hotel dashboard
                 localStorage.setItem("currentOrgId", "d0000000-0000-0000-0000-000000000001");
-                router.push("/app/lociva");
+                router.push("/hotel");
             } catch (err) {
                 started.current = false;
                 setError(

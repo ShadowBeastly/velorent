@@ -36,11 +36,18 @@ export async function middleware(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    const isApp = request.nextUrl.pathname.startsWith("/app");
-    const isAdmin = request.nextUrl.pathname.startsWith("/app/admin");
-    const isAuth = ["/login", "/signup"].includes(request.nextUrl.pathname);
+    const pathname = request.nextUrl.pathname;
+    const isApp = pathname.startsWith("/app");
+    const isAdmin = pathname.startsWith("/app/admin");
+    const isAuth = ["/login", "/signup"].includes(pathname);
+    // /hotel (exact) and /hotel/dashboard, /hotel/activities, etc. are protected
+    // /hotel/[slug] and /hotel/[slug]/cancel are public guest pages (handled by [slug] route)
+    const isHotelDashboard = pathname === "/hotel" || [
+        "/hotel/dashboard", "/hotel/activities", "/hotel/rooms",
+        "/hotel/providers", "/hotel/analytics", "/hotel/settings"
+    ].some(p => pathname.startsWith(p));
 
-    if (isApp && !user) {
+    if ((isApp || isHotelDashboard) && !user) {
         return NextResponse.redirect(new URL("/login", request.url));
     }
     if (isAuth && user) {
@@ -55,7 +62,7 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL("/app/admin", request.url));
         }
         if (role === "hotel") {
-            return NextResponse.redirect(new URL("/app/lociva", request.url));
+            return NextResponse.redirect(new URL("/hotel", request.url));
         }
         return NextResponse.redirect(new URL("/app", request.url));
     }
@@ -77,5 +84,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/", "/app/:path*", "/login", "/signup"]
+    matcher: ["/", "/app/:path*", "/hotel", "/hotel/dashboard/:path*", "/hotel/activities/:path*", "/hotel/rooms/:path*", "/hotel/providers/:path*", "/hotel/analytics/:path*", "/hotel/settings/:path*", "/login", "/signup"]
 };
