@@ -55,7 +55,7 @@ export default function BookingsPage() {
             return bikeCategories.categories.map(c => c.name);
         }
         return [...new Set(bikes.bikes.map(b => b.category).filter(Boolean))];
-    }, [bikeCategories, bikes.bikes]);
+    }, [bikeCategories.categories, bikes.bikes]);
 
     const filtered = useMemo(() => {
         return bookings.bookings.filter(b => {

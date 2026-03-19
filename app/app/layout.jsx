@@ -29,8 +29,10 @@ function AppShell({ children }) {
     if (auth.loading || org.loading) return <LoadingScreen />;
     if (!org.currentOrg) return <OnboardingPage />;
 
+    const isDemo = auth.user?.email === process.env.NEXT_PUBLIC_DEMO_EMAIL;
+
     return (
-        <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
+        <div className={`min-h-screen transition-colors duration-300 ${isDemo ? "pt-10" : ""} ${darkMode ? "dark bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
             <DemoBanner userEmail={auth.user?.email} onExit={auth.signOut} />
             {/* Skip to main content. Visible on focus for keyboard users. */}
             <a
