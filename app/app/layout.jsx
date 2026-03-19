@@ -18,7 +18,7 @@ function AppShell({ children }) {
     const org = useOrganization();
     const auth = useAuth();
     const { darkMode, sidebarOpen, setSidebarOpen, setSearchQuery } = useApp();
-    const { bikes, bookings, notifications } = useData();
+    const { bikes, bookings } = useData();
 
     useEffect(() => {
         if (!auth.loading && !auth.user) {
@@ -49,9 +49,9 @@ function AppShell({ children }) {
                     aria-hidden="true"
                 />
             )}
-            <Sidebar org={org} auth={auth} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} darkMode={darkMode} />
+            <Sidebar org={org} auth={auth} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} darkMode={darkMode} bannerOffset={isDemo} />
             <main id="main-content" className={`transition-all duration-300 ${sidebarOpen ? "md:ml-64" : "md:ml-20"}`}>
-                <Header notifications={notifications} />
+                <Header bannerOffset={isDemo} />
                 <div className="p-6">
                     {children}
                 </div>

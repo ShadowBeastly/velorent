@@ -7,7 +7,7 @@ import { LogOut, X, ChevronDown } from "lucide-react";
 import { NAVIGATION_ITEMS, ADVANCED_NAVIGATION_ITEMS } from "../../utils/navigationItems";
 import { useI18n } from "../../utils/i18n";
 
-export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMode }) {
+export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMode, bannerOffset }) {
     const pathname = usePathname();
     const { t } = useI18n();
     const [advancedOpen, setAdvancedOpen] = useState(() => {
@@ -31,9 +31,10 @@ export default function Sidebar({ org, auth, sidebarOpen, setSidebarOpen, darkMo
             />
         )}
         <aside className={`
-            fixed top-0 left-0 z-40 h-screen border-r w-64
+            fixed left-0 z-40 border-r w-64
             transition-all duration-300
             md:translate-x-0
+            ${bannerOffset ? "top-10 h-[calc(100vh-2.5rem)]" : "top-0 h-screen"}
             ${sidebarOpen ? "translate-x-0 md:w-64" : "-translate-x-full md:w-20"}
             ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}
         `}>
