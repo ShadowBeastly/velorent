@@ -32,7 +32,7 @@ const SOURCES = [
 
 export default function BookingsPage() {
     const { darkMode, searchQuery } = useApp();
-    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories, maintenanceDue, coupons } = useData();
+    const { bikes, bookings, customers, invoices, pricingRules, addOns, bikeCategories, coupons } = useData();
     const org = useOrganization();
     const currentOrg = org.currentOrg;
     const { addToast } = useToast();
