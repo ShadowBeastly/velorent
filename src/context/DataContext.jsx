@@ -58,21 +58,24 @@ export function DataProvider({ children }) {
         return n;
     }, [bookings.bookings, todayStr, org.currentOrg, maintenanceDue.dueMaintenances]);
 
+    const value = useMemo(() => ({
+        bikes,
+        bookings,
+        customers,
+        invoices,
+        bikeCategories,
+        addOns,
+        maintenanceBlocks,
+        vouchers,
+        coupons,
+        pricingRules,
+        maintenanceDue,
+        notifications
+    }), [bikes, bookings, customers, invoices, bikeCategories, addOns,
+         maintenanceBlocks, vouchers, coupons, pricingRules, maintenanceDue, notifications]);
+
     return (
-        <DataContext.Provider value={{
-            bikes,
-            bookings,
-            customers,
-            invoices,
-            bikeCategories,
-            addOns,
-            maintenanceBlocks,
-            vouchers,
-            coupons,
-            pricingRules,
-            maintenanceDue,
-            notifications
-        }}>
+        <DataContext.Provider value={value}>
             {children}
         </DataContext.Provider>
     );

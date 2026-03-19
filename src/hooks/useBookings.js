@@ -7,9 +7,9 @@ export function useBookings(orgId) {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const load = useCallback(async () => {
+    const load = useCallback(async ({ silent = false } = {}) => {
         if (!orgId) { setLoading(false); return; }
-        setLoading(true);
+        if (!silent) setLoading(true);
         try {
             const { data, error } = await supabase
                 .from("bookings")
@@ -20,9 +20,9 @@ export function useBookings(orgId) {
             setBookings(data || []);
         } catch (err) {
             console.error("Failed to load bookings:", err);
-            setBookings([]);
+            if (!silent) setBookings([]);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     }, [orgId]);
 
@@ -106,12 +106,18 @@ export function useBookings(orgId) {
                 }
             }
 
-            // Save selected add-ons
+            // Save selected add-ons (non-blocking — booking is already created)
             if (selectedAddOns.length > 0) {
-                await saveBookingAddons(data.id, selectedAddOns, addOnsData, insertRow.total_days || 1);
+                try {
+                    await saveBookingAddons(data.id, selectedAddOns, addOnsData, insertRow.total_days || 1);
+                } catch (addonErr) {
+                    console.error("booking_addons insert failed (booking was created):", addonErr);
+                }
             }
 
+            // Optimistic update, then silent reload to get complete joins
             setBookings(prev => [data, ...prev]);
+            load({ silent: true }).catch(() => {});
 
             // Trigger Email asynchronously
             if (data.customer?.email) {
@@ -198,17 +204,22 @@ export function useBookings(orgId) {
             .select("*, bike:bikes(*), customer:customers(*)")
             .single();
         if (!error) {
+            // Optimistic update immediately so the UI stays responsive
+            setBookings(prev => prev.map(b => b.id === id ? data : b));
+
             // Re-save add-ons if they were explicitly provided
             if (selectedAddOns.length > 0 && addOnsData) {
-                await supabase.from("booking_addons").delete().eq("booking_id", id);
-                const totalDays = bookingRow.total_days
-                    || (bookingRow.start_date && bookingRow.end_date ? daysDiff(bookingRow.start_date, bookingRow.end_date) : null)
-                    || 1;
-                await saveBookingAddons(id, selectedAddOns, addOnsData, totalDays);
-                // Reload to get fresh booking_addons data
-                await load();
-            } else {
-                setBookings(prev => prev.map(b => b.id === id ? data : b));
+                try {
+                    await supabase.from("booking_addons").delete().eq("booking_id", id);
+                    const totalDays = bookingRow.total_days
+                        || (bookingRow.start_date && bookingRow.end_date ? daysDiff(bookingRow.start_date, bookingRow.end_date) : null)
+                        || 1;
+                    await saveBookingAddons(id, selectedAddOns, addOnsData, totalDays);
+                } catch (addonErr) {
+                    console.error("booking_addons update failed:", addonErr);
+                }
+                // Silent reload to get fresh booking_addons data without spinner
+                load({ silent: true }).catch(() => {});
             }
 
             // Fire-and-forget emails on status transitions
