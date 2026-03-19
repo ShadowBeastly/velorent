@@ -24,7 +24,7 @@ function ProviderCard({ provider, darkMode }) {
                     <h3 className="font-semibold text-slate-900 dark:text-white truncate">
                         {provider.organizations?.name ?? provider.provider_name ?? "Anbieter"}
                     </h3>
-                    {provider.organizations?.city && (
+                    {provider.organizations?.provider_address && (
                         <div className="flex items-center gap-1 mt-1">
                             <MapPin className={`w-3.5 h-3.5 shrink-0 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
                             <span className={`text-xs truncate ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
@@ -43,7 +43,7 @@ function ProviderCard({ provider, darkMode }) {
             </div>
 
             {/* Description */}
-            {provider.organizations?.description && (
+            {provider.organizations?.provider_description && (
                 <p className={`text-sm line-clamp-2 mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                     {provider.organizations.description}
                 </p>
@@ -94,8 +94,8 @@ export default function LocivaProvidersPage() {
                         organizations (
                             id,
                             name,
-                            city,
-                            description
+                            provider_description,
+                            provider_address
                         )
                     `)
                     .eq("hotel_id", hotelId)
