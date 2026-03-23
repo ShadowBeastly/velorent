@@ -17,7 +17,7 @@ const PAGE_SIZE = 20;
 
 const PAYMENT_STATUSES = [
     { value: "all", label: "Alle" },
-    { value: "paid", label: "Bezahlt" },
+    { value: "paid", label: "Kaution hinterlegt" },
     { value: "open", label: "Offen" },
     { value: "refunded", label: "Rückerstattet" },
 ];
@@ -96,6 +96,12 @@ export default function BookingsPage() {
     const handleSave = async (data) => {
         const { _couponId, _couponDiscountAmount, ...rest } = data;
         let bookingData = { ...rest };
+
+        // Validate required fields
+        if (!bookingData.customer_name?.trim()) {
+            addToast("Bitte einen Kundennamen eingeben.", "error");
+            return;
+        }
 
         // Handle new customer creation
         if (!bookingData.customer_id && bookingData.customer_name) {
@@ -235,8 +241,8 @@ export default function BookingsPage() {
                 customer: {
                     first_name: (booking.customer_name || "").split(" ")[0] || "",
                     last_name: (booking.customer_name || "").split(" ").slice(1).join(" ") || "",
-                    email: booking.customer_email,
-                    address: booking.customer_address
+                    email: booking.customer?.email || booking.customer_email || "",
+                    address: booking.customer?.address || booking.customer_address || ""
                 },
                 booking: booking
             };
@@ -280,8 +286,9 @@ export default function BookingsPage() {
                             <span className="hidden sm:inline">Exportieren</span>
                         </button>
                         <button
-                            onClick={() => { setEditBooking(null); setShowModal(true); }}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25"
+                            onClick={() => { if (!showModal) { setEditBooking(null); setShowModal(true); } }}
+                            disabled={showModal}
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Plus className="w-4 h-4" />
                             Neue Buchung

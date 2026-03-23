@@ -131,6 +131,106 @@ export default {
     "settings.languageTitle": "Sprache / Language",
     "settings.languageSubtitle": "Wähle die Sprache der Benutzeroberfläche.",
 
+    // Settings – Company
+    "settings.companyTitle": "Firmendaten",
+    "settings.companySubtitle": "Diese Daten erscheinen auf Verträgen & Rechnungen",
+    "settings.companyName": "Firmenname",
+    "settings.address": "Adresse",
+    "settings.postalCode": "PLZ",
+    "settings.city": "Stadt",
+    "settings.phone": "Telefon",
+    "settings.email": "E-Mail",
+    "settings.taxId": "USt-IdNr.",
+    "settings.save": "Speichern",
+    "settings.saved": "Gespeichert!",
+
+    // Settings – Branding
+    "settings.brandingTitle": "Design & Branding (White-Label)",
+    "settings.brandingSubtitle": "Passe das Aussehen an dein Unternehmen an.",
+    "settings.logoUrl": "Logo URL",
+    "settings.logoFormatHint": "Rechteckiges Format (z.B. 200x50px) empfohlen.",
+    "settings.primaryColor": "Primärfarbe",
+
+    // Settings – API
+    "settings.apiTitle": "API & Integrationen",
+    "settings.apiSubtitle": "Für externe Buchungssysteme",
+    "settings.apiDescription": "Nutze diese ID für API-Integrationen mit Booking.com, deiner Website oder anderen Systemen.",
+
+    // Settings – Subscription
+    "settings.subscriptionTitle": "Abo & Abrechnung",
+    "settings.subscriptionSubtitle": "Verwalte deinen Tarif und deine Zahlungsmethoden",
+    "settings.managePlan": "Abo verwalten",
+    "settings.close": "Schließen",
+    "settings.changePlan": "Plan ändern",
+    "settings.upgrade": "Upgrade",
+    "settings.billingMonthly": "Monatlich",
+    "settings.billingYearly": "Jährlich",
+    "settings.perMonth": "/Monat",
+    "settings.popular": "Beliebt",
+    "settings.currentPlan": "Aktueller Plan",
+    "settings.selectPlan": "Auswählen",
+    "settings.currentPlanLabel": "Aktuell",
+    "settings.redirecting": "Weiterleitung...",
+    "settings.trialNote": "14 Tage kostenlos testen · Keine Kreditkarte für die Testphase nötig · Jederzeit kündbar",
+
+    // Settings – Subscription status labels
+    "settings.statusActive": "Aktiv",
+    "settings.statusTrialing": "Testphase",
+    "settings.statusPastDue": "Zahlung überfällig",
+    "settings.statusCanceled": "Gekündigt",
+    "settings.statusUnpaid": "Unbezahlt",
+    "settings.statusInactive": "Inaktiv",
+
+    // Settings – Plan features
+    "settings.planFeatureUpTo20Bikes": "Bis zu 20 Fahrräder",
+    "settings.planFeatureCalendar": "Buchungskalender",
+    "settings.planFeatureInvoicesContracts": "Rechnungen & Verträge",
+    "settings.planFeatureEmailSupport": "E-Mail Support",
+    "settings.planFeatureUpTo100Bikes": "Bis zu 100 Fahrräder",
+    "settings.planFeatureAllBasic": "Alle Basic-Features",
+    "settings.planFeatureWidget": "Buchungs-Widget (Website)",
+    "settings.planFeatureVouchers": "Voucher & Rabattcodes",
+    "settings.planFeatureBranding": "Branding & White-Label",
+    "settings.planFeaturePrioritySupport": "Priorität-Support",
+    "settings.planFeatureUnlimitedBikes": "Unbegrenzte Fahrräder",
+    "settings.planFeatureAllPro": "Alle Pro-Features",
+    "settings.planFeatureMultiLocation": "Multi-Standort",
+    "settings.planFeatureApiAccess": "API-Zugang",
+    "settings.planFeatureDedicatedManager": "Dedizierter Account Manager",
+
+    // Settings – Late Fees
+    "settings.lateFeesTitle": "Verspätungsgebühren",
+    "settings.lateFeesSubtitle": "Automatische Gebühren für überfällige Rückgaben",
+    "settings.lateFeesEnable": "Verspätungsgebühren aktivieren",
+    "settings.lateFeesEnableHint": "Zeigt angesammelte Gebühren bei überfälligen Buchungen an",
+    "settings.lateFeeType": "Gebührentyp",
+    "settings.lateFeeTypeFixed": "Pro Tag (Festbetrag)",
+    "settings.lateFeeTypePercentage": "Prozent des Tagespreises",
+    "settings.lateFeeAmountPercentage": "Prozentsatz (%)",
+    "settings.lateFeeAmountFixed": "Betrag pro Tag (€)",
+    "settings.lateFeePerDay": "pro verspätetem Tag",
+    "settings.lateFeesGracePeriod": "Kulanzzeit (Stunden)",
+    "settings.lateFeesGracePeriodHint": "Stunden nach Rückgabetermin, bevor Gebühren starten",
+    "settings.lateFeesNote": "Verspätungsgebühren werden nur angezeigt, nicht automatisch berechnet. Bei der Rückgabe kann der Operator die Gebühr manuell zur Rechnung hinzufügen.",
+
+    // Settings – Danger Zone
+    "settings.dangerZoneSubtitle": "Unwiderrufliche Aktionen",
+    "settings.deleteAccountTitle": "Konto und alle Daten löschen",
+    "settings.deleteAccountDescription": "Löscht dein Konto, deine Organisation und alle gespeicherten Daten dauerhaft (Art. 17 DSGVO).",
+    "settings.deleteAccount": "Konto löschen",
+    "settings.deleteIrreversible": "Diese Aktion ist unwiderruflich.",
+    "settings.deleteConfirmPrompt": "Gib deine E-Mail-Adresse ein, um die Löschung zu bestätigen:",
+    "settings.deleteConfirmButton": "Konto endgültig löschen",
+
+    // Settings – Toast / errors
+    "settings.subscriptionActivated": "Dein Abo wurde erfolgreich aktiviert!",
+    "settings.checkoutCanceled": "Checkout wurde abgebrochen.",
+    "settings.checkoutError": "Fehler beim Checkout: {message}",
+    "settings.deleteError": "Fehler: {message}",
+    "settings.unknownError": "Unbekannter Fehler",
+    "settings.noCheckoutUrl": "Keine Checkout-URL erhalten",
+    "settings.invalidCheckoutUrl": "Ungültige Checkout-URL",
+
     // Periods
     "period.7d": "7 Tage",
     "period.30d": "30 Tage",

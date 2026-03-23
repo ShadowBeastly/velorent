@@ -58,6 +58,22 @@ export async function POST(req) {
 
   console.log("Received Stripe event:", event.type);
 
+  // Idempotency guard: upsert the event ID with ignoreDuplicates.
+  // count === 0 means the row already existed (conflict was ignored) → skip.
+  const { error: idempotencyError, count } = await supabase
+    .from("stripe_events")
+    .upsert({ id: event.id }, { onConflict: "id", ignoreDuplicates: true, count: "exact" });
+
+  if (idempotencyError) {
+    console.error("Idempotency check failed:", idempotencyError);
+    return new Response("Internal error", { status: 500 });
+  }
+
+  if (count === 0) {
+    console.log("Duplicate Stripe event, skipping:", event.id);
+    return Response.json({ received: true });
+  }
+
   try {
     switch (event.type) {
       // ---------------------------------------------------------------

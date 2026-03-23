@@ -177,8 +177,7 @@ export default function VouchersPage() {
                             </thead>
                             <tbody className={`divide-y ${darkMode ? "divide-slate-800" : "divide-slate-100"}`}>
                                 {list.map(c => {
-                                    const endOfToday = new Date(); endOfToday.setHours(23, 59, 59, 999);
-                                    const isExpired = c.valid_until && new Date(c.valid_until) < endOfToday;
+                                    const isExpired = c.valid_until && new Date(c.valid_until + "T23:59:59") < new Date();
                                     const isExhausted = c.max_uses != null && c.used_count >= c.max_uses;
                                     return (
                                         <tr key={c.id} className={`${darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"} ${!c.is_active ? "opacity-50" : ""}`}>

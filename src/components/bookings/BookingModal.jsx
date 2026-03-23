@@ -141,7 +141,12 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         if (!bikeId || !start || !end) return 0;
         const bike = bikes.find(b => b.id === bikeId);
         if (!bike) return 0;
-        return calculateDynamicPrice(bike, start, end, pricingRules || []).totalPrice;
+        // Guard: don't calculate until pricingRules are loaded
+        if (!pricingRules) return 0;
+        const d = Math.max(1, daysDiff(start, end));
+        const dynamic = calculateDynamicPrice(bike, start, end, pricingRules).totalPrice;
+        // Fallback to price_per_day if dynamic pricing returns 0
+        return dynamic > 0 ? dynamic : (bike.price_per_day || 0) * d;
     };
 
     // Calc total price for all selected bikes in group mode
@@ -910,7 +915,14 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                             </span>
                                         </div>
                                     )}
-                                                                        <div className="border-t my-2 pt-2 flex justify-between text-base">
+                                    {/* Zero-price warning */}
+                                    {form.total_price === 0 && (
+                                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 text-xs">
+                                            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                                            Gesamtpreis ist 0 €. Bitte Preis in Schritt 3 manuell prüfen.
+                                        </div>
+                                    )}
+                                    <div className="border-t my-2 pt-2 flex justify-between text-base">
                                         <span className="font-medium">Gesamtbetrag</span>
                                         <div className="text-right">
                                             <span className="font-bold text-[#1A7D5A]">{fmtCurrency(form.total_price)}</span>

@@ -19,11 +19,11 @@ const PLANS = [
         gradient: "from-blue-500 to-cyan-500",
         monthlyPrice: "29",
         yearlyPrice: "24",
-        features: [
-            "Bis zu 20 Fahrräder",
-            "Buchungskalender",
-            "Rechnungen & Verträge",
-            "E-Mail Support",
+        featureKeys: [
+            "settings.planFeatureUpTo20Bikes",
+            "settings.planFeatureCalendar",
+            "settings.planFeatureInvoicesContracts",
+            "settings.planFeatureEmailSupport",
         ],
     },
     {
@@ -33,13 +33,13 @@ const PLANS = [
         gradient: "from-violet-500 to-purple-500",
         monthlyPrice: "59",
         yearlyPrice: "49",
-        features: [
-            "Bis zu 100 Fahrräder",
-            "Alle Basic-Features",
-            "Buchungs-Widget (Website)",
-            "Voucher & Rabattcodes",
-            "Branding & White-Label",
-            "Priorität-Support",
+        featureKeys: [
+            "settings.planFeatureUpTo100Bikes",
+            "settings.planFeatureAllBasic",
+            "settings.planFeatureWidget",
+            "settings.planFeatureVouchers",
+            "settings.planFeatureBranding",
+            "settings.planFeaturePrioritySupport",
         ],
         popular: true,
     },
@@ -50,23 +50,23 @@ const PLANS = [
         gradient: "from-[#1A7D5A] to-[#3BAA82]",
         monthlyPrice: "99",
         yearlyPrice: "82",
-        features: [
-            "Unbegrenzte Fahrräder",
-            "Alle Pro-Features",
-            "Multi-Standort",
-            "API-Zugang",
-            "Dedizierter Account Manager",
+        featureKeys: [
+            "settings.planFeatureUnlimitedBikes",
+            "settings.planFeatureAllPro",
+            "settings.planFeatureMultiLocation",
+            "settings.planFeatureApiAccess",
+            "settings.planFeatureDedicatedManager",
         ],
     },
 ];
 
-const STATUS_LABELS = {
-    active: "Aktiv",
-    trialing: "Testphase",
-    past_due: "Zahlung überfällig",
-    canceled: "Gekündigt",
-    unpaid: "Unbezahlt",
-    inactive: "Inaktiv",
+const STATUS_LABEL_KEYS = {
+    active: "settings.statusActive",
+    trialing: "settings.statusTrialing",
+    past_due: "settings.statusPastDue",
+    canceled: "settings.statusCanceled",
+    unpaid: "settings.statusUnpaid",
+    inactive: "settings.statusInactive",
 };
 
 const STATUS_COLORS = {
@@ -101,7 +101,7 @@ export default function SettingsPage() {
             if (error) throw new Error(error.message);
             await auth.signOut();
         } catch (err) {
-            addToast(`Fehler: ${err.message}`, "error");
+            addToast(t("settings.deleteError", { message: err.message }), "error");
             setDeleting(false);
         }
     };
@@ -116,11 +116,11 @@ export default function SettingsPage() {
         if (typeof window !== "undefined") {
             const params = new URLSearchParams(window.location.search);
             if (params.get("success") === "true") {
-                addToast("Dein Abo wurde erfolgreich aktiviert!", "success");
+                addToast(t("settings.subscriptionActivated"), "success");
                 // Clean up URL without reload
                 window.history.replaceState({}, "", "/app/settings");
             } else if (params.get("canceled") === "true") {
-                addToast("Checkout wurde abgebrochen.", "info");
+                addToast(t("settings.checkoutCanceled"), "info");
                 window.history.replaceState({}, "", "/app/settings");
             }
         }
@@ -172,16 +172,16 @@ export default function SettingsPage() {
                 },
             });
 
-            if (error) throw new Error(error.message || "Unbekannter Fehler");
-            if (!data?.url) throw new Error("Keine Checkout-URL erhalten");
+            if (error) throw new Error(error.message || t("settings.unknownError"));
+            if (!data?.url) throw new Error(t("settings.noCheckoutUrl"));
 
             if (!STRIPE_TRUSTED_PREFIXES.some(prefix => data.url.startsWith(prefix))) {
-                throw new Error("Ungültige Checkout-URL");
+                throw new Error(t("settings.invalidCheckoutUrl"));
             }
             window.location.href = data.url;
         } catch (err) {
             console.error("Checkout error:", err);
-            addToast(`Fehler beim Checkout: ${err.message}`, "error");
+            addToast(t("settings.checkoutError", { message: err.message }), "error");
             setCheckoutLoading(null);
         }
     };
@@ -203,44 +203,44 @@ export default function SettingsPage() {
                         <Building className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-lg">Firmendaten</h3>
-                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Diese Daten erscheinen auf Verträgen & Rechnungen</p>
+                        <h3 className="font-semibold text-lg">{t("settings.companyTitle")}</h3>
+                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{t("settings.companySubtitle")}</p>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     <div>
-                        <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Firmenname</label>
+                        <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.companyName")}</label>
                         <input type="text" value={form.name || ""} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className={inputStyle} />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Adresse</label>
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.address")}</label>
                             <input type="text" value={form.address || ""} onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))} className={inputStyle} />
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>PLZ</label>
+                                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.postalCode")}</label>
                                 <input type="text" value={form.postal_code || ""} onChange={(e) => setForm(f => ({ ...f, postal_code: e.target.value }))} className={inputStyle} />
                             </div>
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Stadt</label>
+                                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.city")}</label>
                                 <input type="text" value={form.city || ""} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} className={inputStyle} />
                             </div>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Telefon</label>
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.phone")}</label>
                             <input type="tel" value={form.phone || ""} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className={inputStyle} />
                         </div>
                         <div>
-                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>E-Mail</label>
+                            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.email")}</label>
                             <input type="email" value={form.email || ""} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} className={inputStyle} />
                         </div>
                     </div>
                     <div>
-                        <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>USt-IdNr.</label>
+                        <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.taxId")}</label>
                         <input type="text" value={form.tax_id || ""} onChange={(e) => setForm(f => ({ ...f, tax_id: e.target.value }))} className={inputStyle} />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -258,9 +258,9 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-3 mt-6">
                     <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2">
                         {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                        Speichern
+                        {t("settings.save")}
                     </button>
-                    {saved && <span className="text-emerald-500 flex items-center gap-1"><Check className="w-4 h-4" /> Gespeichert!</span>}
+                    {saved && <span className="text-emerald-500 flex items-center gap-1"><Check className="w-4 h-4" /> {t("settings.saved")}</span>}
                 </div>
             </div>
 
@@ -271,14 +271,14 @@ export default function SettingsPage() {
                         <Palette className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-lg">Design & Branding (White-Label)</h3>
-                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Passe das Aussehen an dein Unternehmen an.</p>
+                        <h3 className="font-semibold text-lg">{t("settings.brandingTitle")}</h3>
+                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{t("settings.brandingSubtitle")}</p>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     <div>
-                        <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Logo URL</label>
+                        <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.logoUrl")}</label>
                         <div className="flex gap-4">
                             <input
                                 type="text"
@@ -294,12 +294,12 @@ export default function SettingsPage() {
                             )}
                         </div>
                         <p className={`text-xs mt-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                            Rechteckiges Format (z.B. 200x50px) empfohlen.
+                            {t("settings.logoFormatHint")}
                         </p>
                     </div>
 
                     <div>
-                        <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Primärfarbe</label>
+                        <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.primaryColor")}</label>
                         <div className="flex gap-4 items-center">
                             <input
                                 type="color"
@@ -325,8 +325,8 @@ export default function SettingsPage() {
                         <Key className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-lg">API & Integrationen</h3>
-                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Für externe Buchungssysteme</p>
+                        <h3 className="font-semibold text-lg">{t("settings.apiTitle")}</h3>
+                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{t("settings.apiSubtitle")}</p>
                     </div>
                 </div>
                 <div className={`p-4 rounded-lg ${darkMode ? "bg-slate-800" : "bg-slate-100"}`}>
@@ -344,7 +344,7 @@ export default function SettingsPage() {
                     </div>
                 </div>
                 <p className={`text-xs mt-3 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                    Nutze diese ID für API-Integrationen mit Booking.com, deiner Website oder anderen Systemen.
+                    {t("settings.apiDescription")}
                 </p>
             </div>
 
@@ -355,8 +355,8 @@ export default function SettingsPage() {
                         <CreditCard className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-lg">Abo & Abrechnung</h3>
-                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Verwalte deinen Tarif und deine Zahlungsmethoden</p>
+                        <h3 className="font-semibold text-lg">{t("settings.subscriptionTitle")}</h3>
+                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{t("settings.subscriptionSubtitle")}</p>
                     </div>
                 </div>
 
@@ -367,10 +367,10 @@ export default function SettingsPage() {
                             {currentTier === "free" ? "Free" : currentTier.charAt(0).toUpperCase() + currentTier.slice(1)} Plan
                         </p>
                         <p className={`text-sm mt-0.5 ${STATUS_COLORS[currentStatus] || "text-slate-400"}`}>
-                            {STATUS_LABELS[currentStatus] || currentStatus}
+                            {STATUS_LABEL_KEYS[currentStatus] ? t(STATUS_LABEL_KEYS[currentStatus]) : currentStatus}
                             {isTrialing && org.currentOrg?.trial_ends_at && (
                                 <span className={`ml-1 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                    (bis {new Date(org.currentOrg.trial_ends_at).toLocaleDateString("de-DE")})
+                                    ({new Date(org.currentOrg.trial_ends_at).toLocaleDateString()})
                                 </span>
                             )}
                         </p>
@@ -382,14 +382,14 @@ export default function SettingsPage() {
                                 className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 border ${darkMode ? "border-slate-700 hover:bg-slate-700" : "border-slate-300 hover:bg-slate-100"}`}
                             >
                                 <ExternalLink className="w-3.5 h-3.5" />
-                                Abo verwalten
+                                {t("settings.managePlan")}
                             </button>
                         )}
                         <button
                             onClick={() => setShowPlans(v => !v)}
                             className="px-4 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-purple-500 text-white text-sm font-medium"
                         >
-                            {showPlans ? "Schließen" : isSubscribed ? "Plan ändern" : "Upgrade"}
+                            {showPlans ? t("settings.close") : isSubscribed ? t("settings.changePlan") : t("settings.upgrade")}
                         </button>
                     </div>
                 </div>
@@ -400,7 +400,7 @@ export default function SettingsPage() {
                         {/* Billing interval toggle */}
                         <div className="flex items-center justify-center gap-3 mb-5">
                             <span className={`text-sm font-medium ${billingInterval === "monthly" ? "" : darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                Monatlich
+                                {t("settings.billingMonthly")}
                             </span>
                             <button
                                 onClick={() => setBillingInterval(v => v === "monthly" ? "yearly" : "monthly")}
@@ -409,7 +409,7 @@ export default function SettingsPage() {
                                 <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${billingInterval === "yearly" ? "left-7" : "left-1"}`} />
                             </button>
                             <span className={`text-sm font-medium ${billingInterval === "yearly" ? "" : darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                Jährlich
+                                {t("settings.billingYearly")}
                                 <span className="ml-1.5 text-xs text-emerald-500 font-semibold">-17%</span>
                             </span>
                         </div>
@@ -437,14 +437,14 @@ export default function SettingsPage() {
                                         {plan.popular && !isCurrentPlan && (
                                             <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
                                                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-violet-500 to-purple-500 text-white">
-                                                    Beliebt
+                                                    {t("settings.popular")}
                                                 </span>
                                             </div>
                                         )}
                                         {isCurrentPlan && (
                                             <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
                                                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-                                                    Aktueller Plan
+                                                    {t("settings.currentPlan")}
                                                 </span>
                                             </div>
                                         )}
@@ -456,14 +456,14 @@ export default function SettingsPage() {
                                         <p className="font-semibold text-base mb-1">{plan.label}</p>
                                         <div className="flex items-baseline gap-1 mb-3">
                                             <span className="text-2xl font-bold">€{price}</span>
-                                            <span className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>/Monat</span>
+                                            <span className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{t("settings.perMonth")}</span>
                                         </div>
 
                                         <ul className="space-y-1.5 mb-4 flex-1">
-                                            {plan.features.map((f) => (
-                                                <li key={f} className={`flex items-start gap-1.5 text-xs ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+                                            {plan.featureKeys.map((fKey) => (
+                                                <li key={fKey} className={`flex items-start gap-1.5 text-xs ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
                                                     <Check className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                                                    {f}
+                                                    {t(fKey)}
                                                 </li>
                                             ))}
                                         </ul>
@@ -478,7 +478,7 @@ export default function SettingsPage() {
                                             }`}
                                         >
                                             {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                                            {isCurrentPlan ? "Aktuell" : isLoading ? "Weiterleitung..." : "Auswählen"}
+                                            {isCurrentPlan ? t("settings.currentPlanLabel") : isLoading ? t("settings.redirecting") : t("settings.selectPlan")}
                                         </button>
                                     </div>
                                 );
@@ -486,7 +486,7 @@ export default function SettingsPage() {
                         </div>
 
                         <p className={`text-xs mt-4 text-center ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                            14 Tage kostenlos testen · Keine Kreditkarte für die Testphase nötig · Jederzeit kündbar
+                            {t("settings.trialNote")}
                         </p>
                     </div>
                 )}
@@ -499,8 +499,8 @@ export default function SettingsPage() {
                         <Clock className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-lg">Verspätungsgebühren</h3>
-                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Automatische Gebühren für überfällige Rückgaben</p>
+                        <h3 className="font-semibold text-lg">{t("settings.lateFeesTitle")}</h3>
+                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{t("settings.lateFeesSubtitle")}</p>
                     </div>
                 </div>
 
@@ -508,8 +508,8 @@ export default function SettingsPage() {
                     {/* Enable toggle */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Verspätungsgebühren aktivieren</p>
-                            <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Zeigt angesammelte Gebühren bei überfälligen Buchungen an</p>
+                            <p className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.lateFeesEnable")}</p>
+                            <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{t("settings.lateFeesEnableHint")}</p>
                         </div>
                         <button
                             onClick={() => setForm(f => ({ ...f, late_fee_enabled: !f.late_fee_enabled }))}
@@ -523,7 +523,7 @@ export default function SettingsPage() {
                         <>
                             {/* Fee type */}
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Gebührentyp</label>
+                                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.lateFeeType")}</label>
                                 <div className="flex gap-3">
                                     <button
                                         onClick={() => setForm(f => ({ ...f, late_fee_type: "fixed" }))}
@@ -533,7 +533,7 @@ export default function SettingsPage() {
                                                 : darkMode ? "border-slate-700 text-slate-400 hover:bg-slate-800" : "border-slate-200 text-slate-500 hover:bg-slate-50"
                                         }`}
                                     >
-                                        Pro Tag (Festbetrag)
+                                        {t("settings.lateFeeTypeFixed")}
                                     </button>
                                     <button
                                         onClick={() => setForm(f => ({ ...f, late_fee_type: "percentage" }))}
@@ -543,7 +543,7 @@ export default function SettingsPage() {
                                                 : darkMode ? "border-slate-700 text-slate-400 hover:bg-slate-800" : "border-slate-200 text-slate-500 hover:bg-slate-50"
                                         }`}
                                     >
-                                        Prozent des Tagespreises
+                                        {t("settings.lateFeeTypePercentage")}
                                     </button>
                                 </div>
                             </div>
@@ -551,7 +551,7 @@ export default function SettingsPage() {
                             {/* Fee amount */}
                             <div>
                                 <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                                    {form.late_fee_type === "percentage" ? "Prozentsatz (%)" : "Betrag pro Tag (€)"}
+                                    {form.late_fee_type === "percentage" ? t("settings.lateFeeAmountPercentage") : t("settings.lateFeeAmountFixed")}
                                 </label>
                                 <div className="flex items-center gap-2">
                                     <input
@@ -564,14 +564,14 @@ export default function SettingsPage() {
                                     />
                                     <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                                         {form.late_fee_type === "percentage" ? "%" : "€"}
-                                        {" "}pro verspätetem Tag
+                                        {" "}{t("settings.lateFeePerDay")}
                                     </span>
                                 </div>
                             </div>
 
                             {/* Grace period */}
                             <div>
-                                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Kulanzzeit (Stunden)</label>
+                                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.lateFeesGracePeriod")}</label>
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="number"
@@ -582,13 +582,12 @@ export default function SettingsPage() {
                                         onChange={(e) => setForm(f => ({ ...f, late_fee_grace_hours: e.target.value }))}
                                         className={`w-24 px-3 py-2 rounded-lg border outline-none ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-300"}`}
                                     />
-                                    <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Stunden nach Rückgabetermin, bevor Gebühren starten</span>
+                                    <span className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{t("settings.lateFeesGracePeriodHint")}</span>
                                 </div>
                             </div>
 
                             <div className={`rounded-lg p-3 text-sm ${darkMode ? "bg-slate-800 text-slate-400" : "bg-amber-50 text-amber-700 border border-amber-200"}`}>
-                                Verspätungsgebühren werden nur angezeigt, nicht automatisch berechnet.
-                                Bei der Rückgabe kann der Operator die Gebühr manuell zur Rechnung hinzufügen.
+                                {t("settings.lateFeesNote")}
                             </div>
                         </>
                     )}
@@ -597,9 +596,9 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-3 mt-6">
                     <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-medium shadow-lg shadow-[#1A7D5A]/25 flex items-center gap-2">
                         {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                        Speichern
+                        {t("settings.save")}
                     </button>
-                    {saved && <span className="text-emerald-500 flex items-center gap-1"><Check className="w-4 h-4" /> Gespeichert!</span>}
+                    {saved && <span className="text-emerald-500 flex items-center gap-1"><Check className="w-4 h-4" /> {t("settings.saved")}</span>}
                 </div>
             </div>
 
@@ -660,32 +659,32 @@ export default function SettingsPage() {
                     </div>
                     <div>
                         <h3 className="font-semibold text-lg text-red-600 dark:text-red-400">Danger Zone</h3>
-                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Unwiderrufliche Aktionen</p>
+                        <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{t("settings.dangerZoneSubtitle")}</p>
                     </div>
                 </div>
 
                 {!showDeleteConfirm ? (
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Konto und alle Daten löschen</p>
+                            <p className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{t("settings.deleteAccountTitle")}</p>
                             <p className={`text-xs mt-0.5 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                Löscht dein Konto, deine Organisation und alle gespeicherten Daten dauerhaft (Art. 17 DSGVO).
+                                {t("settings.deleteAccountDescription")}
                             </p>
                         </div>
                         <button
                             onClick={() => setShowDeleteConfirm(true)}
                             className="px-4 py-2 text-sm rounded-lg border border-red-500 text-red-500 hover:bg-red-500/10 transition-colors shrink-0 ml-4"
                         >
-                            Konto löschen
+                            {t("settings.deleteAccount")}
                         </button>
                     </div>
                 ) : (
                     <div className={`rounded-xl p-4 border ${darkMode ? "bg-red-900/20 border-red-800" : "bg-red-50 border-red-200"}`}>
                         <p className={`text-sm font-medium mb-1 ${darkMode ? "text-red-300" : "text-red-700"}`}>
-                            Diese Aktion ist unwiderruflich.
+                            {t("settings.deleteIrreversible")}
                         </p>
                         <p className={`text-xs mb-3 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                            Gib deine E-Mail-Adresse ein, um die Löschung zu bestätigen: <strong>{auth.user?.email}</strong>
+                            {t("settings.deleteConfirmPrompt")} <strong>{auth.user?.email}</strong>
                         </p>
                         <input
                             type="email"
@@ -699,7 +698,7 @@ export default function SettingsPage() {
                                 onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }}
                                 className={`px-4 py-2 text-sm rounded-lg border transition-colors ${darkMode ? "border-slate-700 text-slate-400 hover:bg-slate-800" : "border-slate-300 text-slate-600 hover:bg-slate-50"}`}
                             >
-                                Abbrechen
+                                {t("common.cancel")}
                             </button>
                             <button
                                 onClick={handleDeleteAccount}
@@ -707,7 +706,7 @@ export default function SettingsPage() {
                                 className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                Konto endgültig löschen
+                                {t("settings.deleteConfirmButton")}
                             </button>
                         </div>
                     </div>

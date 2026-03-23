@@ -131,6 +131,106 @@ export default {
     "settings.languageTitle": "Sprache / Language",
     "settings.languageSubtitle": "Choose the interface language.",
 
+    // Settings – Company
+    "settings.companyTitle": "Company Details",
+    "settings.companySubtitle": "This data appears on contracts & invoices",
+    "settings.companyName": "Company Name",
+    "settings.address": "Address",
+    "settings.postalCode": "Postal Code",
+    "settings.city": "City",
+    "settings.phone": "Phone",
+    "settings.email": "Email",
+    "settings.taxId": "VAT ID",
+    "settings.save": "Save",
+    "settings.saved": "Saved!",
+
+    // Settings – Branding
+    "settings.brandingTitle": "Design & Branding (White-Label)",
+    "settings.brandingSubtitle": "Customize the appearance for your business.",
+    "settings.logoUrl": "Logo URL",
+    "settings.logoFormatHint": "Rectangular format (e.g. 200x50px) recommended.",
+    "settings.primaryColor": "Primary Color",
+
+    // Settings – API
+    "settings.apiTitle": "API & Integrations",
+    "settings.apiSubtitle": "For external booking systems",
+    "settings.apiDescription": "Use this ID for API integrations with Booking.com, your website, or other systems.",
+
+    // Settings – Subscription
+    "settings.subscriptionTitle": "Plan & Billing",
+    "settings.subscriptionSubtitle": "Manage your plan and payment methods",
+    "settings.managePlan": "Manage Plan",
+    "settings.close": "Close",
+    "settings.changePlan": "Change Plan",
+    "settings.upgrade": "Upgrade",
+    "settings.billingMonthly": "Monthly",
+    "settings.billingYearly": "Yearly",
+    "settings.perMonth": "/month",
+    "settings.popular": "Popular",
+    "settings.currentPlan": "Current Plan",
+    "settings.selectPlan": "Select",
+    "settings.currentPlanLabel": "Current",
+    "settings.redirecting": "Redirecting...",
+    "settings.trialNote": "14 days free trial · No credit card required for trial · Cancel anytime",
+
+    // Settings – Subscription status labels
+    "settings.statusActive": "Active",
+    "settings.statusTrialing": "Trial",
+    "settings.statusPastDue": "Payment overdue",
+    "settings.statusCanceled": "Cancelled",
+    "settings.statusUnpaid": "Unpaid",
+    "settings.statusInactive": "Inactive",
+
+    // Settings – Plan features
+    "settings.planFeatureUpTo20Bikes": "Up to 20 bikes",
+    "settings.planFeatureCalendar": "Booking calendar",
+    "settings.planFeatureInvoicesContracts": "Invoices & contracts",
+    "settings.planFeatureEmailSupport": "Email support",
+    "settings.planFeatureUpTo100Bikes": "Up to 100 bikes",
+    "settings.planFeatureAllBasic": "All Basic features",
+    "settings.planFeatureWidget": "Booking widget (website)",
+    "settings.planFeatureVouchers": "Vouchers & discount codes",
+    "settings.planFeatureBranding": "Branding & White-Label",
+    "settings.planFeaturePrioritySupport": "Priority support",
+    "settings.planFeatureUnlimitedBikes": "Unlimited bikes",
+    "settings.planFeatureAllPro": "All Pro features",
+    "settings.planFeatureMultiLocation": "Multi-location",
+    "settings.planFeatureApiAccess": "API access",
+    "settings.planFeatureDedicatedManager": "Dedicated account manager",
+
+    // Settings – Late Fees
+    "settings.lateFeesTitle": "Late Return Fees",
+    "settings.lateFeesSubtitle": "Automatic fees for overdue returns",
+    "settings.lateFeesEnable": "Enable late return fees",
+    "settings.lateFeesEnableHint": "Shows accrued fees on overdue bookings",
+    "settings.lateFeeType": "Fee type",
+    "settings.lateFeeTypeFixed": "Per day (fixed amount)",
+    "settings.lateFeeTypePercentage": "Percentage of daily rate",
+    "settings.lateFeeAmountPercentage": "Percentage (%)",
+    "settings.lateFeeAmountFixed": "Amount per day (€)",
+    "settings.lateFeePerDay": "per overdue day",
+    "settings.lateFeesGracePeriod": "Grace period (hours)",
+    "settings.lateFeesGracePeriodHint": "Hours after return deadline before fees start",
+    "settings.lateFeesNote": "Late fees are shown only, not automatically charged. At return, the operator can manually add the fee to the invoice.",
+
+    // Settings – Danger Zone
+    "settings.dangerZoneSubtitle": "Irreversible actions",
+    "settings.deleteAccountTitle": "Delete account and all data",
+    "settings.deleteAccountDescription": "Permanently deletes your account, your organisation, and all stored data (Art. 17 GDPR).",
+    "settings.deleteAccount": "Delete account",
+    "settings.deleteIrreversible": "This action is irreversible.",
+    "settings.deleteConfirmPrompt": "Enter your email address to confirm deletion:",
+    "settings.deleteConfirmButton": "Permanently delete account",
+
+    // Settings – Toast / errors
+    "settings.subscriptionActivated": "Your subscription was activated successfully!",
+    "settings.checkoutCanceled": "Checkout was cancelled.",
+    "settings.checkoutError": "Checkout error: {message}",
+    "settings.deleteError": "Error: {message}",
+    "settings.unknownError": "Unknown error",
+    "settings.noCheckoutUrl": "No checkout URL received",
+    "settings.invalidCheckoutUrl": "Invalid checkout URL",
+
     // Periods
     "period.7d": "7 days",
     "period.30d": "30 days",

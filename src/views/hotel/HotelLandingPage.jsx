@@ -686,7 +686,7 @@ export default function HotelLandingPage({ slug }) {
             <input type="checkbox" checked={agbAccepted} onChange={e => setAgbAccepted(e.target.checked)}
               className="rounded border-slate-300 text-[#1A7D5A] focus:ring-[#1A7D5A] h-5 w-5 mt-0.5 cursor-pointer"/>
             <span className="text-xs text-slate-500 leading-normal">
-              {t.agbAccept} <a href="/agb" className="text-[#1A7D5A] underline" target="_blank">{t.agb}</a> {t.and} <a href="/datenschutz" className="text-[#1A7D5A] underline" target="_blank">{t.privacy}</a> {t.ofLociva}
+              {t.agbAccept} <a href="/agb" className="text-[#1A7D5A] underline" target="_blank" rel="noopener noreferrer">{t.agb}</a> {t.and} <a href="/datenschutz" className="text-[#1A7D5A] underline" target="_blank" rel="noopener noreferrer">{t.privacy}</a> {t.ofLociva}
             </span>
           </label>
 
