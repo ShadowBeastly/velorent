@@ -143,6 +143,9 @@ export default {
     "settings.taxId": "VAT ID",
     "settings.save": "Save",
     "settings.saved": "Saved!",
+    "settings.errorNameRequired": "Company name is required.",
+    "settings.errorPostalCodeRequired": "Postal code is required.",
+    "settings.errorCityRequired": "City is required.",
 
     // Settings – Branding
     "settings.brandingTitle": "Design & Branding (White-Label)",

@@ -143,6 +143,9 @@ export default {
     "settings.taxId": "USt-IdNr.",
     "settings.save": "Speichern",
     "settings.saved": "Gespeichert!",
+    "settings.errorNameRequired": "Firmenname ist ein Pflichtfeld.",
+    "settings.errorPostalCodeRequired": "PLZ ist ein Pflichtfeld.",
+    "settings.errorCityRequired": "Stadt ist ein Pflichtfeld.",
 
     // Settings – Branding
     "settings.brandingTitle": "Design & Branding (White-Label)",

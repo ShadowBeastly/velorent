@@ -134,6 +134,9 @@ export default function SettingsPage() {
     }, [org.currentOrg]);
 
     const handleSave = async () => {
+        if (!form.name?.trim()) { addToast(t("settings.errorNameRequired") || "Firmenname ist ein Pflichtfeld.", "error"); return; }
+        if (!form.postal_code?.trim()) { addToast(t("settings.errorPostalCodeRequired") || "PLZ ist ein Pflichtfeld.", "error"); return; }
+        if (!form.city?.trim()) { addToast(t("settings.errorCityRequired") || "Stadt ist ein Pflichtfeld.", "error"); return; }
         setSaving(true);
         const { error } = await supabase.from("organizations").update({
             name: form.name,
