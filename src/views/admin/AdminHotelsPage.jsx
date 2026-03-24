@@ -159,14 +159,18 @@ export default function AdminHotelsPage() {
   }
 
   async function handleDelete(hotel) {
+    // TODO: Move to server-side API route with superadmin role verification
     if (!confirm(`Hotel "${hotel.name}" deaktivieren?`)) return;
-    await supabase.from("hotels").update({ is_active: false }).eq("id", hotel.id);
+    const { error } = await supabase.from("hotels").update({ is_active: false }).eq("id", hotel.id);
+    if (error) { alert("Fehler: " + error.message); return; }
     loadHotels();
   }
 
   async function handleAddProvider() {
+    // TODO: Move to server-side API route with superadmin role verification
     if (!selectedProviderToAdd) return;
-    await supabase.from("hotel_providers").upsert({ hotel_id: selectedHotel.id, organization_id: selectedProviderToAdd, distance_km: providerDistance ? parseFloat(providerDistance) : null, is_active: true }, { onConflict: "hotel_id,organization_id" });
+    const { error } = await supabase.from("hotel_providers").upsert({ hotel_id: selectedHotel.id, organization_id: selectedProviderToAdd, distance_km: providerDistance ? parseFloat(providerDistance) : null, is_active: true }, { onConflict: "hotel_id,organization_id" });
+    if (error) { alert("Fehler: " + error.message); return; }
     const { data } = await supabase.from("hotel_providers").select("id, distance_km, organization_id, organizations(name)").eq("hotel_id", selectedHotel.id);
     setHotelProviders(data || []);
     setSelectedProviderToAdd("");
@@ -175,7 +179,9 @@ export default function AdminHotelsPage() {
   }
 
   async function handleRemoveProvider(linkId) {
-    await supabase.from("hotel_providers").delete().eq("id", linkId);
+    // TODO: Move to server-side API route with superadmin role verification
+    const { error } = await supabase.from("hotel_providers").delete().eq("id", linkId);
+    if (error) { alert("Fehler: " + error.message); return; }
     const { data } = await supabase.from("hotel_providers").select("id, distance_km, organization_id, organizations(name)").eq("hotel_id", selectedHotel.id);
     setHotelProviders(data || []);
     loadHotels();

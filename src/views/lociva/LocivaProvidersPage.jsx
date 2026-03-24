@@ -45,7 +45,7 @@ function ProviderCard({ provider, darkMode }) {
             {/* Description */}
             {provider.organizations?.provider_description && (
                 <p className={`text-sm line-clamp-2 mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                    {provider.organizations.description}
+                    {provider.organizations.provider_description}
                 </p>
             )}
 
@@ -95,7 +95,8 @@ export default function LocivaProvidersPage() {
                             id,
                             name,
                             provider_description,
-                            provider_address
+                            provider_address,
+                            city
                         )
                     `)
                     .eq("hotel_id", hotelId)

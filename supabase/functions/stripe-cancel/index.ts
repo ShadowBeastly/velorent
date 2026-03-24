@@ -55,7 +55,7 @@ serve(async (req) => {
       return Response.json({ error: "booking_id required" }, { status: 400, headers: CORS });
     }
 
-    // Fetch booking (start_date used to compute cancellation tier server-side)
+    // Fetch booking
     const { data: booking, error: bookingErr } = await supabase
       .from("bookings")
       .select("id, status, cancellation_status, stripe_payment_intent_id, total_price, platform_commission, start_date")
@@ -66,17 +66,22 @@ serve(async (req) => {
       return Response.json({ error: "Booking not found" }, { status: 404, headers: CORS });
     }
 
-    // Compute cancellation tier from start_date server-side
-    const now = new Date();
-    const startDate = new Date(booking.start_date);
-    const hoursUntilStart = (startDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+    // BUG-021: Use DB's cancellation_status as the authoritative value.
+    // Only fall back to recomputing from start_date if cancellation_status is not set.
     let cancellation_type: "free" | "partial" | "no_show";
-    if (hoursUntilStart > 24) {
-      cancellation_type = "free";
-    } else if (hoursUntilStart > 0) {
-      cancellation_type = "partial";
+    if (booking.cancellation_status) {
+      cancellation_type = booking.cancellation_status as "free" | "partial" | "no_show";
     } else {
-      cancellation_type = "no_show";
+      const now = new Date();
+      const startDate = new Date(booking.start_date);
+      const hoursUntilStart = (startDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+      if (hoursUntilStart > 24) {
+        cancellation_type = "free";
+      } else if (hoursUntilStart > 0) {
+        cancellation_type = "partial";
+      } else {
+        cancellation_type = "no_show";
+      }
     }
 
     if (booking.status === "cancelled") {

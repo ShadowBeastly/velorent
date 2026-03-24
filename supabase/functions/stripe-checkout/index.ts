@@ -53,6 +53,9 @@ serve(async (req) => {
       start_time,
       end_time,
       total_hours,
+      // Coupon / price validation
+      coupon_code,
+      total_price: client_total_price,
     } = await req.json();
 
     // 1. Fetch bike
@@ -123,6 +126,41 @@ serve(async (req) => {
       productDescription = `${start_date} bis ${end_date} · ${org.name}`;
     }
 
+    // 3b. Apply coupon discount if provided
+    let discountAmountEur = 0;
+    let coupon_id: string | null = null;
+
+    if (coupon_code) {
+      const { data: coupon, error: couponErr } = await supabase
+        .from("coupons")
+        .select("id, discount_type, discount_value")
+        .eq("code", coupon_code)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (!couponErr && coupon) {
+        coupon_id = coupon.id;
+        if (coupon.discount_type === "percentage") {
+          discountAmountEur = totalPriceEur * (coupon.discount_value / 100);
+        } else if (coupon.discount_type === "fixed") {
+          discountAmountEur = coupon.discount_value;
+        }
+        discountAmountEur = Math.min(discountAmountEur, totalPriceEur);
+        totalPriceEur = totalPriceEur - discountAmountEur;
+      }
+    }
+
+    // 3c. BUG-023: Validate server-calculated price against client-sent total_price
+    if (client_total_price !== undefined && client_total_price !== null) {
+      const diff = Math.abs(totalPriceEur - Number(client_total_price));
+      if (diff > 0.01) {
+        return Response.json(
+          { error: "Price mismatch: client and server totals do not match" },
+          { status: 400, headers: CORS }
+        );
+      }
+    }
+
     const applicationFeeAmount = Math.round(totalPriceEur * commissionRate * 100); // in Cent
 
     // 4. Create Checkout Session
@@ -170,6 +208,9 @@ serve(async (req) => {
         start_time:          start_time || "",
         end_time:            end_time || "",
         total_hours:         total_hours ? String(total_hours) : "",
+        // Coupon fields
+        coupon_id:           coupon_id || "",
+        discount_amount:     String(Math.round(discountAmountEur * 100) / 100),
       },
     });
 

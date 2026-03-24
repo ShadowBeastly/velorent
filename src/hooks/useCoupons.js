@@ -184,16 +184,25 @@ export function useCoupons(orgId) {
             return { error: usageError };
         }
 
-        // Increment used_count
-        const coupon = coupons.find(c => c.id === couponId);
-        const newCount = (coupon?.used_count || 0) + 1;
+        // Atomically increment used_count on the server to avoid race conditions
+        // where two concurrent bookings read the same stale value and both write +1.
+        //
+        // Requires this RPC in Supabase (SQL migration):
+        //   CREATE OR REPLACE FUNCTION increment_coupon_usage(p_coupon_id uuid)
+        //   RETURNS void LANGUAGE sql SECURITY DEFINER AS $$
+        //     UPDATE coupons
+        //     SET used_count = used_count + 1
+        //     WHERE id = p_coupon_id
+        //       AND (max_uses IS NULL OR used_count < max_uses);
+        //   $$;
         const { error: updateError } = await supabase
-            .from("coupons")
-            .update({ used_count: newCount })
-            .eq("id", couponId);
+            .rpc("increment_coupon_usage", { p_coupon_id: couponId });
 
         if (!updateError) {
-            setCoupons(prev => prev.map(c => c.id === couponId ? { ...c, used_count: newCount } : c));
+            // Refresh local state from the server so the UI reflects the true count.
+            setCoupons(prev => prev.map(c =>
+                c.id === couponId ? { ...c, used_count: (c.used_count || 0) + 1 } : c
+            ));
         }
 
         return { error: updateError };

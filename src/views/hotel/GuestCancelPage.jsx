@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const T = {
   de: {
@@ -88,6 +88,7 @@ export default function GuestCancelPage({ slug, token }) {
   const [cancelling, setCancelling] = useState(false);
   const [cancelled, setCancelled] = useState(false);
   const [cancelResult, setCancelResult] = useState(null);
+  const cancellingRef = useRef(false);
 
   useEffect(() => {
     if (!token) { setLoading(false); return; }
@@ -102,6 +103,8 @@ export default function GuestCancelPage({ slug, token }) {
   }, [token]);
 
   async function handleCancel() {
+    if (cancellingRef.current) return;
+    cancellingRef.current = true;
     setCancelling(true);
     setError(null);
     try {
@@ -120,11 +123,12 @@ export default function GuestCancelPage({ slug, token }) {
     } catch {
       setError("cancel_failed");
     } finally {
+      cancellingRef.current = false;
       setCancelling(false);
     }
   }
 
-  const alreadyCancelled = booking?.status === "cancelled" || booking?.cancellation_status !== "none";
+  const alreadyCancelled = booking?.status === "cancelled" || (booking?.cancellation_status != null && booking?.cancellation_status !== "none");
 
   return (
     <div className="min-h-screen" style={{ background: C.bg, color: C.dark }}>

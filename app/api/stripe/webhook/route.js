@@ -109,7 +109,7 @@ export async function POST(req) {
               p_rental_type: meta.rental_type || "daily",
             };
           if (meta.rental_type === "hourly") {
-            rpcParams.p_total_hours = parseInt(meta.total_hours, 10) || 1;
+            rpcParams.p_total_hours = parseFloat(meta.total_hours) || 1;
             rpcParams.p_start_time = meta.start_time || null;
             rpcParams.p_end_time = meta.end_time || null;
           }
@@ -121,7 +121,7 @@ export async function POST(req) {
 
           if (rpcErr) {
             console.error("create_guest_booking failed:", rpcErr);
-            break;
+            return new Response(JSON.stringify({ error: "create_guest_booking failed" }), { status: 500 });
           }
 
           // Attach Stripe IDs and confirm

@@ -135,7 +135,7 @@ export default function SettingsPage() {
 
     const handleSave = async () => {
         setSaving(true);
-        await supabase.from("organizations").update({
+        const { error } = await supabase.from("organizations").update({
             name: form.name,
             address: form.address,
             city: form.city,
@@ -152,8 +152,12 @@ export default function SettingsPage() {
             late_fee_amount: Math.max(0, parseFloat(form.late_fee_amount) || 10),
             late_fee_grace_hours: parseInt(form.late_fee_grace_hours, 10) || 2,
         }).eq("id", org.currentOrg.id);
-        org.reload();
         setSaving(false);
+        if (error) {
+            addToast(error.message || "Speichern fehlgeschlagen.", "error");
+            return;
+        }
+        org.reload();
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
     };

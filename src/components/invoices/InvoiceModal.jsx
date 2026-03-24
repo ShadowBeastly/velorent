@@ -114,6 +114,9 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
     const printRef = useRef();
     const handlePrint = () => {
         if (!printRef.current) return;
+        // Safety note: printRef.current.innerHTML is sourced entirely from the React-rendered
+        // preview DOM. React escapes all user-supplied values via JSX (no dangerouslySetInnerHTML
+        // is used in this component), so this innerHTML assignment is safe.
         const content = printRef.current.innerHTML;
         const printWindow = window.open("", "", "height=800,width=800");
         if (!printWindow) {

@@ -10,23 +10,30 @@ export function useProvideOrganization(userId) {
     const loadOrganizations = useCallback(async () => {
         if (!userId) return; // Guard clause
 
-        const { data } = await supabase
-            .from("organization_members")
-            .select(`
+        try {
+            const { data, error } = await supabase
+                .from("organization_members")
+                .select(`
         role,
         organization:organizations(*)
       `)
-            .eq("user_id", userId)
-            .eq("status", "active");
+                .eq("user_id", userId)
+                .eq("status", "active");
 
-        const orgs = data?.map(d => ({ ...d.organization, userRole: d.role })) || [];
-        setOrganizations(orgs);
+            if (error) throw error;
 
-        // Auto-select first org or from localStorage
-        const savedOrgId = localStorage.getItem("currentOrgId");
-        const savedOrg = orgs.find(o => o.id === savedOrgId);
-        setCurrentOrg(savedOrg || orgs[0] || null);
-        setLoading(false);
+            const orgs = data?.map(d => ({ ...d.organization, userRole: d.role })) || [];
+            setOrganizations(orgs);
+
+            // Auto-select first org or from localStorage
+            const savedOrgId = localStorage.getItem("currentOrgId");
+            const savedOrg = orgs.find(o => o.id === savedOrgId);
+            setCurrentOrg(savedOrg || orgs[0] || null);
+        } catch (err) {
+            console.error("Failed to load organizations:", err);
+        } finally {
+            setLoading(false);
+        }
     }, [userId]);
 
     useEffect(() => {
@@ -66,7 +73,11 @@ export function useProvideOrganization(userId) {
 
         if (memberError) {
             // Rollback: delete the org since it has no owner
-            await supabase.from("organizations").delete().eq("id", org.id);
+            try {
+                await supabase.from("organizations").delete().eq("id", org.id);
+            } catch (rollbackError) {
+                console.error("Rollback failed — orphaned org:", org.id, rollbackError);
+            }
             return { error: memberError };
         }
 
