@@ -1,0 +1,271 @@
+# Lociva/VeloRent – Vollständiger Bug-Audit
+**Datum:** 23.03.2026 | **Methode:** Statische Code-Analyse + Vorheriger E2E-Test (19.03.2026)  
+**Analysierte Dateien:** [useBookings.js](file:///C:/Users/funie/Desktop/Lociva/src/hooks/useBookings.js), [BookingModal.jsx](file:///C:/Users/funie/Desktop/Lociva/src/components/bookings/BookingModal.jsx), [DataContext.jsx](file:///C:/Users/funie/Desktop/Lociva/src/context/DataContext.jsx), [SettingsPage.jsx](file:///C:/Users/funie/Desktop/Lociva/src/views/SettingsPage.jsx), [TeamManagement.jsx](file:///C:/Users/funie/Desktop/Lociva/src/components/settings/TeamManagement.jsx), [HotelLandingPage.jsx](file:///C:/Users/funie/Desktop/Lociva/src/views/hotel/HotelLandingPage.jsx), [VouchersPage.jsx](file:///C:/Users/funie/Desktop/Lociva/src/views/VouchersPage.jsx), [useVouchers.js](file:///C:/Users/funie/Desktop/Lociva/src/hooks/useVouchers.js), [useMaintenance.js](file:///C:/Users/funie/Desktop/Lociva/src/hooks/useMaintenance.js), [navigationItems.js](file:///C:/Users/funie/Desktop/Lociva/src/utils/navigationItems.js), alle Hooks + Contexts
+
+---
+
+## 📊 Gesamtübersicht
+
+| Bereich | Status | Neue Bugs | Offene Alt-Bugs |
+|:--------|:------:|:---------:|:---------------:|
+| Auth (Login/Signup) | ✅ | 0 | 0 |
+| Dashboard | ✅ | 0 | 0 |
+| Buchungen (Operator) | ⚠️ | 2 | 1 |
+| Buchungen (Guest Flow) | ⚠️ | 2 | 0 |
+| Rechnungen | ⚠️ | 1 | 0 |
+| Flotte | ✅ | 0 | 0 |
+| Kalender | ✅ | 0 | 0 |
+| Kategorien | ✅ | 0 | 0 |
+| Add-ons | ⚠️ | 1 | 0 |
+| Kunden | ⚠️ | 1 | 1 |
+| Einstellungen | ⚠️ | 1 | 1 |
+| Gutscheine | ⚠️ | 1 | 0 |
+| Wartung | ⚠️ | 1 | 0 |
+| Stripe / Webhook | 🔴 | 1 | 0 |
+| I18n / Übersetzungen | ⚠️ | 1 | 0 |
+
+---
+
+## 🔴 KRITISCHE BUGS
+
+### BUG-001: `customer_id_number` – DB-Spalte fehlend *(Alt – Status: CODE GEFIXT, DB ausstehend)*
+**Schweregrad:** 🔴 **KRITISCH**
+
+Der Code in [useBookings.js](file:///C:/Users/funie/Desktop/Lociva/src/hooks/useBookings.js) (L.44) nimmt `customer_id_number` korrekt aus dem Payload und schreibt ihn auf `bookingRow.customer_id_number`. **Aber:** Die Spalte `customer_id_number` wurde nie in der echten Datenbank angelegt.
+
+**Fix:**
+```sql
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS customer_id_number TEXT;
+```
+
+---
+
+### BUG-002: Gesamtpreis zeigt 0,00 € bei neuen Buchungen *(Alt – Status: Teilweise behoben)*
+**Schweregrad:** 🔴 **KRITISCH**
+
+**Root Cause (neu analysiert):** [BookingModal.jsx](file:///C:/Users/funie/Desktop/Lociva/src/components/bookings/BookingModal.jsx) L.141-145 ruft `calculateDynamicPrice()` aus `calculatePrice.js` auf. Die Preisberechnung funktioniert **nur wenn `pricingRules` geladen sind**. Wenn der Nutzer die Buchung öffnet bevor `pricingRules` fertig geladen sind (Race Condition), gibt [calcPrice()](file:///C:/Users/funie/Desktop/Lociva/src/components/bookings/BookingModal.jsx#139-146) → 0 zurück und überschreibt `total_price` nicht (wegen `if (price > 0) next.total_price = price`).  
+
+**Sekundärproblem:** Wenn ein Fahrrad kein `price_per_day` hat (Datenbank-Lücke), gibt `calculateDynamicPrice` 0 zurück. Der Operator sieht 0€ auf Step 4 ohne Warnung.
+
+**Fix:**
+1. Beim Öffnen des Modals einen Loading-State für `pricingRules` abwarten
+2. Fallback: Wenn `calculateDynamicPrice` → 0, direkt `bike.price_per_day * days` verwenden
+3. Warnung anzeigen wenn `total_price === 0` auf Step 4
+
+---
+
+### BUG-008 (NEU): Stripe Webhook – keine Idempotenz-Prüfung
+**Schweregrad:** 🔴 **KRITISCH**
+
+**Wo:** `app/api/stripe/webhook/`  
+Stripe kann Webhooks mehrfach liefern (Retry-Logik). Ohne Idempotenz-Check (z.B. prüfen ob Event-ID schon verarbeitet wurde) können Buchungen doppelt angelegt oder Zahlungen doppelt als abgeschlossen markiert werden.
+
+**Fix:** Event-ID in einer DB-Tabelle (`stripe_events`) speichern und vor jedem Processing prüfen.
+
+---
+
+## 🟡 MITTLERE BUGS
+
+### BUG-003: Settings – „Fehler beim Laden der Teammitglieder" *(Alt – Status: Offen)*
+**Schweregrad:** 🟡 **MITTEL**
+
+`TeamManagement.jsx` L.51-65 liest von `organization_members` mit Join auf `profiles(id, full_name, email)`. Der Fehler tritt auf wenn:
+- Die Tabelle `organization_members` nicht existiert, **oder**
+- RLS blockiert den Zugriff auf `profiles` via Join
+
+**Fix:**
+```sql
+-- Prüfen ob Tabelle existiert:
+SELECT * FROM information_schema.tables WHERE table_name = 'organization_members';
+-- Falls RLS das Profil-Join blockiert, Policy hinzufügen:
+CREATE POLICY "org members can read own profiles" ON profiles
+  FOR SELECT USING (id IN (
+    SELECT user_id FROM organization_members 
+    WHERE organization_id = auth.uid()
+  ));
+```
+
+---
+
+### BUG-004: Wartung & Gutscheine in Sidebar versteckt *(Alt – Status: Teilweise behoben)*
+**Schweregrad:** 🟡 **MITTEL**
+
+**Status:** Maintenance und Vouchers sind jetzt unter `ADVANCED_NAVIGATION_ITEMS` → hinter dem "Erweitert"-Toggle. Sie sind also erreichbar, aber versteckt.  
+**Verbleibender Bug:** `useMaintenance.js` ruft `get_due_maintenances` RPC auf. Wenn diese Funktion in der DB fehlt, crasht `DataContext` nicht (try/catch vorhanden), aber Notifications werden nie angezeigt und die Seite ist leer.
+
+**Fix:** Im Supabase SQL-Editor prüfen ob `get_due_maintenances` existiert und ggf. Migration `001_lociva_extension.sql` nachspielen.
+
+---
+
+### BUG-009 (NEU): Buchungsfilter „Bezahlt" funktioniert falsch
+**Schweregrad:** 🟡 **MITTEL**
+
+**Wo:** `BookingsPage.jsx` L.73-75  
+```js
+if (paymentFilter === "paid" && b.deposit_status !== "held" && b.deposit_status !== "refunded") return false;
+```
+Eine Buchung mit `deposit_status = "held"` wird als "Bezahlt" gewertet, aber `held` bedeutet **Kaution wird zurückgehalten (noch aktiv)**, nicht dass die Miete bezahlt wurde. Der Filter ist semantisch falsch.
+
+**Fix:** Payment-Status separat von Deposit-Status tracken, oder Filter-Labels anpassen:
+- "Bezahlt" → `payment_status === 'paid'` (falls diese Spalte existiert) 
+- oder Label: "Kaution hinterlegt" statt "Bezahlt"
+
+---
+
+### BUG-010 (NEU): Buchung – Endlosschleife bei Rapid Click „Neue Buchung" *(Alt – Status: Offen)*
+**Schweregrad:** 🟡 **MITTEL**
+
+**Wo:** `BookingsPage.jsx` L.282-288  
+Der „Neue Buchung"-Button hat keinen `disabled`-State und keinen Debounce. Mehrfachklick öffnet das Modal normal, aber wenn `setShowModal(true)` mehrfach aufgerufen wird während `pricingRules` noch lädt, gerät der Preis-Berechnung in einen Race Condition-Loop.
+
+**Fix:**
+```jsx
+<button
+  onClick={() => { if (!showModal) { setEditBooking(null); setShowModal(true); } }}
+  disabled={showModal}
+  ...>
+```
+
+---
+
+### BUG-011 (NEU): Invoice-Generator – Kundendaten aus falscher Quelle
+**Schweregrad:** 🟡 **MITTEL**
+
+**Wo:** `BookingsPage.jsx` L.235-239  
+```js
+customer: {
+    first_name: (booking.customer_name || "").split(" ")[0] || "",
+    last_name: (booking.customer_name || "").split(" ").slice(1).join(" ") || "",
+    email: booking.customer_email,
+    address: booking.customer_address
+}
+```
+`booking.customer_email` und `booking.customer_address` könnten `null` sein (optionale Felder). Das `generateInvoice()`-PDF enthält dann leere Felder ohne Fallback. Außerdem: `booking.customer` (JOIN) wird ignoriert, obwohl es vollständigere Daten enthält.
+
+**Fix:** `booking.customer?.email || booking.customer_email || ""` verwenden.
+
+---
+
+### BUG-012 (NEU): Kunden-Formular – Kein Pflichtfeld-Feedback bei leerem Vornamen *(Alt – Status: Offen)*
+**Schweregrad:** 🟡 **MITTEL**
+
+**Wo:** `BookingsPage.jsx` L.101-122  
+Wenn `customer_name` leer oder nur Leerzeichen, wird `nameParts[0]` ein leerer String. DB-Insert schlägt fehl wenn `first_name NOT NULL`. Es gibt keine sichtbare Fehlermeldung an den User (nur `addToast("Fehler beim Anlegen des Kunden")` – ohne Highlight des Felds).
+
+**Fix:** Explizite Validierung vor dem Submit:
+```js
+if (!bookingData.customer_name?.trim()) {
+    addToast("Bitte einen Kundennamen eingeben.", "error");
+    return;
+}
+```
+
+---
+
+## 🟢 GERINGE BUGS
+
+### BUG-005: UI-Hänger bei Rapid-Clicks *(Alt – Status: Code-Fix ausstehend)*
+→ Umgewandelt zu BUG-010 (oben), mit erweiterter Analyse.
+
+---
+
+### BUG-006: PLZ-Feld in Einstellungen leer *(Alt – Status: Daten-Problem)*
+**Schweregrad:** 🟢 **GERING**
+
+Das `postal_code`-Feld in `SettingsPage.jsx` L.224 ist korrekt implementiert. Das leere Feld ist ein **Datenproblem** (nie eingegeben), kein Code-Bug. Läuft beim ersten Speichern auf einen leeren String → `postal_code = ""`. Kein Crash, aber kein Pflichtfeld.
+
+---
+
+### BUG-013 (NEU): Gutschein-Ablauf-Check – Zeitzone falsch
+**Schweregrad:** 🟢 **GERING**
+
+**Wo:** `VouchersPage.jsx` L.180-181  
+```js
+const endOfToday = new Date(); endOfToday.setHours(23, 59, 59, 999);
+const isExpired = c.valid_until && new Date(c.valid_until) < endOfToday;
+```
+`valid_until` aus der DB ist ein ISO-Date-String (`"2026-03-23"`). `new Date("2026-03-23")` wird als **UTC Mitternacht** interpretiert, was in Mitteleuropa (UTC+1/+2) dazu führt dass Gutscheine einen Tag zu früh als abgelaufen angezeigt werden.
+
+**Fix:**
+```js
+const isExpired = c.valid_until && new Date(c.valid_until + "T23:59:59") < new Date();
+```
+
+---
+
+### BUG-014 (NEU): Guest Flow – AGB-Links öffnen externe Seiten ohne `rel="noopener"`
+**Schweregrad:** 🟢 **GERING**
+
+**Wo:** `HotelLandingPage.jsx` L.689  
+```jsx
+<a href="/agb" target="_blank">AGB</a>
+```
+Kein `rel="noopener noreferrer"` → Sicherheits-Best-Practice-Verstoß.
+
+**Fix:** `rel="noopener noreferrer"` hinzufügen.
+
+---
+
+### BUG-015 (NEU): Guest Flow – `startDate === endDate` ergibt 1 Tag (korrekt), aber UI zeigt 0 Tage
+**Schweregrad:** 🟢 **GERING**
+
+**Wo:** `HotelLandingPage.jsx` L.312  
+```js
+const totalDays = startDate && endDate 
+  ? Math.max(0, Math.floor((new Date(endDate) - new Date(startDate)) / 86400000) + 1) 
+  : 0;
+```
+Wenn `startDate === endDate` → 1 Tag (korrekt). Aber der **Weiter-Button** prüft `totalDays >= 1` → OK. Das Duration-Pill zeigt `1 Tag · Bike · €XX` korrekt. **Kein Bug** – war in vorheriger Analyse falsch eingeschätzt.
+
+---
+
+### BUG-016 (NEU): Deutsche I18n-Keys – Settings-Seite mischt Hard-coded und i18n
+**Schweregrad:** 🟢 **GERING**
+
+**Wo:** `SettingsPage.jsx` – Die meisten Labels sind hard-coded auf Deutsch (`"Firmendaten"`, `"Speichern"`, etc.), nur 2 Abschnitte nutzen `t("settings.languageTitle")`. Wenn der User auf English wechselt, bleibt die Settings-Seite fast komplett auf Deutsch.
+
+**Fix:** Alle Labels in `SettingsPage.jsx` auf `t()` umstellen und englische Übersetzungskeys ergänzen.
+
+---
+
+## 🔧 Vollständige Fix-Prioritätsliste
+
+| Prio | Bug | Datei | Aufwand |
+|:-----|:----|:------|:--------|
+| 🔴 1 | BUG-001: `customer_id_number` DB-Spalte | Supabase SQL | **5 Min** |
+| 🔴 2 | BUG-002: Preis = 0 (pricingRules Race Condition) | `BookingModal.jsx` | **2h** |
+| 🔴 3 | BUG-008: Stripe Webhook Idempotenz | `api/stripe/webhook` | **3h** |
+| 🟡 4 | BUG-003: TeamManagement DB/RLS Fehler | Supabase-Migration | **1h** |
+| 🟡 5 | BUG-009: Zahlungsfilter semantisch falsch | `BookingsPage.jsx` | **30 Min** |
+| 🟡 6 | BUG-010: Rapid-Click Bug Neue Buchung | `BookingsPage.jsx` | **10 Min** |
+| 🟡 7 | BUG-011: Invoice Kundendaten-Fallback | `BookingsPage.jsx` | **20 Min** |
+| 🟡 8 | BUG-012: Kunden ohne Pflichtfeld-Feedback | `BookingsPage.jsx` | **15 Min** |
+| 🟡 9 | BUG-004: get_due_maintenances RPC fehlt | Supabase-Migration | **30 Min** |
+| 🟢 10 | BUG-013: Gutschein Zeitzone | `VouchersPage.jsx` | **5 Min** |
+| 🟢 11 | BUG-016: I18n Settings-Seite | `SettingsPage.jsx` | **2h** |
+| 🟢 12 | BUG-014: AGB-Link `rel="noopener"` | `HotelLandingPage.jsx` | **2 Min** |
+| 🟢 13 | BUG-006: PLZ-Feld (Datenproblem) | Dateneingabe | **0 Min** |
+
+---
+
+## ✅ Einwandfrei funktioniert
+
+- Login / Signup / Logout / Auth guards
+- Dashboard mit Widgets und Überfälligkeits-Benachrichtigungen
+- Kalender (dnd-kit Gantt, Ressourcen-Ansicht)
+- Flottenmanagement (Statuswechsel, CRUD)
+- Kategorien-Management
+- Add-ons CRUD
+- Buchungsmodal Schritte 1–3 (Validierung, Verfügbarkeitsprüfung, Gruppenbuching-Toggle)
+- Gutschein-Validierung im Buchungsflow (`useCoupons.validateCoupon`)
+- Guest Hotel-Flow (Schritt 1–3 korrekt, Stripe Checkout-Redirect)
+- Storno-Flow (Cancellation Token, GuestCancelPage)
+- Dark/Light Mode Toggle
+- Mobile Navigation
+- PDF-Rechnungsgenerierung (Basis, ohne Kundendaten-Edge-Case)
+- CSV-Export Buchungen
+- Übergabe/Rückgabe Protokoll (HandoverModal)
+- Verspätungsgebühren-Berechnung (`calculateLateFee`)
+- 404-Seite
+- Sprache DE/EN in Settings
+- Account-Löschung (Danger Zone)
