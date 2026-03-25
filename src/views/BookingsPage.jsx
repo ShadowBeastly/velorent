@@ -70,7 +70,7 @@ export default function BookingsPage() {
 
             // Payment filter
             if (paymentFilter !== "all") {
-                if (paymentFilter === "paid" && b.deposit_status !== "held" && b.deposit_status !== "refunded") return false;
+                if (paymentFilter === "paid" && b.deposit_status !== "held") return false;
                 if (paymentFilter === "open" && b.deposit_status === "held") return false;
                 if (paymentFilter === "refunded" && b.deposit_status !== "refunded") return false;
             }

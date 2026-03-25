@@ -211,7 +211,7 @@ export default function AdminHotelsPage() {
             </div>
           </div>
           <button onClick={openAddModal} className="flex items-center gap-2 bg-[#1A7D5A] hover:bg-[#145E44] text-white px-4 py-2 rounded-lg font-medium transition-colors">
-            <Plus className="w-4 h-4" /> Hotel hinzufugen
+            <Plus className="w-4 h-4" /> Hotel hinzufügen
           </button>
         </div>
 
@@ -296,7 +296,7 @@ export default function AdminHotelsPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
           <div className={`w-full max-w-lg rounded-2xl border p-6 shadow-2xl max-h-[90vh] overflow-y-auto ${darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
-            <h2 className="text-xl font-bold mb-5">{editingHotel ? "Hotel bearbeiten" : "Hotel hinzufugen"}</h2>
+            <h2 className="text-xl font-bold mb-5">{editingHotel ? "Hotel bearbeiten" : "Hotel hinzufügen"}</h2>
             <div className="space-y-3">
               <div>
                 <label className={labelCls}>Name *</label>

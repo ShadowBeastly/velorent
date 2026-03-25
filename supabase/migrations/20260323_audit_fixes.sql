@@ -39,18 +39,23 @@ CREATE POLICY IF NOT EXISTS "org_members_read_profiles" ON profiles
 -- Stripe can deliver the same webhook event more than once.
 -- Recording processed event IDs prevents double-processing
 -- of payments, refunds, and other financial operations.
-
-CREATE TABLE IF NOT EXISTS stripe_events (
-  event_id     TEXT PRIMARY KEY,
-  processed_at TIMESTAMPTZ DEFAULT NOW()
-);
+--
+-- NOTE: The table itself is created in 012_stripe_events_idempotency.sql
+-- with column `id TEXT PRIMARY KEY`. This migration only adds RLS.
 
 ALTER TABLE stripe_events ENABLE ROW LEVEL SECURITY;
 
 -- Only the service role (Edge Functions / server) may read or write.
 -- No authenticated or anon access is permitted.
-CREATE POLICY "service_role_stripe_events" ON stripe_events
-  FOR ALL USING (auth.role() = 'service_role');
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'stripe_events' AND policyname = 'service_role_stripe_events'
+  ) THEN
+    CREATE POLICY "service_role_stripe_events" ON stripe_events
+      FOR ALL USING (auth.role() = 'service_role');
+  END IF;
+END $$;
 
 
 -- ── Verify ──────────────────────────────────────────────────
