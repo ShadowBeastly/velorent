@@ -1,115 +1,69 @@
 # CLAUDE.md
 
-## Product Context
-This monorepo contains two products:
-
-- **RentCore**: B2B booking software for rental and activity providers
-- **Lociva**: hotel guest marketplace for booking local activities via QR code
-
-RentCore is the provider operating system. Lociva is the hotel distribution layer on top.
-
-Guest flow:
-- QR in hotel → `/hotel/[slug]`
-- browse offers
-- Stripe Checkout
-- confirmation email
-- no login required
-
-## Core Business Rules
-- Commission is calculated in `create_guest_booking`
-- Cancellation is token-based
-- Refund logic:
-  - more than 24h before start = 100% refund
-  - less than 24h = 50% fee
-  - no-show = 100% charged
+## Products
+Two products, one repo:
+- **RentCore** (`rentcore.de`) — B2B provider dashboard for rental/activity operators
+- **Lociva** (`lociva.de`) — Hotel guest marketplace; hotels place QR codes, guests book without login
 
 ## Stack
-- Next.js 15 App Router
-- React 18
-- Tailwind CSS v3
-- Supabase
-- PostgreSQL
-- Stripe Connect
-- Brevo Transactional Email
+- Next.js 16 (App Router), React 19, Tailwind CSS v3
+- Supabase (Postgres + Auth + RLS + Edge Functions)
+- Stripe Connect Express
+- Brevo (transactional email)
 - Vercel
 
-## Architecture Rules
-- Frontend is UI only
-- Business logic belongs in Supabase RPCs / DB / Edge Functions
-- Do not move core booking or refund logic into client components
-- All `src/` components are Client Components
-- All app-internal data is organization-scoped
+## Routing
+- `proxy.ts` — Next.js 16 middleware (renamed from `middleware.ts`), exports `proxy` not `middleware`
+- `/hotel/[slug]` — public guest booking flow (unauthenticated)
+- `/hotel/*` — Lociva hotel dashboard (role: `hotel`)
+- `/app/*` — RentCore provider dashboard (role: `provider` / any org member)
+- `/app/admin/*` — platform admin (role: `superadmin` only)
+- `/demo` — auto-signs in demo account, redirects by role
 
-## Data Flow
-Provider hierarchy inside `/app/*`:
+## Auth
+- `useProvideAuth` in `src/hooks/useProvideAuth.js` — single source of truth
+- `signIn` / `signUp` throw on error — always use try/catch
+- Sign-out does `window.location.href = "/login"` (hard reload to reset all React state)
+- Guest booking: fully unauthenticated, uses anon key RPCs
 
-AuthProvider  
-→ OrgProvider  
-→ AppProvider  
-→ DataProvider
+## Provider hierarchy (`/app/*`)
+```
+AuthProvider → OrgProvider → AppProvider → DataProvider → AppShell
+```
+Hook pattern: `{ items, loading, create, update, remove, reload }`
 
-Hook pattern:
-- `{ items, loading, create, update, remove, reload }`
+## Business logic rules
+- **Never** put booking/refund/commission logic in client components
+- Business logic → Supabase RPCs or Edge Functions
+- Edge Functions → Stripe, email, external APIs
+- RLS enforces org scoping — all queries are implicitly tenant-scoped
 
 ## Critical RPCs
-- `get_hotel_with_providers`
-- `create_guest_booking`
-- `get_booking_by_token`
-- `cancel_booking_by_token`
-- `get_hotel_analytics`
-- `track_analytics_event`
+- `create_guest_booking` — commission calculation lives here
+- `cancel_booking_by_token` — refund: >24h=100%, <24h=50%, no-show=0%
+- `get_hotel_with_providers`, `get_booking_by_token`, `get_hotel_analytics`, `track_analytics_event`
 
-Treat these as the source of truth for marketplace and booking behavior.
+## Navigation
+- RentCore sidebar: `src/utils/navigationItems.js`
+- Lociva sidebar: `src/utils/locivaNavigationItems.js`
+- Never duplicate — these are the single source of truth
 
-## Auth / Access Rules
-- Guest booking flow is fully unauthenticated
-- Public booking logic uses RPC with anon key
-- All protected app data is scoped by `organization_id`
-- Viewer users must not receive write access
-- Admin area is for superadmin only
+## Gotchas
+- `daysDiff(a, b)` already adds `+1` (inclusive) — don't add another
+- `currentOrgId` persisted in `localStorage`
+- Booking widget uses a separate `public_api_key`, isolated from auth
+- `app/layout.jsx` must keep `export const dynamic = "force-dynamic"`
+- `src/utils/supabase.js` must keep `|| "placeholder"` fallbacks (`createBrowserClient` throws synchronously if args are falsy)
+- `outputDirectory` in Vercel project must be `null` (not empty string)
+- All `src/` components are Client Components (`"use client"`)
 
-## Important Gotchas
-- `daysDiff(a, b)` is inclusive and already adds `+1`
-- `signIn` / `signUp` throw on error, they do not return `{ error }`
-- `navigationItems.js` is the single source of truth for sidebar navigation
-- Current org is persisted in `localStorage` as `currentOrgId`
-- Booking widget uses a separate `public_api_key`
-
-## Coding Rules
-- Prefer existing patterns over inventing new ones
-- Prefer extending current hooks, RPCs, and providers over introducing parallel abstractions
-- Keep organization scoping explicit
-- Use try/catch for auth actions
-- Do not duplicate navigation definitions
-- Do not add extra `+1` around date duration logic
-- Keep guest booking login-free
-
-## Deployment Rules
-- Keep `export const dynamic = "force-dynamic"` in `app/layout.jsx`
-- Do not remove Supabase placeholder fallbacks in browser client setup
-- If Vercel skips proper Next build, check `outputDirectory` and set it to `null`
-
-## Environment
-Required env vars:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `STRIPE_SECRET_KEY`
-- `STRIPE_WEBHOOK_SECRET`
-
-Supabase Edge Function secrets:
-- `BREVO_API_KEY`
-- `FROM_EMAIL`
-- `FROM_NAME`
-
-## Decision Rules
-Use:
-- **RPC** for booking, cancellation, commission, analytics, and DB-driven business logic
-- **Edge Functions** for Stripe, email, and external service orchestration
-- **Client code** for UI state only
-
-## Do Not Include
-- long explanations
-- project history
-- generated init output
-- obvious framework usage notes
-- duplicate directory walkthroughs unless needed for a task
+## Env vars
+```
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET
+NEXT_PUBLIC_DEMO_EMAIL
+NEXT_PUBLIC_DEMO_PASSWORD
+```
+Edge Function secrets: `BREVO_API_KEY`, `FROM_EMAIL`, `FROM_NAME`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`

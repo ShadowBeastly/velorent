@@ -52,7 +52,7 @@ Lociva verdient Provision pro Buchung. Drei Nutzertypen: Gäste (ohne Login), An
 
 | Schicht | Technologie |
 |---------|-------------|
-| Frontend | Next.js 15 (App Router), React 18, Tailwind CSS v3 |
+| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS v3 |
 | Backend/DB | Supabase (PostgreSQL + Auth + RLS + Edge Functions) |
 | Zahlungen | Stripe Connect (Express) |
 | QR-Codes | qrcode |
@@ -85,15 +85,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 ### 3. Datenbank einrichten
 
-Im Supabase SQL Editor **in dieser Reihenfolge** ausführen:
-
-```
-1. supabase-schema.sql                         — Kerntabellen + RLS
-2. supabase-public-booking.sql                 — Buchungs-Widget API
-3. supabase/migrations/001_lociva_extension.sql — Lociva-Tabellen, RPCs, RLS
-4. supabase/migrations/002_cancellation_token.sql — Stornierungstoken + RPCs
-5. (Optional) supabase/seed-testdata.sql       — Testdaten für Entwicklung
-```
+Alle Migrations in `supabase/migrations/` der Reihe nach im Supabase SQL Editor ausführen (001 → 20260327). Die Legacy-Skripte `supabase-schema.sql` und `supabase-public-booking.sql` sind bereits in den Migrations enthalten.
 
 ### 4. Edge Functions deployen
 
