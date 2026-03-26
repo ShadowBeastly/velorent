@@ -75,6 +75,13 @@ const T = {
     notFoundSub: "Bitte überprüfen Sie den QR-Code.",
     openMaps: "Route anzeigen",
     fromPrice: "ab",
+    tabRental: "Verleih",
+    tabActivities: "Erlebnisse",
+    activitiesEmpty: "Erlebnisse kommen bald",
+    activitiesEmptySub: "Weinverkostungen, Touren und mehr — in Kürze buchbar.",
+    perPerson: "/ Person",
+    duration: "Dauer",
+    minutes: "Min.",
   },
   en: {
     welcome: "Welcome",
@@ -141,6 +148,13 @@ const T = {
     notFoundSub: "Please check the QR code.",
     openMaps: "Get directions",
     fromPrice: "from",
+    tabRental: "Rentals",
+    tabActivities: "Experiences",
+    activitiesEmpty: "Experiences coming soon",
+    activitiesEmptySub: "Wine tastings, tours and more — bookable shortly.",
+    perPerson: "/ person",
+    duration: "Duration",
+    minutes: "min.",
   },
 };
 
@@ -250,6 +264,8 @@ export default function HotelLandingPage({ slug }) {
   const [confirmedBooking, setConfirmedBooking] = useState(null);
   const [cancellationToken, setCancellationToken] = useState(null);
   const [stripeSessionId, setStripeSessionId] = useState(null);
+  const [activeTab, setActiveTab] = useState("rental"); // "rental" | "activities"
+  const [activities, setActivities] = useState([]);
   const [sessionId] = useState(() => typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36));
 
   const trackEvent = useCallback(async (eventType, metadata = {}) => {
@@ -304,6 +320,14 @@ export default function HotelLandingPage({ slug }) {
   }, [slug]);
 
   useEffect(() => { if (hotelData) { trackEvent("qr_scan"); trackEvent("page_view"); } }, [hotelData, trackEvent]);
+
+  // Fetch Lociva-only activities for this hotel (non-rental experiences)
+  useEffect(() => {
+    if (!slug || slug === "demo") return;
+    supabase.rpc("get_hotel_activities", { p_hotel_slug: slug })
+      .then(({ data }) => { if (data?.activities) setActivities(data.activities); })
+      .catch(() => {});
+  }, [slug]);
 
   // After Stripe redirect: poll by-session endpoint until webhook creates the booking
   useEffect(() => {
@@ -444,7 +468,51 @@ export default function HotelLandingPage({ slug }) {
           </div>
         )}
 
+        {/* Tab bar: Verleih / Erlebnisse */}
+        <div className="flex border-b border-slate-100 px-4">
+          {[["rental", t.tabRental], ["activities", t.tabActivities]].map(([tab, label]) => (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              className="flex-1 py-3 text-sm font-semibold transition-colors relative"
+              style={{ color: activeTab === tab ? "#1A7D5A" : "#94A3B8" }}>
+              {label}
+              {activeTab === tab && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1A7D5A] rounded-full"/>}
+            </button>
+          ))}
+        </div>
+
+        {/* Category filter. drag-to-scroll — Rental tab only */}
+        {activeTab === "activities" ? (
+          /* ---- Erlebnisse tab ---- */
+          <div className="px-4 py-6">
+            {activities.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+                <span className="text-4xl">🎭</span>
+                <p className="text-slate-800 font-semibold text-base">{t.activitiesEmpty}</p>
+                <p className="text-slate-400 text-sm max-w-[260px]">{t.activitiesEmptySub}</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {activities.map(act => (
+                  <div key={act.id} className="rounded-2xl border border-slate-100 bg-white shadow-sm p-4 flex flex-col gap-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-slate-900 text-sm">{act.name}</p>
+                      {act.price_per_person && (
+                        <p className="text-[#1A7D5A] font-bold text-sm whitespace-nowrap">{act.price_per_person} € {t.perPerson}</p>
+                      )}
+                    </div>
+                    {act.description && <p className="text-slate-500 text-xs leading-relaxed">{act.description}</p>}
+                    {act.duration_minutes && (
+                      <p className="text-xs text-slate-400">{t.duration}: {act.duration_minutes} {t.minutes}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
+
         {/* Category filter. drag-to-scroll */}
+        {activeTab === "rental" && <>
         <div
           ref={filterRef}
           onMouseDown={e => { dragState.current = { active: true, startX: e.pageX, scrollLeft: filterRef.current.scrollLeft, moved: false }; filterRef.current.style.cursor = "grabbing"; }}
@@ -540,6 +608,9 @@ export default function HotelLandingPage({ slug }) {
             </div>
           </div>
         </div>
+
+        {/* End rental tab */}
+        </>}
 
         {/* Footer */}
         <footer className="mb-8 text-center px-4">
