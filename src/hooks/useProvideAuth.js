@@ -102,10 +102,10 @@ export function useProvideAuth() {
             if (error) throw error;
         } finally {
             localStorage.removeItem("currentOrgId");
-            setUser(null);
-            setSession(null);
-            setProfile(null);
         }
+        // Hard reload to /login so all React state (AuthContext, OrgContext, etc.)
+        // is fully reset. Avoids stale closure / re-mount issues after sign-in.
+        window.location.href = "/login";
     };
 
     const resetPassword = async (email) => {
