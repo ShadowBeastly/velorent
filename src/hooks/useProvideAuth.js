@@ -25,6 +25,12 @@ export function useProvideAuth() {
             } else {
                 setLoading(false);
             }
+        }).catch(() => {
+            // If getSession() throws for any reason, resolve loading so the
+            // app doesn't get stuck forever. onAuthStateChange will handle recovery.
+            if (!mounted || initialized) return;
+            initialized = true;
+            setLoading(false);
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {

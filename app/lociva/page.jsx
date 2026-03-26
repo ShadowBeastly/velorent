@@ -11,9 +11,10 @@ export default function LocivaHomePage() {
     useEffect(() => {
         if (!user) return;
         const role = profile?.role;
+        // Only redirect platform staff and hotel users.
+        // Providers visiting lociva.de see the guest landing page — that's fine.
         if (role === "superadmin") router.push("/app/admin");
         else if (role === "hotel") router.push("/hotel");
-        else router.push("/app");
     }, [user, profile, router]);
 
     return (
