@@ -8,8 +8,8 @@ import { NextRequest } from "next/server";
 
 // Use anon key. The Edge Function uses service role internally.
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key"
 );
 
 const ALLOWED_ORIGINS = ["https://lociva.de", "https://www.lociva.de", "http://localhost:3000"];

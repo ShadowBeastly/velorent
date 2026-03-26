@@ -27,12 +27,15 @@ export function useProvideAuth() {
             }
         });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (!mounted) return;
             initialized = true;
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
+                // Set loading=true for fresh sign-in so consumers (e.g. AuthPage redirect,
+                // hotel layout auth guard) don't act on stale state before the profile arrives.
+                if (event === 'SIGNED_IN') setLoading(true);
                 await loadProfile(session.user.id);
             } else {
                 setProfile(null);

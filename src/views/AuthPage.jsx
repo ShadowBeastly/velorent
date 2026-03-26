@@ -27,7 +27,7 @@ export default function AuthPage({ initialMode = "login" }) {
         if (auth.user && mode !== "update-password") {
             const role = auth.profile?.role;
             if (role === "superadmin") router.push("/app/admin");
-            else if (role === "hotel") router.push("/app/hotel-stats");
+            else if (role === "hotel") router.push("/hotel");
             else router.push("/app");
         }
     }, [auth.user, auth.profile, auth.loading, router, mode]);
@@ -50,7 +50,7 @@ export default function AuthPage({ initialMode = "login" }) {
                 setTimeout(() => {
                     const role = auth.profile?.role;
                     if (role === "superadmin") router.push("/app/admin");
-                    else if (role === "hotel") router.push("/app/hotel-stats");
+                    else if (role === "hotel") router.push("/hotel");
                     else router.push("/app");
                 }, 2000);
             } else {

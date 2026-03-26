@@ -12,11 +12,20 @@ export default function DemoPage() {
     const demoEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL;
     const demoPassword = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
     const started = useRef(false);
+    const [demoSignedIn, setDemoSignedIn] = useState(false);
     const [error, setError] = useState(
         !demoEmail || !demoPassword
             ? "Demo-Account ist nicht konfiguriert. Bitte wende dich an info@rentcore.de."
             : ""
     );
+
+    // Navigate only after the auth context has updated user state — avoids a race
+    // where router.push fires before onAuthStateChange propagates to React state,
+    // which would cause the hotel layout to see user=null and redirect to /login.
+    useEffect(() => {
+        if (!demoSignedIn || !user || user.email !== demoEmail) return;
+        router.push("/hotel");
+    }, [demoSignedIn, user, demoEmail, router]);
 
     useEffect(() => {
         if (loading || error || started.current) return;
@@ -32,9 +41,10 @@ export default function DemoPage() {
                 // Sign in as demo
                 await signIn(demoEmail, demoPassword);
 
-                // Set demo org and redirect to Lociva hotel dashboard
+                // Set demo org; navigation is handled by the effect above once
+                // the auth context reflects the new user.
                 localStorage.setItem("currentOrgId", "d0000000-0000-0000-0000-000000000001");
-                router.push("/hotel");
+                setDemoSignedIn(true);
             } catch (err) {
                 started.current = false;
                 setError(
