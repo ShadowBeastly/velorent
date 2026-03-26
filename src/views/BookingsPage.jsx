@@ -116,7 +116,8 @@ export default function BookingsPage() {
                 phone: bookingData.customer_phone || null, // Allow null
                 id_number: bookingData.id_number,
                 address: bookingData.customer_address,
-                city: bookingData.city || "", // Optional
+                city: bookingData.city || "",
+                postal_code: bookingData.postal_code || "",
             };
 
             const { data: createdCustomer, error } = await customers.create(newCustomer);

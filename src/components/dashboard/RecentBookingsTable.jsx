@@ -6,16 +6,20 @@ export default function RecentBookingsTable({ bookings, darkMode, onViewAll }) {
     const recentBookings = bookings.slice(0, 5);
 
     const getStatusBadge = (status) => {
+        // BUG-043: 'completed' status does not exist; actual value is 'returned'.
+        // Also added 'confirmed' which is used by Lociva guest bookings.
         const styles = {
-            reserved: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
+            reserved:  "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
+            confirmed: "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400",
             picked_up: "bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400",
-            completed: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400",
+            returned:  "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400",
             cancelled: "bg-slate-50 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400"
         };
         const labels = {
-            reserved: "Reserviert",
+            reserved:  "Reserviert",
+            confirmed: "Bestätigt",
             picked_up: "Abgeholt",
-            completed: "Abgeschlossen",
+            returned:  "Zurückgegeben",
             cancelled: "Storniert"
         };
         return (

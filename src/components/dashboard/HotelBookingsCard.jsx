@@ -30,7 +30,7 @@ export default function HotelBookingsCard({ bookings = [], darkMode, onViewAll }
     );
 
     const totalCommission = useMemo(
-        () => hotelBookings.reduce((sum, b) => sum + (Number(b.platform_commission) || 0), 0),
+        () => hotelBookings.reduce((sum, b) => sum + (Number(b.platform_commission) || 0) + (Number(b.hotel_commission) || 0), 0),
         [hotelBookings]
     );
 

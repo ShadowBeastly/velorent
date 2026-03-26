@@ -50,7 +50,7 @@ serve(async (req) => {
   }
 
   try {
-    const { booking_id } = await req.json();
+    const { booking_id, cancellation_type: body_cancellation_type } = await req.json();
     if (!booking_id) {
       return Response.json({ error: "booking_id required" }, { status: 400, headers: CORS });
     }
@@ -66,10 +66,25 @@ serve(async (req) => {
       return Response.json({ error: "Booking not found" }, { status: 404, headers: CORS });
     }
 
-    // BUG-021: Use DB's cancellation_status as the authoritative value.
-    // Only fall back to recomputing from start_date if cancellation_status is not set.
+    // BUG-004: The public guest-cancel route (cancel_booking_by_token RPC) already sets
+    // status='cancelled' before calling this function. When cancellation_type is provided
+    // in the body, we trust it and skip the already-cancelled guard so the Stripe refund
+    // can still be issued.
+    // BUG-004/#031: Only reject "already cancelled" when no override was provided (provider route).
+    if (booking.status === "cancelled" && !body_cancellation_type) {
+      return Response.json({ error: "Booking is already cancelled" }, { status: 400, headers: CORS });
+    }
+
+    // Determine cancellation tier:
+    //   1. Explicit override from caller (public guest-cancel route, already computed by DB RPC)
+    //   2. DB's cancellation_status when it has been set to a real tier (not 'none')
+    //   3. Recompute from start_date (provider-initiated cancel on a fresh booking)
     let cancellation_type: "free" | "partial" | "no_show";
-    if (booking.cancellation_status) {
+    if (body_cancellation_type && ["free", "partial", "no_show"].includes(body_cancellation_type)) {
+      cancellation_type = body_cancellation_type as "free" | "partial" | "no_show";
+    } else if (booking.cancellation_status && booking.cancellation_status !== "none") {
+      // BUG-026: previously `if (booking.cancellation_status)` which is truthy for 'none',
+      // causing the refund tier to be set to 'none' instead of being computed from start_date.
       cancellation_type = booking.cancellation_status as "free" | "partial" | "no_show";
     } else {
       const now = new Date();
@@ -82,10 +97,6 @@ serve(async (req) => {
       } else {
         cancellation_type = "no_show";
       }
-    }
-
-    if (booking.status === "cancelled") {
-      return Response.json({ error: "Booking is already cancelled" }, { status: 400, headers: CORS });
     }
 
     const totalCents = Math.round((booking.total_price || 0) * 100);

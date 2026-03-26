@@ -7,7 +7,7 @@ import { fmtCurrency } from '../../utils/formatters';
 const PERIODS = [
     { label: "7 Tage", value: "7d" },
     { label: "30 Tage", value: "30d" },
-    { label: "90 Tage", value: "90w" },
+    { label: "90 Tage", value: "90d" },
     { label: "12 Monate", value: "12m" },
 ];
 

@@ -83,8 +83,9 @@ export default function HotelStatsPage() {
   const pageViews = events.filter(e => e.event_type === "page_view").length;
   const bookingStarts = events.filter(e => e.event_type === "booking_start").length;
   const bookingCompletes = events.filter(e => e.event_type === "booking_complete").length;
-  const totalRevenue = bookings.reduce((s, b) => s + (b.total_price || 0), 0);
-  const totalCommission = bookings.reduce((s, b) => s + (b.hotel_commission || 0), 0);
+  // BUG-045: exclude cancelled bookings from revenue totals
+  const totalRevenue = bookings.filter(b => b.status !== "cancelled").reduce((s, b) => s + (b.total_price || 0), 0);
+  const totalCommission = bookings.filter(b => b.status !== "cancelled").reduce((s, b) => s + (b.hotel_commission || 0), 0);
 
   if (noHotel) {
     return (

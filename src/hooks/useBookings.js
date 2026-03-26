@@ -34,9 +34,6 @@ export function useBookings(orgId) {
             selectedAddOns = [],
             id_number,
             customer_id_number,
-            // Strip fields that don't exist on the bookings table
-            // eslint-disable-next-line no-unused-vars
-            customer_address: _ca, city: _city,
             ...bookingRow
         } = booking;
 
@@ -198,7 +195,8 @@ export function useBookings(orgId) {
     };
 
     const update = async (id, updates, addOnsData) => {
-        const { selectedAddOns, bookingRow } = normalizeBookingPayload(updates);
+        // BUG-007: also extract selectedBikes so group booking_items can be updated
+        const { selectedBikes, selectedAddOns, bookingRow } = normalizeBookingPayload(updates);
         const { data, error } = await supabase
             .from("bookings")
             .update(bookingRow)
@@ -210,14 +208,37 @@ export function useBookings(orgId) {
             // Optimistic update immediately so the UI stays responsive
             setBookings(prev => prev.map(b => b.id === id ? data : b));
 
-            // Re-save add-ons if they were explicitly provided
-            if (selectedAddOns.length > 0 && addOnsData) {
+            // BUG-007: Re-sync booking_items for group bookings so old bikes don't persist
+            if (selectedBikes.length > 0) {
+                try {
+                    await supabase.from("booking_items").delete().eq("booking_id", id);
+                    const additionalBikes = selectedBikes.slice(1); // first bike lives on bookings.bike_id
+                    if (additionalBikes.length > 0) {
+                        const items = additionalBikes.map(bike => ({
+                            booking_id: id,
+                            bike_id: bike.id,
+                            price_per_day: bike.price_per_day ?? null,
+                            subtotal: bike.subtotal ?? null,
+                        }));
+                        const { error: itemsErr } = await supabase.from("booking_items").insert(items);
+                        if (itemsErr) console.error("booking_items update failed:", itemsErr);
+                    }
+                    load({ silent: true }).catch(() => {});
+                } catch (itemsErr) {
+                    console.error("booking_items update failed:", itemsErr);
+                }
+            }
+
+            // Re-save add-ons if caller explicitly passed addOnsData (empty selection removes all)
+            if (addOnsData) {
                 try {
                     await supabase.from("booking_addons").delete().eq("booking_id", id);
-                    const totalDays = bookingRow.total_days
-                        || (bookingRow.start_date && bookingRow.end_date ? daysDiff(bookingRow.start_date, bookingRow.end_date) : null)
-                        || 1;
-                    await saveBookingAddons(id, selectedAddOns, addOnsData, totalDays);
+                    if (selectedAddOns.length > 0) {
+                        const totalDays = bookingRow.total_days
+                            || (bookingRow.start_date && bookingRow.end_date ? daysDiff(bookingRow.start_date, bookingRow.end_date) : null)
+                            || 1;
+                        await saveBookingAddons(id, selectedAddOns, addOnsData, totalDays);
+                    }
                 } catch (addonErr) {
                     console.error("booking_addons update failed:", addonErr);
                 }

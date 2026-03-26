@@ -102,7 +102,13 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             pickup_location: booking.pickup_location || "Laden",
             return_location: booking.return_location || "Laden",
             id_number: booking.customer_id_number || booking.id_number || "",
-            selectedBikes: [],
+            // BUG-008: pre-populate selectedBikes from existing booking_items for group edit
+            selectedBikes: booking.is_group_booking
+                ? [
+                    ...(booking.bike ? [booking.bike] : []),
+                    ...(booking.booking_items || []).map(bi => ({ ...bi.bike, subtotal: bi.subtotal })),
+                  ].filter(Boolean)
+                : [],
             selectedAddOns: booking.booking_addons?.map(ba => ba.addon_id).filter(Boolean) || [],
         };
         return {
@@ -273,6 +279,10 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
     const handleNext = () => {
         setStepError(null);
         if (step === 1) {
+            // BUG-006: Validate that end_date is not before start_date
+            if (form.start_date && form.end_date && form.end_date < form.start_date) {
+                setStepError("Das Enddatum darf nicht vor dem Startdatum liegen."); return;
+            }
             if (isGroupBooking) {
                 if (form.selectedBikes.length < 1) { setStepError("Bitte mindestens ein Rad für die Gruppenbuchung wählen."); return; }
                 if (groupConflicts.length > 0) { setStepError(`Verfügbarkeitskonflikt: ${groupConflicts.map(b => b.name).join(", ")} ist/sind im gewählten Zeitraum bereits vergeben.`); return; }

@@ -87,8 +87,8 @@ export const generateInvoice = (invoice, organization) => {
     if (items.length === 0 && invoice.booking) {
         // Create detailed items from booking
         const days = invoice.booking.total_days || 1;
-        const subtotal = invoice.booking.subtotal || invoice.booking.total || 0;
-        const unitPrice = invoice.booking.price_per_day || (days > 0 ? subtotal / days : subtotal);
+        const subtotal = invoice.booking.subtotal || invoice.booking.total_price || invoice.booking.total || 0;
+        const unitPrice = invoice.booking.price_per_day || (days > 0 ? subtotal / days : subtotal) || 0;
         items.push({
             description: `Fahrradmiete: ${invoice.booking.bike?.name || 'Bike'} (${formatDate(invoice.booking.start_date)} - ${formatDate(invoice.booking.end_date)})`,
             quantity: `${days} Tage`,

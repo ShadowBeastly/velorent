@@ -73,17 +73,17 @@ export default function DashboardPage() {
         [periodDays]
     );
 
-    // Revenue filtered by period (use end_date. Revenue is earned at return)
+    // Revenue filtered by period — use start_date to match RevenueChart (BUG-042)
     const periodRevenue = useMemo(() =>
         bookings.bookings
-            .filter(b => REVENUE_STATUSES.includes(b.status) && b.end_date >= currentStart && b.end_date <= currentEnd)
+            .filter(b => REVENUE_STATUSES.includes(b.status) && b.start_date >= currentStart && b.start_date <= currentEnd)
             .reduce((sum, b) => sum + (b.total_price || 0), 0),
         [bookings.bookings, currentStart, currentEnd]
     );
 
     const prevRevenue = useMemo(() =>
         bookings.bookings
-            .filter(b => REVENUE_STATUSES.includes(b.status) && b.end_date >= prevStart && b.end_date <= prevEnd)
+            .filter(b => REVENUE_STATUSES.includes(b.status) && b.start_date >= prevStart && b.start_date <= prevEnd)
             .reduce((sum, b) => sum + (b.total_price || 0), 0),
         [bookings.bookings, prevStart, prevEnd]
     );
@@ -108,8 +108,7 @@ export default function DashboardPage() {
 
     // Stats that don't change with period
     const totalCustomers = customers.customers.length;
-    const currentlyActive = bookings.bookings.filter(b => b.status === "picked_up").length;
-    const utilization = Math.round((currentlyActive / (bikes.bikes.length || 1)) * 100);
+    const utilization = Math.round((periodActiveBookings / (bikes.bikes.length || 1)) * 100);
 
     // Overdue bookings with late fee calculation
     const overdueBookings = useMemo(() => {

@@ -7,13 +7,13 @@ const DAY_NAMES = ["SO", "MO", "DI", "MI", "DO", "FR", "SA"];
 
 function getWeekDates(baseDate) {
     const d = new Date(baseDate);
-    const day = d.getDay();
-    const monday = new Date(d);
-    monday.setDate(d.getDate() - ((day + 6) % 7)); // Monday
+    const day = d.getDay(); // 0 = Sunday
+    const sunday = new Date(d);
+    sunday.setDate(d.getDate() - day); // back to Sunday (getDay()===0 → no shift)
     const dates = [];
     for (let i = 0; i < 7; i++) {
-        const dd = new Date(monday);
-        dd.setDate(monday.getDate() + i);
+        const dd = new Date(sunday);
+        dd.setDate(sunday.getDate() + i);
         dates.push(dd);
     }
     return dates;

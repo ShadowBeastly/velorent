@@ -16,7 +16,7 @@ export function useInvoices(organizationId) {
                 .select(`
                     *,
                     customer:customers(first_name, last_name, email),
-                    booking:bookings(booking_number)
+                    booking:bookings(booking_number, price_per_day, total_days, subtotal, total_price, start_date, end_date, deposit_amount, bike:bikes(name))
                 `)
                 .eq("organization_id", organizationId)
                 .order("created_at", { ascending: false });
@@ -41,7 +41,11 @@ export function useInvoices(organizationId) {
             const { data, error } = await supabase
                 .from("invoices")
                 .insert([{ ...invoiceData, organization_id: organizationId }])
-                .select()
+                .select(`
+                    *,
+                    customer:customers(first_name, last_name, email),
+                    booking:bookings(booking_number, price_per_day, total_days, subtotal, total_price, start_date, end_date, deposit_amount, bike:bikes(name))
+                `)
                 .single();
 
             if (error) throw error;

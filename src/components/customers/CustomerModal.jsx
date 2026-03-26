@@ -15,6 +15,10 @@ export default function CustomerModal({ customer, onSave, onDelete, onClose, dar
         notes: ""
     });
     const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        if (customer) setForm(customer);
+    }, [customer]);
     const [confirmDelete, setConfirmDelete] = useState(false);
 
     const modalBg = darkMode ? "bg-slate-900" : "bg-white";

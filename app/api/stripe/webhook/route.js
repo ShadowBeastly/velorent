@@ -220,17 +220,21 @@ export async function POST(req) {
             console.error("Failed to send confirmation email:", emailErr);
           }
 
-          // Track analytics event
+          // Track analytics event (non-fatal)
           if (meta.hotel_id) {
-            await supabase.from("analytics_events").insert({
-              hotel_id: meta.hotel_id,
-              event_type: "booking_complete",
-              metadata: {
-                booking_id: freshBooking.id,
-                booking_number: freshBooking.booking_number,
-                total_price: meta.total_price,
-              },
-            });
+            try {
+              await supabase.from("analytics_events").insert({
+                hotel_id: meta.hotel_id,
+                event_type: "booking_complete",
+                metadata: {
+                  booking_id: freshBooking.id,
+                  booking_number: freshBooking.booking_number,
+                  total_price: meta.total_price,
+                },
+              });
+            } catch (analyticsErr) {
+              console.error("Analytics insert failed (non-fatal):", analyticsErr);
+            }
           }
         }
         break;

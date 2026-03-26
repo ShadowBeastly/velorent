@@ -85,6 +85,9 @@ export async function POST(req) {
           booking_id: cancelResult.booking_id,
           cancellation_type: cancelResult.cancellation_type,
         },
+        headers: {
+          "x-internal-secret": process.env.INTERNAL_FUNCTION_SECRET ?? "",
+        },
       });
       if (stripeErr) {
         console.error("Stripe cancel failed:", stripeErr);

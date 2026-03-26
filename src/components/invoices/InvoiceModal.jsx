@@ -6,6 +6,7 @@ import { generateInvoicePDF } from "../../utils/InvoiceGenerator";
 import { supabase } from "../../utils/supabase";
 
 export default function InvoiceModal({ invoice, customers, bookings, org, onSave, onClose, darkMode }) {
+    const [saveError, setSaveError] = useState(null);
     const [formData, setFormData] = useState(() => {
         if (invoice) {
             return {
@@ -89,22 +90,37 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setSaveError(null);
         const { subtotal, taxAmount, total } = calculateTotals();
-        onSave({
-            ...formData,
-            subtotal,
-            tax_amount: taxAmount,
-            total
-        });
+        try {
+            const result = await onSave({
+                ...formData,
+                subtotal,
+                tax_amount: taxAmount,
+                total
+            });
+            // BUG-029: surface unique-violation errors (duplicate invoice number)
+            if (result?.error) {
+                const isDuplicate = result.error.code === "23505" || result.error.message?.includes("duplicate");
+                setSaveError(isDuplicate
+                    ? `Rechnungsnummer „${formData.invoice_number}" ist bereits vergeben. Bitte ändern Sie die Nummer und versuchen Sie es erneut.`
+                    : result.error.message || "Fehler beim Speichern."
+                );
+            }
+        } catch (err) {
+            setSaveError(err.message || "Fehler beim Speichern.");
+        }
     };
 
     const handleDownload = () => {
-        const { total } = calculateTotals();
-        // Merge calculated totals into formData for the generator
+        const { subtotal, taxAmount, total } = calculateTotals();
+        // BUG-030: pass all calculated totals so InvoiceGenerator can render subtotal and tax
         const invoiceData = {
             ...formData,
+            subtotal,
+            tax_amount: taxAmount,
             total,
             customer: customers.find(c => c.id === formData.customer_id)
         };
@@ -289,7 +305,10 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                 />
                             </div>
 
-                            <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                                {saveError && (
+                                    <p className="text-sm text-red-600 dark:text-red-400">{saveError}</p>
+                                )}
                                 <button type="submit" className="w-full py-2 bg-[#1A7D5A] text-white rounded font-medium hover:bg-[#1A7D5A]">
                                     Speichern
                                 </button>

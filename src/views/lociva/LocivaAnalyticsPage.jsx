@@ -94,25 +94,29 @@ export default function LocivaAnalyticsPage() {
             const since = new Date(Date.now() - days * 86400000).toISOString();
 
             try {
-                const [evRes, analyticsRes] = await Promise.all([
+                const [evRes, bookingsRes] = await Promise.all([
                     supabase
                         .from("analytics_events")
                         .select("event_type, created_at")
                         .eq("hotel_id", hotelId)
                         .gte("created_at", since)
                         .order("created_at", { ascending: true }),
-                    // BUG-026: replaced direct bookings table query with get_hotel_analytics RPC
-                    // RPC returns { bookings: [{ id, created_at, total_price }] } or similar shape
-                    supabase.rpc("get_hotel_analytics", { p_hotel_id: hotelId, p_since: since }),
+                    // BUG-041: get_hotel_analytics returns an aggregate stats object, not a
+                    // per-booking array. Query bookings directly for the chart and revenue total.
+                    supabase
+                        .from("bookings")
+                        .select("id, created_at, total_price")
+                        .eq("hotel_id", hotelId)
+                        .gte("created_at", since)
+                        .order("created_at", { ascending: true }),
                 ]);
 
                 if (evRes.error) throw evRes.error;
-                if (analyticsRes.error) throw analyticsRes.error;
+                if (bookingsRes.error) throw bookingsRes.error;
 
                 if (!cancelled) {
                     setEvents(evRes.data || []);
-                    // Adapt to RPC shape: expects array of booking rows with created_at and total_price
-                    setBookings(analyticsRes.data?.bookings ?? analyticsRes.data ?? []);
+                    setBookings(bookingsRes.data || []);
                 }
             } catch (err) {
                 if (!cancelled) setError(err.message);
