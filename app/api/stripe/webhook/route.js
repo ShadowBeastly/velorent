@@ -117,7 +117,7 @@ export async function POST(req) {
             rpcParams.p_end_time = meta.end_time || null;
           }
 
-          const { data: booking, error: rpcErr } = await supabase.rpc(
+          const { error: rpcErr } = await supabase.rpc(
             "create_guest_booking",
             rpcParams
           );
