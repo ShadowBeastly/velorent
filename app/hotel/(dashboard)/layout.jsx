@@ -151,6 +151,7 @@ function LocivaShell({ children }) {
                     setSidebarOpen={setSidebarOpen}
                     darkMode={darkMode}
                     hasProviderOrg={hasProviderOrg}
+                    bannerOffset={isDemo}
                 />
 
                 <main

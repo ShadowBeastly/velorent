@@ -5,7 +5,7 @@ import { LogOut, X, ArrowLeft } from "lucide-react";
 
 import { LOCIVA_NAVIGATION_ITEMS } from "../../utils/locivaNavigationItems";
 
-export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen, darkMode, hasProviderOrg }) {
+export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen, darkMode, hasProviderOrg, bannerOffset }) {
     const pathname = usePathname();
     const showLabels = sidebarOpen;
 
@@ -20,7 +20,7 @@ export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen
                 />
             )}
             <aside className={`
-                fixed top-0 left-0 z-40 h-screen border-r w-64
+                fixed ${bannerOffset ? "top-10" : "top-0"} left-0 z-40 ${bannerOffset ? "h-[calc(100vh-2.5rem)]" : "h-screen"} border-r w-64
                 transition-all duration-300
                 md:translate-x-0
                 ${sidebarOpen ? "translate-x-0 md:w-64" : "-translate-x-full md:w-20"}

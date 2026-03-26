@@ -7,7 +7,7 @@ import { Loader2, Bike, AlertCircle } from "lucide-react";
 const C = { primary: "#1A7D5A", dark: "#1E2D26", bg: "#F5FAF7", neutral: "#6B7280" };
 
 export default function DemoPage() {
-    const { signIn, signOut, user, loading } = useAuth();
+    const { signIn, signOut, user, loading, profile } = useAuth();
     const router = useRouter();
     const demoEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL;
     const demoPassword = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
@@ -19,13 +19,16 @@ export default function DemoPage() {
             : ""
     );
 
-    // Navigate only after the auth context has updated user state — avoids a race
-    // where router.push fires before onAuthStateChange propagates to React state,
-    // which would cause the hotel layout to see user=null and redirect to /login.
+    // Navigate only after the auth context has updated user + profile — avoids a race
+    // where router.push fires before onAuthStateChange propagates to React state.
     useEffect(() => {
-        if (!demoSignedIn || !user || user.email !== demoEmail) return;
-        router.push("/hotel");
-    }, [demoSignedIn, user, demoEmail, router]);
+        if (!demoSignedIn || !user || user.email !== demoEmail || loading || !profile) return;
+        if (profile.role === "hotel") {
+            router.push("/hotel");
+        } else {
+            router.push("/app");
+        }
+    }, [demoSignedIn, user, demoEmail, loading, profile, router]);
 
     useEffect(() => {
         if (loading || error || started.current) return;
