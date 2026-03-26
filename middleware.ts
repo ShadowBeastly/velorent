@@ -43,8 +43,8 @@ export async function middleware(request: NextRequest) {
     // /hotel (exact) and /hotel/dashboard, /hotel/activities, etc. are protected
     // /hotel/[slug] and /hotel/[slug]/cancel are public guest pages (handled by [slug] route)
     const isHotelDashboard = pathname === "/hotel" || [
-        "/hotel/dashboard", "/hotel/activities", "/hotel/rooms",
-        "/hotel/providers", "/hotel/analytics", "/hotel/settings"
+        "/hotel/activities", "/hotel/rooms",
+        "/hotel/providers", "/hotel/analytics"
     ].some(p => pathname.startsWith(p));
 
     if ((isApp || isHotelDashboard) && !user) {
@@ -84,5 +84,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/", "/app/:path*", "/hotel", "/hotel/dashboard/:path*", "/hotel/activities/:path*", "/hotel/rooms/:path*", "/hotel/providers/:path*", "/hotel/analytics/:path*", "/hotel/settings/:path*", "/login", "/signup"]
+    matcher: ["/", "/app/:path*", "/hotel", "/hotel/activities/:path*", "/hotel/rooms/:path*", "/hotel/providers/:path*", "/hotel/analytics/:path*", "/login", "/signup"]
 };

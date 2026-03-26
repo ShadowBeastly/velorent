@@ -6,11 +6,15 @@ import LandingPage from "../../src/views/LandingPage";
 
 export default function LocivaHomePage() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
 
     useEffect(() => {
-        if (user) router.push("/app");
-    }, [user, router]);
+        if (!user) return;
+        const role = profile?.role;
+        if (role === "superadmin") router.push("/app/admin");
+        else if (role === "hotel") router.push("/hotel");
+        else router.push("/app");
+    }, [user, profile, router]);
 
     return (
         <LandingPage
