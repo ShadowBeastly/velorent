@@ -63,6 +63,8 @@ const T = {
     confirmedSub: "Vielen Dank für Ihr Vertrauen in Lociva. Wir freuen uns auf Sie!",
     bookingNumber: "Buchungsnummer",
     emailSent: "Eine Bestätigung wurde an Ihre E-Mail gesendet",
+    yourTicket: "Ihr Abholticket",
+    qrHint: "QR-Code beim Abholen vorzeigen",
     pickupAddress: "Abholadresse",
     addToCalendar: "In Kalender eintragen",
     newBooking: "Neue Buchung",
@@ -127,6 +129,8 @@ const T = {
     confirmedSub: "Thank you for your trust in Lociva. We look forward to seeing you!",
     bookingNumber: "Booking number",
     emailSent: "A confirmation was sent to your email",
+    yourTicket: "Your Pickup Ticket",
+    qrHint: "Show QR code at pickup",
     pickupAddress: "Pickup address",
     addToCalendar: "Add to calendar",
     newBooking: "New booking",
@@ -244,6 +248,8 @@ export default function HotelLandingPage({ slug }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [confirmedBooking, setConfirmedBooking] = useState(null);
+  const [cancellationToken, setCancellationToken] = useState(null);
+  const [stripeSessionId, setStripeSessionId] = useState(null);
   const [sessionId] = useState(() => typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36));
 
   const trackEvent = useCallback(async (eventType, metadata = {}) => {
@@ -259,6 +265,7 @@ export default function HotelLandingPage({ slug }) {
     const sid = params.get("session_id");
     if (sid) {
       stripeSessionRef.current = sid;
+      setStripeSessionId(sid);
       // Restore booking context from sessionStorage (saved before Stripe redirect)
       try {
         const saved = sessionStorage.getItem("lociva_booking_context");
@@ -297,6 +304,31 @@ export default function HotelLandingPage({ slug }) {
   }, [slug]);
 
   useEffect(() => { if (hotelData) { trackEvent("qr_scan"); trackEvent("page_view"); } }, [hotelData, trackEvent]);
+
+  // After Stripe redirect: poll by-session endpoint until webhook creates the booking
+  useEffect(() => {
+    if (step !== 4 || !stripeSessionId) return;
+    let cancelled = false;
+    let attempts = 0;
+    async function poll() {
+      if (cancelled || attempts >= 12) return;
+      try {
+        const res = await fetch(`/api/booking/by-session?session_id=${stripeSessionId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.cancellation_token) {
+            setCancellationToken(data.cancellation_token);
+            setConfirmedBooking(prev => prev ? { ...prev, booking_number: data.booking_number } : prev);
+            return;
+          }
+        }
+      } catch { /* retry silently */ }
+      attempts++;
+      setTimeout(poll, 1500);
+    }
+    poll();
+    return () => { cancelled = true; };
+  }, [step, stripeSessionId]);
 
   const allCategories = useMemo(() => {
     if (!hotelData?.providers) return [];
@@ -807,9 +839,27 @@ export default function HotelLandingPage({ slug }) {
           )}
 
           {/* Email sent */}
-          <div className="flex items-center gap-3 mb-8 text-slate-600 fade-up-3">
+          <div className="flex items-center gap-3 mb-6 text-slate-600 fade-up-3">
             <I.mail className="w-5 h-5 text-[#1A7D5A]"/>
             <p className="text-sm">{t.emailSent}</p>
+          </div>
+
+          {/* QR code ticket */}
+          <div className="w-full rounded-2xl border border-[#D4EDE2] bg-[#F5FAF7] p-5 mb-8 fade-up-4 flex flex-col items-center gap-3">
+            <p className="text-[10px] uppercase tracking-widest text-[#1A7D5A] font-bold">{t.yourTicket}</p>
+            {cancellationToken ? (
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : "https://lociva.de"}/hotel/${slug}/cancel?token=${cancellationToken}`)}&color=1A7D5A&bgcolor=F5FAF7&margin=2`}
+                alt="Booking QR Code"
+                className="w-40 h-40 rounded-xl"
+                width={160} height={160}
+              />
+            ) : (
+              <div className="w-40 h-40 rounded-xl bg-[#D4EDE2]/40 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full border-2 border-[#1A7D5A] border-t-transparent animate-spin"/>
+              </div>
+            )}
+            <p className="text-xs text-slate-500">{t.qrHint}</p>
           </div>
 
           {/* Pickup address */}

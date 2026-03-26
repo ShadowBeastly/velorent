@@ -107,6 +107,9 @@ export async function POST(req) {
               p_guest_phone: meta.guest_phone || null,
               p_language: meta.lang || "de",
               p_rental_type: meta.rental_type || "daily",
+              // BUG-027: pass the Stripe-verified (post-discount) price so the DB stores
+              // the amount the guest actually paid rather than recomputing undiscounted price.
+              p_total_price: meta.total_price ? parseFloat(meta.total_price) : null,
             };
           if (meta.rental_type === "hourly") {
             rpcParams.p_total_hours = parseFloat(meta.total_hours) || 1;
@@ -124,26 +127,53 @@ export async function POST(req) {
             return new Response(JSON.stringify({ error: "create_guest_booking failed" }), { status: 500 });
           }
 
-          // Attach Stripe IDs and confirm
+          // Look up the booking that was just created by its unique fields.
+          // This avoids relying on the RPC return shape (which varies across
+          // supabase-js / PostgREST versions and can wrap JSONB unexpectedly).
+          const { data: freshBooking, error: lookupErr } = await supabase
+            .from("bookings")
+            .select("id, booking_number, cancellation_token")
+            .eq("guest_email", meta.guest_email)
+            .eq("bike_id", meta.bike_id)
+            .eq("start_date", meta.start_date)
+            .eq("end_date", meta.end_date)
+            .eq("status", "reserved")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (lookupErr || !freshBooking) {
+            console.error("Post-RPC booking lookup failed:", lookupErr);
+            return new Response("Booking lookup failed", { status: 500 });
+          }
+
+          console.log("Booking lookup found:", freshBooking.id, freshBooking.booking_number);
+
           const piId =
             typeof session.payment_intent === "string"
               ? session.payment_intent
               : session.payment_intent?.id;
 
-          await supabase
+          const { error: updateErr } = await supabase
             .from("bookings")
             .update({
               stripe_checkout_session_id: session.id,
               stripe_payment_intent_id: piId ?? null,
               status: "confirmed",
             })
-            .eq("id", booking.booking_id);
+            .eq("id", freshBooking.id);
 
-          console.log("Lociva booking created:", booking.booking_number);
+          if (updateErr) {
+            console.error("Booking update failed:", updateErr);
+            return new Response("Booking update failed", { status: 500 });
+          }
+
+          const bookingData = freshBooking;
+          console.log("Lociva booking confirmed:", bookingData.booking_number, "session:", session.id);
 
           // Send guest confirmation email with cancellation token link (non-fatal)
           try {
-            const [{ data: bikeData }, { data: orgData }, { data: bookingRow }] =
+            const [{ data: bikeData }, { data: orgData }] =
               await Promise.all([
                 supabase
                   .from("bikes")
@@ -155,22 +185,14 @@ export async function POST(req) {
                   .select("name, provider_address, provider_phone")
                   .eq("id", meta.org_id)
                   .single(),
-                supabase
-                  .from("bookings")
-                  .select("cancellation_token")
-                  .eq("id", booking.booking_id)
-                  .single(),
               ]);
 
             const siteUrl =
               process.env.NEXT_PUBLIC_SITE_URL || "https://lociva.de";
             const hotelSlug = meta.hotel_slug || "demo";
-            const cancelToken =
-              bookingRow?.cancellation_token ||
-              booking.cancellation_token ||
-              "";
-            const cancellationUrl = cancelToken
-              ? `${siteUrl}/hotel/${hotelSlug}/cancel?token=${cancelToken}`
+            const resolvedCancelToken = freshBooking.cancellation_token || "";
+            const cancellationUrl = resolvedCancelToken
+              ? `${siteUrl}/hotel/${hotelSlug}/cancel?token=${resolvedCancelToken}`
               : "";
 
             await supabase.functions.invoke("send-email", {
@@ -179,7 +201,7 @@ export async function POST(req) {
                 to: meta.guest_email,
                 data: {
                   guest_name: meta.guest_name,
-                  booking_number: booking.booking_number,
+                  booking_number: bookingData?.booking_number,
                   bike_name: bikeData?.name || "",
                   start_date: meta.start_date,
                   end_date: meta.end_date,
@@ -193,7 +215,7 @@ export async function POST(req) {
                 },
               },
             });
-            console.log("Confirmation email sent for booking:", booking?.booking_number || session.id);
+            console.log("Confirmation email sent for booking:", bookingData?.booking_number || session.id);
           } catch (emailErr) {
             console.error("Failed to send confirmation email:", emailErr);
           }
@@ -204,8 +226,8 @@ export async function POST(req) {
               hotel_id: meta.hotel_id,
               event_type: "booking_complete",
               metadata: {
-                booking_id: booking.booking_id,
-                booking_number: booking.booking_number,
+                booking_id: freshBooking.id,
+                booking_number: freshBooking.booking_number,
                 total_price: meta.total_price,
               },
             });

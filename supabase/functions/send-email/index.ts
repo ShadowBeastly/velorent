@@ -80,6 +80,12 @@ const templates = {
           : "Free cancellation up to 24 hours before start. After that, a 50% fee applies."}</p>
         <a href="${cancelUrl}" style="display:inline-block;background:#DC2626;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:500;font-size:13px;">${de ? "Buchung stornieren" : "Cancel booking"}</a>
       </div>` : "";
+    const qrSection = cancelUrl ? `
+      <div style="margin:0 0 24px;padding:24px;background:#F5FAF7;border-radius:12px;border:1px solid #D4EDE2;text-align:center;">
+        <p style="margin:0 0 4px;color:#1A7D5A;font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;">${de ? "Ihr Abholticket" : "Your Pickup Ticket"}</p>
+        <p style="margin:0 0 16px;color:#6B7280;font-size:12px;">${de ? "QR-Code beim Abholen vorzeigen" : "Show this QR code at pickup"}</p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(cancelUrl)}&color=1A7D5A&bgcolor=F5FAF7&margin=2" alt="Booking QR Code" width="160" height="160" style="border-radius:8px;border:1px solid #D4EDE2;"/>
+      </div>` : "";
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F5FAF7;margin:0;padding:40px 20px;">
   <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06);">
@@ -102,6 +108,7 @@ const templates = {
       <div style="text-align:center;margin:0 0 24px;">
         <span style="display:inline-block;background:#D4EDE2;color:#1A7D5A;padding:8px 20px;border-radius:20px;font-weight:600;font-size:14px;">✓ ${de ? "Zahlung bestätigt" : "Payment confirmed"}</span>
       </div>
+      ${qrSection}
       ${providerAddress ? `<div style="background:#D4EDE2;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="margin:0;color:#1E2D26;font-weight:600;font-size:14px;">📍 ${de ? "Abholung" : "Pickup"}</p><p style="margin:6px 0 0;color:#1A7D5A;font-size:14px;">${providerName}<br>${providerAddress}${providerPhone ? `<br>${providerPhone}` : ""}</p></div>` : ""}
       ${cancelSection}
       <p style="color:#6B7280;font-size:13px;margin:0;">${de ? "Bei Fragen wenden Sie sich direkt an den Anbieter oder an info@lociva.de." : "For questions, contact the provider directly or email info@lociva.de."}</p>
