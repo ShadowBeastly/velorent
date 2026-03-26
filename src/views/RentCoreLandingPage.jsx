@@ -364,13 +364,13 @@ export default function RentCoreLandingPage({ onLogin, onGetStarted, onDemo }) {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <Link href="/"
+                <a href="https://lociva.de" target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium text-sm transition-colors"
                   style={{ background: C.primary, color: C.white }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = C.light; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = C.primary; }}>
                   Mehr über Lociva <ArrowRight className="w-4 h-4" />
-                </Link>
+                </a>
                 <a href="mailto:info@lociva.de?subject=Lociva%20Add-on%20Interesse"
                   className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium text-sm border transition-colors"
                   style={{ color: C.white, borderColor: "rgba(255,255,255,0.2)" }}
