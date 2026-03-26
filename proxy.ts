@@ -67,6 +67,19 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL("/app", request.url));
     }
 
+    // Hotel users must not access /app — redirect them to their dashboard.
+    if (isApp && !isAdmin && user) {
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+
+        if (profile?.role === "hotel") {
+            return NextResponse.redirect(new URL("/hotel", request.url));
+        }
+    }
+
     // Server-side admin role check. Client-side check alone is not sufficient.
     if (isAdmin && user) {
         const { data: profile } = await supabase

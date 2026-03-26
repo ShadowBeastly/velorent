@@ -24,7 +24,10 @@ function AppShell({ children }) {
         if (!auth.loading && !auth.user) {
             router.push("/login");
         }
-    }, [auth.loading, auth.user, router]);
+        if (!auth.loading && auth.profile?.role === "hotel") {
+            router.push("/hotel");
+        }
+    }, [auth.loading, auth.user, auth.profile, router]);
 
     if (auth.loading || org.loading) return <LoadingScreen />;
     if (!org.currentOrg) return <OnboardingPage />;
