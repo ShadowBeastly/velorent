@@ -107,6 +107,13 @@ CREATE TABLE IF NOT EXISTS maintenance_logs (
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- If table already existed with bike_id column, rename it to item_id
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='maintenance_logs' AND column_name='bike_id') THEN
+    ALTER TABLE maintenance_logs RENAME COLUMN bike_id TO item_id;
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_maintenance_item ON maintenance_logs(item_id);
 CREATE INDEX IF NOT EXISTS idx_maintenance_org  ON maintenance_logs(organization_id);
 
@@ -298,6 +305,13 @@ CREATE TABLE IF NOT EXISTS booking_items (
     created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- If table already existed with bike_id column, rename to item_id
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='booking_items' AND column_name='bike_id') THEN
+    ALTER TABLE booking_items RENAME COLUMN bike_id TO item_id;
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_booking_items_booking ON booking_items(booking_id);
 CREATE INDEX IF NOT EXISTS idx_booking_items_item    ON booking_items(item_id);
 
@@ -353,6 +367,13 @@ CREATE TABLE IF NOT EXISTS pricing_rules (
 ALTER TABLE pricing_rules ADD COLUMN IF NOT EXISTS modifier_type    TEXT          DEFAULT 'multiplier';
 ALTER TABLE pricing_rules ADD COLUMN IF NOT EXISTS modifier_value   DECIMAL(10,2) DEFAULT 1;
 ALTER TABLE pricing_rules ADD COLUMN IF NOT EXISTS item_category_id UUID REFERENCES item_categories(id) ON DELETE SET NULL;
+-- If table already existed with bike_category_id, rename to item_category_id
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='pricing_rules' AND column_name='bike_category_id')
+     AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='pricing_rules' AND column_name='item_category_id') THEN
+    ALTER TABLE pricing_rules RENAME COLUMN bike_category_id TO item_category_id;
+  END IF;
+END $$;
 ALTER TABLE pricing_rules ADD COLUMN IF NOT EXISTS min_days         INTEGER;
 ALTER TABLE pricing_rules ADD COLUMN IF NOT EXISTS max_days         INTEGER;
 ALTER TABLE pricing_rules ADD COLUMN IF NOT EXISTS days_of_week     INTEGER[];
