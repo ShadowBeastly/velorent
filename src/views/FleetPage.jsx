@@ -18,16 +18,17 @@ export default function FleetPage() {
     const { darkMode, searchQuery } = useApp();
     const { bikes, bookings, bikeCategories } = useData();
     const { addToast } = useToast();
-
-    if (org.currentOrg?.feature_flags?.generic_items_ui) {
-        return <ItemsPage />;
-    }
     const [showModal, setShowModal] = useState(false);
     const [editBike, setEditBike] = useState(null);
     const [viewMode, setViewMode] = useState("grid");
     const [statusFilter, setStatusFilter] = useState("all");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [sizeFilter, setSizeFilter] = useState("all");
+
+    // Feature flag: render new generic ItemsPage when enabled
+    if (org.currentOrg?.feature_flags?.generic_items_ui) {
+        return <ItemsPage />;
+    }
 
     // Build category list
     const categories = useMemo(() => {
