@@ -52,12 +52,12 @@ export default {
     "auth.registerSuccess": "Registrierung erfolgreich! Bitte bestätige deine E-Mail.",
     "auth.sendLink": "Link senden",
     "auth.backToLogin": "← Zurück zum Login",
-    "auth.tagline": "Cloud-basierte Fahrradvermietung",
+    "auth.tagline": "Cloud-basierte Buchungssoftware",
     "auth.resetTitle": "Passwort zurücksetzen",
 
     // Dashboard
     "dashboard.welcome": "Willkommen zurück",
-    "dashboard.overview": "Hier ist der Überblick über Ihre Fahrradvermietung für heute.",
+    "dashboard.overview": "Hier ist der Überblick über Ihre Angebote für heute.",
     "dashboard.activeRentals": "Aktive Mieten",
     "dashboard.utilization": "Auslastung",
     "dashboard.customers": "Kunden",

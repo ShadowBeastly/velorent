@@ -1,7 +1,7 @@
 {
   "name": "lociva",
   "version": "1.0.0",
-  "description": "Cloud-basiertes SaaS für Fahrradvermietung",
+  "description": "Cloud-basiertes SaaS für lokale Aktivitäten & Buchungen",
   "type": "module",
   "scripts": {
     "dev": "next dev",

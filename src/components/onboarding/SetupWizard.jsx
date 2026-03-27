@@ -200,7 +200,7 @@ export default function SetupWizard({ supabase, user, onComplete }) {
                       );
                     }}
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-[#1A7D5A] outline-none"
-                    placeholder="z.B. Hotel Alpenblick Fahrradverleih"
+                    placeholder="z.B. Alpenblick Aktivitäten"
                   />
                 </div>
 

@@ -173,7 +173,7 @@ export default function DashboardPage() {
                         <LocivaBadge org={org.currentOrg} darkMode={darkMode} />
                     </div>
                     <p className={`mt-1 text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                        Hier ist der Überblick über Ihre Fahrradvermietung für heute.
+                        Hier ist der Überblick über Ihre Angebote für heute.
                     </p>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
