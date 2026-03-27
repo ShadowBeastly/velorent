@@ -487,7 +487,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                 >
                                     <div className="flex items-center gap-2">
                                         <Users className={`w-4 h-4 ${isGroupBooking ? "text-[#1A7D5A]" : darkMode ? "text-slate-400" : "text-slate-500"}`} />
-                                        <span className={`text-sm font-medium ${isGroupBooking ? "text-[#1A7D5A]" : ""}`}>Gruppenbuchung (mehrere Räder)</span>
+                                        <span className={`text-sm font-medium ${isGroupBooking ? "text-[#1A7D5A]" : ""}`}>Gruppenbuchung (mehrere Angebote)</span>
                                     </div>
                                     {/* Toggle switch */}
                                     <div className={`w-10 h-5 rounded-full transition-colors flex items-center px-0.5 ${isGroupBooking ? "bg-[#1A7D5A] justify-end" : darkMode ? "bg-slate-700 justify-start" : "bg-slate-200 justify-start"}`}>
@@ -530,7 +530,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                             {isGroupBooking && (
                                 <div>
                                     <label className={labelStyle}>
-                                        Räder wählen
+                                        Angebote wählen
                                         {form.selectedBikes.length > 0 && (
                                             <span className="ml-2 text-[#1A7D5A] font-normal">({form.selectedBikes.length} ausgewählt)</span>
                                         )}

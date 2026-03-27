@@ -62,7 +62,7 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
                 <div className="p-6 overflow-y-auto space-y-6">
                     {/* Bike Info */}
                     <div className={`p-4 rounded-xl border ${darkMode ? "bg-slate-950/50 border-slate-800" : "bg-slate-50 border-slate-100"}`}>
-                        <div className="text-sm font-medium text-slate-500 mb-1">Fahrrad</div>
+                        <div className="text-sm font-medium text-slate-500 mb-1">Artikel</div>
                         <div className="font-semibold text-lg">{booking.bike?.name}</div>
                         <div className="text-sm text-slate-500">{booking.bike?.category} • {booking.bike?.size}</div>
                     </div>

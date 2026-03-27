@@ -43,7 +43,7 @@ export default function RecentBookingsTable({ bookings, darkMode, onViewAll }) {
                     <thead className={`text-xs uppercase font-bold ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                         <tr>
                             <th className="pb-3 pl-2">Kunde</th>
-                            <th className="pb-3 hidden sm:table-cell">Fahrrad</th>
+                            <th className="pb-3 hidden sm:table-cell">Angebot</th>
                             <th className="pb-3 hidden sm:table-cell">Zeitraum</th>
                             <th className="pb-3">Status</th>
                             <th className="pb-3 text-right pr-2">Preis</th>

@@ -50,7 +50,7 @@ export default function BikeModal({ bike, onSave, onDelete, onClose, darkMode })
                 className={`w-full max-w-lg rounded-2xl ${modalBg} shadow-2xl`}
             >
                 <div className={`flex items-center justify-between p-4 border-b ${darkMode ? "border-slate-800" : "border-slate-200"}`}>
-                    <h3 id="bike-modal-title" className="text-lg font-semibold">{bike ? "Rad bearbeiten" : "Neues Rad"}</h3>
+                    <h3 id="bike-modal-title" className="text-lg font-semibold">{bike ? "Angebot bearbeiten" : "Neues Angebot"}</h3>
                     <button onClick={onClose} aria-label="Schließen" className={`p-2 rounded-lg ${darkMode ? "hover:bg-slate-800" : "hover:bg-slate-100"}`}>
                         <X className="w-5 h-5" />
                     </button>
@@ -106,7 +106,7 @@ export default function BikeModal({ bike, onSave, onDelete, onClose, darkMode })
 
                 {confirmDelete && (
                     <div className="mx-4 mb-2 px-3 py-2 bg-rose-500/10 border border-rose-500/20 rounded-lg text-sm flex items-center justify-between gap-3">
-                        <span className="text-rose-600 font-medium">Rad wirklich löschen?</span>
+                        <span className="text-rose-600 font-medium">Angebot wirklich löschen?</span>
                         <div className="flex gap-2">
                             <button onClick={() => setConfirmDelete(false)} className="px-3 py-1 rounded-lg text-slate-500 hover:bg-slate-100 text-sm">Abbrechen</button>
                             <button onClick={() => { setConfirmDelete(false); onDelete(bike.id); }} className="px-3 py-1 rounded-lg bg-rose-500 text-white text-sm hover:bg-rose-600">Ja, löschen</button>

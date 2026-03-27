@@ -249,7 +249,7 @@ export default function DashboardPage() {
                 <StatCard
                     title="Auslastung"
                     value={`${utilization}%`}
-                    subtitle="der Flotte unterwegs"
+                    subtitle="der Angebote unterwegs"
                     icon={BarChart3}
                     color="violet"
                     darkMode={darkMode}

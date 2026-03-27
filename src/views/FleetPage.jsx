@@ -93,7 +93,7 @@ export default function FleetPage() {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Flotte</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Angebote</h2>
                 <div className="flex items-center gap-3">
                     <div className={`flex p-1 rounded-lg border ${darkMode ? "border-slate-700 bg-slate-800" : "border-slate-200 bg-slate-100"}`}>
                         <button
@@ -116,7 +116,7 @@ export default function FleetPage() {
                             { key: 'size', label: 'Größe' },
                             { key: 'price_per_day', label: 'Preis/Tag' },
                             { key: 'status', label: 'Status' },
-                        ], 'flotte')}
+                        ], 'angebote')}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium border transition-colors ${darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-800" : "border-slate-300 text-slate-600 hover:bg-slate-100"}`}
                     >
                         <Download className="w-4 h-4" />
@@ -127,17 +127,17 @@ export default function FleetPage() {
                         className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg font-bold text-sm shadow-lg shadow-[#1A7D5A]/25 transition-all hover:shadow-xl"
                     >
                         <Plus className="w-4 h-4" />
-                        Fahrrad hinzufügen
+                        Angebot hinzufügen
                     </button>
                 </div>
             </div>
 
             {/* Filter Section */}
             <div className={`rounded-xl border shadow-sm p-5 space-y-5 ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"}`}>
-                {/* Fahrrad-Kategorie */}
+                {/* Kategorie */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <span className={`text-xs font-bold uppercase tracking-wider w-32 shrink-0 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                        Fahrrad-Kategorie
+                        Kategorie
                     </span>
                     <div className="flex flex-wrap gap-2">
                         <button
@@ -222,7 +222,7 @@ export default function FleetPage() {
                             </button>
                         ))}
                         <span className={`text-xs font-medium self-center ml-2 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                            {filtered.length} Räder
+                            {filtered.length} Angebote
                         </span>
                     </div>
                 </div>
@@ -316,7 +316,7 @@ export default function FleetPage() {
                     })}
                     {filtered.length === 0 && (
                         <div className={`col-span-full text-center py-12 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                            Keine Räder gefunden.
+                            Keine Angebote gefunden.
                         </div>
                     )}
                 </div>
@@ -407,13 +407,13 @@ export default function FleetPage() {
                         {filtered.length === 0 && (
                             <div className={`p-12 text-center ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                                 <Bike className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                                <p className="text-lg font-medium">Keine Räder gefunden</p>
+                                <p className="text-lg font-medium">Keine Angebote gefunden</p>
                                 {statusFilter === "all" && categoryFilter === "all" && sizeFilter === "all" && (
                                     <button
                                         onClick={() => { setEditBike(null); setShowModal(true); }}
                                         className="mt-4 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#3BAA82] text-white rounded-lg text-sm font-medium shadow-lg shadow-[#1A7D5A]/25"
                                     >
-                                        Erstes Fahrrad hinzufügen
+                                        Erstes Angebot hinzufügen
                                     </button>
                                 )}
                             </div>

@@ -149,7 +149,7 @@ export function useBookings(orgId) {
         organization_name: org?.name || "Lociva",
         organization_email: org?.email,
         organization_phone: org?.phone,
-        bike_name: bookingData.bike?.name || bookingData.booking_items?.[0]?.bike?.name || "Fahrrad",
+        bike_name: bookingData.bike?.name || bookingData.booking_items?.[0]?.bike?.name || "Angebot",
         start_date: bookingData.start_date ? fmtDate(bookingData.start_date) : "",
         end_date: bookingData.end_date ? fmtDate(bookingData.end_date) : "",
         total_days: bookingData.start_date && bookingData.end_date ? daysDiff(bookingData.start_date, bookingData.end_date) : 1,

@@ -197,7 +197,7 @@ export default function VouchersPage() {
                                             <td className="px-4 py-3 text-xs text-slate-500 space-y-0.5">
                                                 {c.min_order_value ? <div>Min. {fmtCurrency(c.min_order_value)}</div> : null}
                                                 {c.min_duration_days ? <div>Min. {c.min_duration_days} Tage</div> : null}
-                                                {c.min_quantity ? <div>Min. {c.min_quantity} Räder</div> : null}
+                                                {c.min_quantity ? <div>Min. {c.min_quantity} Angebote</div> : null}
                                                 {!c.min_order_value && !c.min_duration_days && !c.min_quantity ? <span className="text-slate-400"></span> : null}
                                             </td>
                                             <td className="px-4 py-3 text-sm">
@@ -354,7 +354,7 @@ export default function VouchersPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-sm font-medium mb-1 block">Min. Anzahl Räder</label>
+                                    <label className="text-sm font-medium mb-1 block">Min. Anzahl Angebote</label>
                                     <input type="number" className={inputStyle} value={form.min_quantity} onChange={e => setForm({ ...form, min_quantity: e.target.value })} placeholder="Optional" />
                                 </div>
                                 <div>

@@ -56,7 +56,7 @@ export function validateCouponData(coupon, bookingDetails) {
     if (coupon.min_quantity && quantity < coupon.min_quantity) {
         return {
             valid: false, discount: 0, discountAmount: 0,
-            reason: `Mindestmenge von ${coupon.min_quantity} ${coupon.min_quantity === 1 ? "Fahrrad" : "Fahrrädern"} nicht erreicht.`
+            reason: `Mindestmenge von ${coupon.min_quantity} ${coupon.min_quantity === 1 ? "Angebot" : "Angeboten"} nicht erreicht.`
         };
     }
 
@@ -68,7 +68,7 @@ export function validateCouponData(coupon, bookingDetails) {
     }
     if (coupon.applies_to === "specific_bike" && coupon.bike_id) {
         if (bikeId !== coupon.bike_id) {
-            return { valid: false, discount: 0, discountAmount: 0, reason: "Dieser Gutschein gilt nicht für dieses Fahrrad." };
+            return { valid: false, discount: 0, discountAmount: 0, reason: "Dieser Gutschein gilt nicht für dieses Angebot." };
         }
     }
 

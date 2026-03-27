@@ -77,7 +77,7 @@ export default {
     "booking.summary": "Abschluss",
     "booking.startDate": "Startdatum",
     "booking.endDate": "Enddatum",
-    "booking.selectBike": "Fahrrad wählen",
+    "booking.selectBike": "Angebot wählen",
     "booking.totalPrice": "Gesamtpreis",
     "booking.deposit": "Kaution",
     "booking.notes": "Notizen",
@@ -98,8 +98,8 @@ export default {
     "status.completed": "Abgeschlossen",
 
     // Fleet
-    "fleet.title": "Flotte",
-    "fleet.addBike": "Neues Fahrrad",
+    "fleet.title": "Angebote",
+    "fleet.addBike": "Neues Angebot",
     "fleet.name": "Name",
     "fleet.category": "Kategorie",
     "fleet.size": "Größe",

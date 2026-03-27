@@ -313,7 +313,7 @@ export default function AdminAnalyticsPage() {
                   <table className="w-full text-sm">
                     <thead className={`border-b ${darkMode ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50"}`}>
                       <tr>
-                        {["Buchungs-Nr.", "Hotel", "Fahrrad", "Betrag", "Provision", "Status"].map(h => (
+                        {["Buchungs-Nr.", "Hotel", "Angebot", "Betrag", "Provision", "Status"].map(h => (
                           <th key={h} className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{h}</th>
                         ))}
                       </tr>

@@ -352,10 +352,10 @@ export default function BookingsPage() {
 
                 {showFilters && (
                     <div className={`px-5 pb-5 space-y-5 border-t ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
-                        {/* Fahrrad-Kategorie */}
+                        {/* Kategorie */}
                         <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-5">
                             <span className={`text-xs font-bold uppercase tracking-wider w-32 shrink-0 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                Fahrrad-Kategorie
+                                Kategorie
                             </span>
                             <div className="flex flex-wrap gap-2">
                                 <button

@@ -202,7 +202,7 @@ export default function HotelStatsPage() {
                 <table className="w-full text-sm">
                   <thead className={`border-b ${darkMode ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50"}`}>
                     <tr>
-                      {["Datum", "Fahrrad", "Gast", "Zeitraum", "Betrag", "Status"].map(h => <th key={h} className={th}>{h}</th>)}
+                      {["Datum", "Angebot", "Gast", "Zeitraum", "Betrag", "Status"].map(h => <th key={h} className={th}>{h}</th>)}
                     </tr>
                   </thead>
                   <tbody>

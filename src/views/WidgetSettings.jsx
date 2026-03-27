@@ -441,7 +441,7 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
               value={settings.welcome_text || ""}
               onChange={(e) => setSettings(prev => ({ ...prev, welcome_text: e.target.value }))}
               className={inputStyle}
-              placeholder="Buchen Sie Ihr Fahrrad in wenigen Schritten"
+              placeholder="Buchen Sie Ihr Angebot in wenigen Schritten"
             />
           </div>
 

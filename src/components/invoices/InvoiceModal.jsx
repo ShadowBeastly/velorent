@@ -21,7 +21,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                 invoice_number: `RE-${year}-${ts}`,
                 customer_id: "",
                 booking_id: "",
-                items: [{ description: "Fahrradmiete", quantity: 1, unit_price: 0, total: 0 }],
+                items: [{ description: "Miete", quantity: 1, unit_price: 0, total: 0 }],
                 notes: "",
                 status: "draft",
                 due_date: new Date().toISOString().split("T")[0],
