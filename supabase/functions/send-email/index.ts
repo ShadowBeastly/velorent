@@ -62,7 +62,7 @@ const templates = {
     const providerAddress = escapeHtml(data.provider_address);
     const providerPhone = escapeHtml(data.provider_phone);
     const bookingNumber = escapeHtml(String(data.booking_number ?? ""));
-    const bikeName = escapeHtml(data.bike_name);
+    const itemName = escapeHtml(data.item_name ?? data.bike_name);
     const totalPrice = escapeHtml(String(data.total_price ?? ""));
     const totalDays = escapeHtml(String(data.total_days ?? ""));
     const startDate = escapeHtml(data.start_date);
@@ -99,7 +99,7 @@ const templates = {
       <div style="background:#F5FAF7;border-radius:12px;padding:24px;margin:0 0 24px;border:1px solid #D4EDE2;">
         <table style="width:100%;border-collapse:collapse;">
           <tr><td style="padding:8px 0;color:#6B7280;font-size:14px;">${de ? "Buchungsnummer" : "Booking #"}</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#1A7D5A;font-size:20px;">${bookingNumber}</td></tr>
-          <tr style="border-top:1px solid #D4EDE2;"><td style="padding:12px 0 8px;color:#6B7280;font-size:14px;">${de ? "Artikel" : "Item"}</td><td style="padding:12px 0 8px;text-align:right;font-weight:500;color:#1E2D26;">${bikeName}</td></tr>
+          <tr style="border-top:1px solid #D4EDE2;"><td style="padding:12px 0 8px;color:#6B7280;font-size:14px;">${de ? "Artikel" : "Item"}</td><td style="padding:12px 0 8px;text-align:right;font-weight:500;color:#1E2D26;">${itemName}</td></tr>
           <tr><td style="padding:8px 0;color:#6B7280;font-size:14px;">${de ? "Zeitraum" : "Period"}</td><td style="padding:8px 0;text-align:right;color:#1E2D26;">${startDate} - ${endDate}</td></tr>
           <tr><td style="padding:8px 0;color:#6B7280;font-size:14px;">${de ? "Dauer" : "Duration"}</td><td style="padding:8px 0;text-align:right;color:#1E2D26;">${totalDays} ${de ? (Number(data.total_days) === 1 ? "Tag" : "Tage") : (Number(data.total_days) === 1 ? "day" : "days")}</td></tr>
           <tr style="border-top:1px solid #D4EDE2;"><td style="padding:16px 0 8px;color:#1E2D26;font-weight:600;font-size:15px;">${de ? "Gesamtbetrag" : "Total"}</td><td style="padding:16px 0 8px;text-align:right;font-weight:700;color:#1E2D26;font-size:20px;">${totalPrice}</td></tr>
@@ -126,7 +126,7 @@ const templates = {
     const customerName = escapeHtml(data.customer_name);
     const organizationName = escapeHtml(data.organization_name);
     const bookingNumber = escapeHtml(String(data.booking_number ?? ""));
-    const bikeName = escapeHtml(data.bike_name);
+    const itemName = escapeHtml(data.item_name ?? data.bike_name);
     const startDate = escapeHtml(data.start_date);
     const endDate = escapeHtml(data.end_date);
     const totalDays = escapeHtml(String(data.total_days ?? ""));
@@ -137,12 +137,12 @@ const templates = {
     const organizationEmail = escapeHtml(data.organization_email ?? "");
     const organizationAddress = escapeHtml(data.organization_address ?? "");
     return {
-      subject: `Buchungsbestätigung #${bookingNumber}`,
+      subject: `✅ Buchungsbestätigung #${bookingNumber}`,
       html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8fafc;margin:0;padding:40px 20px;">
   <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,.05);">
     <div style="background:linear-gradient(135deg,#f97316,#fbbf24);padding:32px;text-align:center;">
-      <h1 style="color:white;margin:0;font-size:24px;">🚴 Buchungsbestätigung</h1>
+      <h1 style="color:white;margin:0;font-size:24px;">✅ Buchungsbestätigung</h1>
     </div>
     <div style="padding:32px;">
       <p style="font-size:18px;color:#1e293b;margin:0 0 24px;">Hallo ${customerName},</p>
@@ -150,7 +150,7 @@ const templates = {
       <div style="background:#f8fafc;border-radius:12px;padding:24px;margin:0 0 24px;">
         <table style="width:100%;border-collapse:collapse;">
           <tr><td style="padding:8px 0;color:#64748b;">Buchungsnummer</td><td style="padding:8px 0;text-align:right;font-weight:600;color:#f97316;font-size:18px;">${bookingNumber}</td></tr>
-          <tr><td style="padding:8px 0;color:#64748b;">Fahrrad</td><td style="padding:8px 0;text-align:right;font-weight:500;color:#1e293b;">${bikeName}</td></tr>
+          <tr><td style="padding:8px 0;color:#64748b;">Artikel</td><td style="padding:8px 0;text-align:right;font-weight:500;color:#1e293b;">${itemName}</td></tr>
           <tr><td style="padding:8px 0;color:#64748b;">Zeitraum</td><td style="padding:8px 0;text-align:right;color:#1e293b;">${startDate} - ${endDate}</td></tr>
           <tr><td style="padding:8px 0;color:#64748b;">Dauer</td><td style="padding:8px 0;text-align:right;color:#1e293b;">${totalDays} Tage</td></tr>
           <tr style="border-top:1px solid #e2e8f0;"><td style="padding:16px 0 8px;color:#1e293b;font-weight:600;">Gesamtpreis</td><td style="padding:16px 0 8px;text-align:right;font-weight:700;color:#1e293b;font-size:20px;">${totalPrice}</td></tr>
@@ -181,7 +181,7 @@ const templates = {
     const customerEmail = escapeHtml(data.customer_email ?? "");
     const customerPhone = escapeHtml(data.customer_phone ?? "");
     const bookingNumber = escapeHtml(String(data.booking_number ?? ""));
-    const bikeName = escapeHtml(data.bike_name);
+    const itemName = escapeHtml(data.item_name ?? data.bike_name);
     const startDate = escapeHtml(data.start_date);
     const endDate = escapeHtml(data.end_date);
     const totalDays = escapeHtml(String(data.total_days ?? ""));
@@ -190,7 +190,7 @@ const templates = {
     // dashboard_url is an internal URL. validate it starts with https://
     const dashboardUrl = (data.dashboard_url && data.dashboard_url.startsWith("https://")) ? data.dashboard_url : "#";
     return {
-      subject: `🚴 Neue Buchung #${bookingNumber} - ${customerName}`,
+      subject: `✅ Neue Buchung #${bookingNumber} - ${customerName}`,
       html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="font-family:-apple-system,sans-serif;background:#f8fafc;margin:0;padding:40px 20px;">
   <div style="max-width:600px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;">
@@ -202,7 +202,7 @@ const templates = {
           <tr><td style="padding:8px 0;color:#64748b;width:120px;">Kunde</td><td style="padding:8px 0;font-weight:500;color:#1e293b;">${customerName}</td></tr>
           ${customerEmail?`<tr><td style="padding:8px 0;color:#64748b;">E-Mail</td><td><a href="mailto:${customerEmail}" style="color:#3b82f6;">${customerEmail}</a></td></tr>`:""}
           ${customerPhone?`<tr><td style="padding:8px 0;color:#64748b;">Telefon</td><td><a href="tel:${customerPhone}" style="color:#3b82f6;">${customerPhone}</a></td></tr>`:""}
-          <tr style="border-top:1px solid #e2e8f0;"><td style="padding:16px 0 8px;color:#64748b;">Fahrrad</td><td style="padding:16px 0 8px;font-weight:500;color:#1e293b;">${bikeName}</td></tr>
+          <tr style="border-top:1px solid #e2e8f0;"><td style="padding:16px 0 8px;color:#64748b;">Artikel</td><td style="padding:16px 0 8px;font-weight:500;color:#1e293b;">${itemName}</td></tr>
           <tr><td style="padding:8px 0;color:#64748b;">Zeitraum</td><td style="padding:8px 0;color:#1e293b;">${startDate} - ${endDate} (${totalDays} Tage)</td></tr>
           <tr><td style="padding:8px 0;color:#64748b;">Preis</td><td style="padding:8px 0;font-weight:600;color:#16a34a;font-size:18px;">${totalPrice}</td></tr>
         </table>
@@ -217,7 +217,7 @@ const templates = {
 
   pickup_reminder: (data) => {
     const customerName = escapeHtml(data.customer_name);
-    const bikeName = escapeHtml(data.bike_name);
+    const itemName = escapeHtml(data.item_name ?? data.bike_name);
     const customerPhone = escapeHtml(data.customer_phone ?? "");
     const bookingNumber = escapeHtml(String(data.booking_number ?? ""));
     const dashboardUrl = (data.dashboard_url && data.dashboard_url.startsWith("https://")) ? data.dashboard_url : "#";
@@ -230,7 +230,7 @@ const templates = {
     <div style="padding:32px;">
       <div style="background:#f8fafc;border-radius:12px;padding:20px;">
         <p style="margin:0 0 8px;"><strong>Kunde:</strong> ${customerName}</p>
-        <p style="margin:0 0 8px;"><strong>Fahrrad:</strong> ${bikeName}</p>
+        <p style="margin:0 0 8px;"><strong>Angebot:</strong> ${itemName}</p>
         <p style="margin:0 0 8px;"><strong>Telefon:</strong> ${customerPhone||""}</p>
         <p style="margin:0;"><strong>Buchung:</strong> #${bookingNumber}</p>
       </div>
@@ -243,7 +243,7 @@ const templates = {
 
   return_reminder: (data) => {
     const customerName = escapeHtml(data.customer_name);
-    const bikeName = escapeHtml(data.bike_name);
+    const itemName = escapeHtml(data.item_name ?? data.bike_name);
     const startDate = escapeHtml(data.start_date);
     const bookingNumber = escapeHtml(String(data.booking_number ?? ""));
     const dashboardUrl = (data.dashboard_url && data.dashboard_url.startsWith("https://")) ? data.dashboard_url : "#";
@@ -256,7 +256,7 @@ const templates = {
     <div style="padding:32px;">
       <div style="background:#f8fafc;border-radius:12px;padding:20px;">
         <p style="margin:0 0 8px;"><strong>Kunde:</strong> ${customerName}</p>
-        <p style="margin:0 0 8px;"><strong>Fahrrad:</strong> ${bikeName}</p>
+        <p style="margin:0 0 8px;"><strong>Angebot:</strong> ${itemName}</p>
         <p style="margin:0 0 8px;"><strong>Seit:</strong> ${startDate}</p>
         <p style="margin:0;"><strong>Buchung:</strong> #${bookingNumber}</p>
       </div>

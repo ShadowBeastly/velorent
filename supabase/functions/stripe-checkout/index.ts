@@ -31,12 +31,6 @@ function buildCors(req: Request) {
   };
 }
 
-const COMMISSION_RATES: Record<string, number> = {
-  "E-Bike": 0.05, "Mountainbike": 0.05, "City-Bike": 0.05, "Trekking": 0.05, "E-MTB": 0.05, "Lastenrad": 0.05,
-  "Canoe": 0.10, "SUP": 0.10, "Go-Kart": 0.10, "Climbing": 0.10, "Escape Room": 0.10,
-  "Guided Tour": 0.12, "Wine Tasting": 0.12, "Wellness": 0.12, "Spa": 0.12,
-  "Hot Air Balloon": 0.15, "Sailing": 0.15,
-};
 
 serve(async (req) => {
   const CORS = buildCors(req);
@@ -96,7 +90,14 @@ serve(async (req) => {
     }
 
     // 3. Calculate pricing based on rental_type
-    const commissionRate = COMMISSION_RATES[bike.category] ?? 0.05;
+    // Lookup commission rate from DB, fallback to 5%
+    const { data: commissionRow } = await supabase
+      .from("commission_rates")
+      .select("rate")
+      .eq("item_type", bike.category)
+      .eq("is_active", true)
+      .maybeSingle();
+    const commissionRate = commissionRow?.rate ?? 0.05;
     let totalPriceEur: number;
     let productName: string;
     let productDescription: string;
@@ -190,6 +191,8 @@ serve(async (req) => {
       metadata: {
         hotel_id:            hotel_id || "",
         bike_id:             bike_id,
+        item_id:             bike_id,        // Dual-write: new key (same value during transition)
+        item_name:           bike.name,      // Dual-write: new key
         org_id:              org_id,
         start_date:          start_date,
         end_date:            end_date,

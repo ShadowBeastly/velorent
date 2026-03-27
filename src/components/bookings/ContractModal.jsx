@@ -116,7 +116,7 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                         <table className="w-full text-sm">
                             <tbody>
                                 <tr className="border-b border-gray-100">
-                                    <td className="py-2 w-1/3 font-semibold text-gray-500">Fahrrad</td>
+                                    <td className="py-2 w-1/3 font-semibold text-gray-500">Angebot</td>
                                     <td className="py-2">{booking?.bike?.name || ''}</td>
                                 </tr>
                                 <tr className="border-b border-gray-100">
@@ -129,7 +129,7 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                                 </tr>
                                 <tr className="border-b border-gray-100">
                                     <td className="py-2 font-semibold text-gray-500">Rahmennummer</td>
-                                    <td className="py-2">{booking?.bike?.frame_number || '(siehe Rad)'}</td>
+                                    <td className="py-2">{booking?.bike?.frame_number || ''}</td>
                                 </tr>
                                 <tr>
                                     <td className="py-2 font-semibold text-gray-500">Zustand bei Übergabe</td>
@@ -210,11 +210,11 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                     <div className="mb-8">
                         <h2 className="text-base font-bold border-b border-gray-300 pb-1 mb-3">5. Allgemeine Mietbedingungen</h2>
                         <ol className="text-xs text-gray-600 space-y-2 list-decimal list-inside leading-relaxed">
-                            <li>Das Fahrrad ist in einwandfreiem Zustand zurückzugeben. Schäden am Mietgegenstand, die über normale Abnutzung hinausgehen, sind sofort zu melden und werden dem Mieter in Rechnung gestellt.</li>
-                            <li>Der Mieter haftet für den Verlust oder die Beschädigung des Fahrrads während der Mietdauer. Bei Diebstahl ist unverzüglich Anzeige zu erstatten und der Vermieter zu informieren.</li>
-                            <li>Das Fahrrad darf nur von der im Vertrag genannten Person genutzt werden und ist nicht zur Weitervermietung bestimmt.</li>
+                            <li>Der Mietgegenstand ist in einwandfreiem Zustand zurückzugeben. Schäden am Mietgegenstand, die über normale Abnutzung hinausgehen, sind sofort zu melden und werden dem Mieter in Rechnung gestellt.</li>
+                            <li>Der Mieter haftet für den Verlust oder die Beschädigung des Mietgegenstands während der Mietdauer. Bei Diebstahl ist unverzüglich Anzeige zu erstatten und der Vermieter zu informieren.</li>
+                            <li>Der Mietgegenstand darf nur von der im Vertrag genannten Person genutzt werden und ist nicht zur Weitervermietung bestimmt.</li>
                             <li>Bei verspäteter Rückgabe ohne vorherige Absprache wird eine zusätzliche Miete in Höhe des Tagespreises berechnet.</li>
-                            <li>Die Kaution wird nach vollständiger und unbeschädigter Rückgabe des Fahrrads erstattet. Der Vermieter behält sich das Recht vor, etwaige Schadenskosten von der Kaution abzuziehen.</li>
+                            <li>Die Kaution wird nach vollständiger und unbeschädigter Rückgabe des Mietgegenstands erstattet. Der Vermieter behält sich das Recht vor, etwaige Schadenskosten von der Kaution abzuziehen.</li>
                             <li>Reparaturen dürfen ohne ausdrückliche Genehmigung des Vermieters nicht selbst durchgeführt werden. Im Pannenfall ist der Vermieter umgehend zu kontaktieren.</li>
                         </ol>
                     </div>

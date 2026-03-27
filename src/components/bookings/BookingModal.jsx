@@ -59,7 +59,7 @@ function fmtEur(n) {
 }
 
 const STEPS = [
-    { id: 1, label: "Zeitraum & Rad", icon: Calendar },
+    { id: 1, label: "Zeitraum & Angebot", icon: Calendar },
     { id: 2, label: "Kunde", icon: User },
     { id: 3, label: "Details", icon: CreditCard },
     { id: 4, label: "Abschluss", icon: CheckCircle }
@@ -284,11 +284,11 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                 setStepError("Das Enddatum darf nicht vor dem Startdatum liegen."); return;
             }
             if (isGroupBooking) {
-                if (form.selectedBikes.length < 1) { setStepError("Bitte mindestens ein Rad für die Gruppenbuchung wählen."); return; }
+                if (form.selectedBikes.length < 1) { setStepError("Bitte mindestens ein Angebot für die Gruppenbuchung wählen."); return; }
                 if (groupConflicts.length > 0) { setStepError(`Verfügbarkeitskonflikt: ${groupConflicts.map(b => b.name).join(", ")} ist/sind im gewählten Zeitraum bereits vergeben.`); return; }
             } else {
-                if (!form.bike_id) { setStepError("Bitte ein Rad wählen."); return; }
-                if (!isBikeAvailable) { setStepError(`Rad nicht verfügbar. Konflikt mit Buchung ${conflictingBooking.booking_number} (${new Date(conflictingBooking.start_date).toLocaleDateString()} - ${new Date(conflictingBooking.end_date).toLocaleDateString()}).`); return; }
+                if (!form.bike_id) { setStepError("Bitte ein Angebot wählen."); return; }
+                if (!isBikeAvailable) { setStepError(`Angebot nicht verfügbar. Konflikt mit Buchung ${conflictingBooking.booking_number} (${new Date(conflictingBooking.start_date).toLocaleDateString()} - ${new Date(conflictingBooking.end_date).toLocaleDateString()}).`); return; }
             }
         }
         if (step === 2) {
@@ -499,7 +499,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                             {/* Single-bike picker */}
                             {!isGroupBooking && (
                                 <div>
-                                    <label className={labelStyle}>Fahrrad wählen</label>
+                                    <label className={labelStyle}>Angebot wählen</label>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2">
                                         {bikes.map(bike => {
                                             const isSelected = form.bike_id === bike.id;
@@ -864,7 +864,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                             <div className="flex justify-between mb-1">
                                                 <span className="text-slate-500 flex items-center gap-1">
                                                     <Users className="w-3.5 h-3.5" />
-                                                    Gruppe ({form.selectedBikes.length} Räder)
+                                                    Gruppe ({form.selectedBikes.length} Angebote)
                                                 </span>
                                             </div>
                                             <div className="space-y-1 pl-2">
@@ -881,7 +881,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
                                         </div>
                                     ) : (
                                         <div className="flex justify-between">
-                                            <span className="text-slate-500">Fahrrad</span>
+                                            <span className="text-slate-500">Angebot</span>
                                             <span className="font-medium">{selectedBike?.name}</span>
                                         </div>
                                     )}

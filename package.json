@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test src/utils/formatters.test.js src/utils/calculatePrice.test.js src/utils/exportCSV.test.js"
+    "test": "node --test src/utils/formatters.test.js src/utils/calculatePrice.test.js src/utils/exportCSV.test.js src/utils/generalization.test.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -37,6 +37,7 @@ export default function MarketplacePage() {
   const [cancelType, setCancelType] = useState("free");
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState("");
+  const [commissionRates, setCommissionRates] = useState([]);
 
   const card = darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200";
   const inputCls = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-[#1A7D5A] ${darkMode ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400" : "bg-white border-slate-300 text-slate-900"}`;
@@ -55,14 +56,16 @@ export default function MarketplacePage() {
     if (!currentOrg?.id) return;
     async function load() {
       setLoading(true);
-      const [{ data: orgData }, { data: hotelsData }, { data: bookingsData }] = await Promise.all([
+      const [{ data: orgData }, { data: hotelsData }, { data: bookingsData }, { data: ratesData }] = await Promise.all([
         supabase.from("organizations").select("id, name, is_platform_provider, stripe_account_id, stripe_onboarding_complete, stripe_charges_enabled, provider_description, provider_address, provider_phone, agb_accepted_at").eq("id", currentOrg.id).single(),
         supabase.from("hotel_providers").select("distance_km, is_active, hotels(id, name, address, slug)").eq("organization_id", currentOrg.id).eq("is_active", true),
-        supabase.from("bookings").select("id, booking_number, total_price, platform_commission, status, cancellation_status, created_at, guest_name, start_date, end_date, booking_source, hotels(name), bike:bikes(name)").eq("organization_id", currentOrg.id).eq("booking_source", "hotel_qr").order("created_at", { ascending: false }).limit(20),
+        supabase.from("bookings").select("id, booking_number, total_price, platform_commission, status, cancellation_status, created_at, guest_name, start_date, end_date, booking_source, hotels(name), item:items(name)").eq("organization_id", currentOrg.id).eq("booking_source", "hotel_qr").order("created_at", { ascending: false }).limit(20),
+        supabase.from("commission_rates").select("item_type, rate").eq("is_active", true),
       ]);
       setOrg(orgData);
       setHotels(hotelsData || []);
       setBookings(bookingsData || []);
+      setCommissionRates(ratesData || []);
       if (orgData) {
         setProfile({ provider_description: orgData.provider_description || "", provider_address: orgData.provider_address || "", provider_phone: orgData.provider_phone || "" });
       }
@@ -270,7 +273,7 @@ export default function MarketplacePage() {
             <table className="w-full text-sm">
               <thead className={`border-b ${darkMode ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-slate-50"}`}>
                 <tr>
-                  {["Datum", "Hotel", "Gast", "Fahrrad", "Zeitraum", "Betrag", "Provision", "Status", ""].map(h => (
+                  {["Datum", "Hotel", "Gast", "Angebot", "Zeitraum", "Betrag", "Provision", "Status", ""].map(h => (
                     <th key={h} className={`text-left px-4 py-3 text-xs font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{h}</th>
                   ))}
                 </tr>
@@ -281,7 +284,7 @@ export default function MarketplacePage() {
                     <td className="px-4 py-3 text-xs text-slate-400">{new Date(b.created_at).toLocaleDateString("de-DE")}</td>
                     <td className="px-4 py-3 text-sm">{b.hotels?.name || ""}</td>
                     <td className="px-4 py-3 text-sm">{b.guest_name || ""}</td>
-                    <td className="px-4 py-3 text-sm">{b.bike?.name || ""}</td>
+                    <td className="px-4 py-3 text-sm">{b.item?.name || ""}</td>
                     <td className="px-4 py-3 text-xs text-slate-400">{b.start_date} - {b.end_date}</td>
                     <td className="px-4 py-3 font-semibold">{formatEur(b.total_price)}</td>
                     <td className="px-4 py-3 text-sm text-red-400">−{formatEur(b.platform_commission)}</td>
@@ -385,12 +388,15 @@ export default function MarketplacePage() {
             <div>
               <p className="font-semibold mb-1">2. Provisionsstruktur</p>
               <p>Für jede über die Lociva-Plattform vermittelte Buchung wird eine Provision fällig, die automatisch über Stripe abgerechnet wird:</p>
-              <ul className="list-disc pl-4 mt-1 space-y-0.5">
-                <li>Fahrräder / E-Bikes / Trekkingräder: 5 %</li>
-                <li>Kanu / SUP / Go-Kart / Klettern / Escape Room: 10 %</li>
-                <li>Geführte Touren / Weinverkostung / Wellness / Spa: 12 %</li>
-                <li>Heißluftballon / Segeln: 15 %</li>
-              </ul>
+              {commissionRates.length > 0 ? (
+                <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                  {commissionRates.map((r) => (
+                    <li key={r.item_type}>{r.item_type}: {(r.rate * 100).toFixed(0)} %</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={`text-xs mt-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Provisionssätze werden geladen…</p>
+              )}
             </div>
             <div>
               <p className="font-semibold mb-1">3. Stripe Connect & Auszahlungen</p>

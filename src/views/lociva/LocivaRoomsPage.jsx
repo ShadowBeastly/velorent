@@ -232,6 +232,10 @@ export default function LocivaRoomsPage() {
     const { darkMode } = useApp();
     const { rooms, loading, create, update, remove } = useHotelRooms(hotelId);
 
+    const isSelfManaged = !!hotel?.is_self_managed;
+    const zimmer = isSelfManaged ? "Bereich/Stellplatz" : "Zimmer";
+    const zimmerPlural = isSelfManaged ? "Bereiche/Stellplätze" : "Zimmer";
+
     const [mode, setMode]           = useState(null); // null | "single" | "bulk"
     const [saving, setSaving]       = useState(false);
     const [deleting, setDeleting]   = useState(null);
@@ -263,7 +267,7 @@ export default function LocivaRoomsPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Zimmer wirklich löschen?")) return;
+        if (!confirm(`${zimmer} wirklich löschen?`)) return;
         setDeleting(id);
         await remove(id);
         setDeleting(null);
@@ -284,9 +288,9 @@ export default function LocivaRoomsPage() {
             {/* Header */}
             <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Zimmer & QR-Codes</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{zimmerPlural} & QR-Codes</h1>
                     <p className={`text-sm mt-0.5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                        Verwalten Sie Ihre Zimmer und generieren Sie QR-Codes für jeden Raum.
+                        Verwalten Sie Ihre {zimmerPlural.toLowerCase()} und generieren Sie QR-Codes für jeden Bereich.
                     </p>
                 </div>
                 {!mode && (
@@ -300,7 +304,7 @@ export default function LocivaRoomsPage() {
                         <button onClick={() => { setMode("single"); setSaveError(null); }}
                             className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-md"
                             style={{ background: C.primary }}>
-                            <Plus className="w-4 h-4" /> Zimmer hinzufügen
+                            <Plus className="w-4 h-4" /> {zimmer} hinzufügen
                         </button>
                     </div>
                 )}
@@ -310,7 +314,7 @@ export default function LocivaRoomsPage() {
             {mode === "single" && (
                 <div className={`rounded-2xl border p-6 ${card}`}>
                     <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Zimmer hinzufügen</h2>
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{zimmer} hinzufügen</h2>
                         <button onClick={() => { setMode(null); setSaveError(null); }}
                             className={`p-1.5 rounded-lg transition-colors ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-100"}`}>
                             <X className="w-4 h-4" />
@@ -334,7 +338,7 @@ export default function LocivaRoomsPage() {
             {mode === "bulk" && (
                 <div className={`rounded-2xl border p-6 ${card}`}>
                     <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Mehrere Zimmer hinzufügen</h2>
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Mehrere {zimmerPlural.toLowerCase()} hinzufügen</h2>
                         <button onClick={() => { setMode(null); setSaveError(null); }}
                             className={`p-1.5 rounded-lg transition-colors ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-100"}`}>
                             <X className="w-4 h-4" />
@@ -369,9 +373,9 @@ export default function LocivaRoomsPage() {
                         style={{ background: C.tint }}>
                         <BedDouble className="w-7 h-7" style={{ color: C.primary }} />
                     </div>
-                    <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Noch keine Zimmer angelegt</h3>
+                    <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Noch keine {zimmerPlural.toLowerCase()} angelegt</h3>
                     <p className={`text-sm mb-5 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                        Fügen Sie Ihre Zimmer hinzu und generieren Sie QR-Codes, die Gäste direkt zur Buchungsseite führen.
+                        Fügen Sie Ihre {zimmerPlural.toLowerCase()} hinzu und generieren Sie QR-Codes, die Gäste direkt zur Buchungsseite führen.
                     </p>
                     <div className="flex items-center justify-center gap-3 flex-wrap">
                         <button onClick={() => setMode("bulk")}
@@ -383,7 +387,7 @@ export default function LocivaRoomsPage() {
                         <button onClick={() => setMode("single")}
                             className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-white text-sm font-semibold"
                             style={{ background: C.primary }}>
-                            <Plus className="w-4 h-4" /> Erstes Zimmer anlegen
+                            <Plus className="w-4 h-4" /> Ersten {zimmer.toLowerCase()} anlegen
                         </button>
                     </div>
                 </div>
@@ -399,14 +403,14 @@ export default function LocivaRoomsPage() {
                                     {floor}
                                 </h3>
                                 <span className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                    {floorRooms.length} {floorRooms.length === 1 ? "Zimmer" : "Zimmer"}
+                                    {floorRooms.length} {floorRooms.length === 1 ? zimmer : zimmerPlural}
                                 </span>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead className={`border-b ${darkMode ? "border-slate-700" : "border-slate-100"}`}>
                                         <tr>
-                                            <th className={th}>Zimmer</th>
+                                            <th className={th}>{zimmer}</th>
                                             <th className={th}>Etage</th>
                                             <th className={th}>QR-Code</th>
                                             <th className={th}>Aktiv</th>

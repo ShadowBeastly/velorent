@@ -15,8 +15,9 @@ export default function SetupWizard({ supabase, user, onComplete }) {
   const [orgName, setOrgName] = useState("");
   const [orgSlug, setOrgSlug] = useState("");
 
-  // Step 2: First Bikes
-  const [bikes, setBikes] = useState([
+  // Step 2: First Items
+  const [itemType, setItemType] = useState("rental");
+  const [items, setItems] = useState([
     { name: "", category: "E-Bike", price: 35 }
   ]);
 
@@ -62,16 +63,18 @@ export default function SetupWizard({ supabase, user, onComplete }) {
         is_enabled: settings.enableWidget
       });
 
-      // Add bikes
-      const validBikes = bikes.filter(b => b.name.trim());
-      if (validBikes.length > 0) {
-        await supabase.from("bikes").insert(
-          validBikes.map(b => ({
+      // Add items
+      const validItems = items.filter(i => i.name.trim());
+      if (validItems.length > 0) {
+        await supabase.from("items").insert(
+          validItems.map(i => ({
             organization_id: org.id,
-            name: b.name,
-            category: b.category,
-            price_per_day: b.price,
-            status: "available"
+            name: i.name,
+            category: i.category || null,
+            price_per_day: i.price || null,
+            item_type: itemType,
+            status: "available",
+            ...(itemType === "experience" && i.capacity ? { capacity: parseInt(i.capacity) } : {})
           }))
         );
       }
@@ -103,22 +106,27 @@ export default function SetupWizard({ supabase, user, onComplete }) {
     }
   };
 
-  const addBike = () => {
-    if (bikes.length < 5) {
-      setBikes([...bikes, { name: "", category: "E-Bike", price: 35 }]);
+  const addItem = () => {
+    if (items.length < 5) {
+      setItems([...items, { name: "", category: itemType === "rental" ? "E-Bike" : "", price: itemType === "rental" ? 35 : 0 }]);
     }
   };
 
-  const updateBike = (index, field, value) => {
-    const updated = [...bikes];
+  const updateItem = (index, field, value) => {
+    const updated = [...items];
     updated[index][field] = value;
-    setBikes(updated);
+    setItems(updated);
   };
 
-  const removeBike = (index) => {
-    if (bikes.length > 1) {
-      setBikes(bikes.filter((_, i) => i !== index));
+  const removeItem = (index) => {
+    if (items.length > 1) {
+      setItems(items.filter((_, i) => i !== index));
     }
+  };
+
+  const handleItemTypeChange = (newType) => {
+    setItemType(newType);
+    setItems([{ name: "", category: newType === "rental" ? "E-Bike" : "", price: newType === "rental" ? 35 : 0 }]);
   };
 
   return (
@@ -130,7 +138,7 @@ export default function SetupWizard({ supabase, user, onComplete }) {
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Willkommen bei Lociva!</h1>
-          <p className="text-slate-400">Richten Sie Ihren Fahrradverleih in wenigen Schritten ein</p>
+          <p className="text-slate-400">Richten Sie Ihr Angebot in wenigen Schritten ein</p>
         </div>
 
         {/* Progress Bar */}
@@ -153,7 +161,7 @@ export default function SetupWizard({ supabase, user, onComplete }) {
           </div>
           <div className="flex justify-between text-xs text-slate-500 px-2">
             <span>Unternehmen</span>
-            <span>Fahrräder</span>
+            <span>Angebote</span>
             <span>Fertig</span>
           </div>
         </div>
@@ -170,7 +178,7 @@ export default function SetupWizard({ supabase, user, onComplete }) {
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-white">Ihr Unternehmen</h2>
-                  <p className="text-sm text-slate-400">Wie heißt Ihr Fahrradverleih?</p>
+                  <p className="text-sm text-slate-400">Wie heißt Ihr Unternehmen?</p>
                 </div>
               </div>
 
@@ -215,7 +223,7 @@ export default function SetupWizard({ supabase, user, onComplete }) {
             </div>
           )}
 
-          {/* Step 2: Bikes */}
+          {/* Step 2: Items */}
           {step === 2 && (
             <div className="p-8">
               <div className="flex items-center gap-3 mb-6">
@@ -223,66 +231,129 @@ export default function SetupWizard({ supabase, user, onComplete }) {
                   <Bike className="w-6 h-6 text-[#3BAA82]" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-white">Ihre Fahrräder</h2>
-                  <p className="text-sm text-slate-400">Fügen Sie Ihre ersten Räder hinzu (optional)</p>
+                  <h2 className="text-xl font-semibold text-white">Erstes Angebot</h2>
+                  <p className="text-sm text-slate-400">Fügen Sie Ihre ersten Angebote hinzu (optional)</p>
+                </div>
+              </div>
+
+              {/* Item type selector */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-slate-300 mb-3">Angebotstyp</label>
+                <div className="flex gap-3">
+                  {[
+                    { value: "rental", label: "Verleih" },
+                    { value: "experience", label: "Erlebnis" },
+                    { value: "food_beverage", label: "Gastronomie" }
+                  ].map(({ value, label }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => handleItemTypeChange(value)}
+                      className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium border transition-all ${
+                        itemType === value
+                          ? "bg-[#1A7D5A]/20 border-[#1A7D5A] text-[#3BAA82]"
+                          : "bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               <div className="space-y-4">
-                {bikes.map((bike, index) => (
-                  <div key={index} className="flex gap-3 items-start">
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        value={bike.name}
-                        onChange={(e) => updateBike(index, "name", e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-[#1A7D5A] outline-none"
-                        placeholder="z.B. City E-Bike"
-                      />
+                {items.map((item, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex gap-3 items-start">
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) => updateItem(index, "name", e.target.value)}
+                          className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-[#1A7D5A] outline-none"
+                          placeholder={
+                            itemType === "rental" ? "z.B. City E-Bike"
+                            : itemType === "experience" ? "z.B. Stadtführung Deluxe"
+                            : "z.B. Frühstückskorb"
+                          }
+                        />
+                      </div>
+
+                      {/* Rental: fixed category dropdown */}
+                      {itemType === "rental" && (
+                        <select
+                          value={item.category}
+                          onChange={(e) => updateItem(index, "category", e.target.value)}
+                          className="px-3 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:border-[#1A7D5A] outline-none"
+                        >
+                          <option>E-Bike</option>
+                          <option>E-MTB</option>
+                          <option>Lastenrad</option>
+                          <option>Kinder</option>
+                          <option>Bio</option>
+                        </select>
+                      )}
+
+                      {/* Experience / Food: free text category */}
+                      {(itemType === "experience" || itemType === "food_beverage") && (
+                        <input
+                          type="text"
+                          value={item.category}
+                          onChange={(e) => updateItem(index, "category", e.target.value)}
+                          className="w-32 px-3 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-[#1A7D5A] outline-none"
+                          placeholder="Kategorie"
+                        />
+                      )}
+
+                      <div className="flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-xl px-3">
+                        <input
+                          type="number"
+                          value={item.price}
+                          onChange={(e) => updateItem(index, "price", parseInt(e.target.value) || 0)}
+                          className="w-16 py-3 bg-transparent text-white outline-none text-center"
+                        />
+                        <span className="text-slate-500">€</span>
+                      </div>
+
+                      {items.length > 1 && (
+                        <button
+                          onClick={() => removeItem(index)}
+                          className="p-3 text-slate-500 hover:text-red-400"
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
-                    <select
-                      value={bike.category}
-                      onChange={(e) => updateBike(index, "category", e.target.value)}
-                      className="px-3 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:border-[#1A7D5A] outline-none"
-                    >
-                      <option>E-Bike</option>
-                      <option>E-MTB</option>
-                      <option>Lastenrad</option>
-                      <option>Kinder</option>
-                      <option>Bio</option>
-                    </select>
-                    <div className="flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-xl px-3">
-                      <input
-                        type="number"
-                        value={bike.price}
-                        onChange={(e) => updateBike(index, "price", parseInt(e.target.value) || 0)}
-                        className="w-16 py-3 bg-transparent text-white outline-none text-center"
-                      />
-                      <span className="text-slate-500">€</span>
-                    </div>
-                    {bikes.length > 1 && (
-                      <button
-                        onClick={() => removeBike(index)}
-                        className="p-3 text-slate-500 hover:text-red-400"
-                      >
-                        ×
-                      </button>
+
+                    {/* Experience: capacity field */}
+                    {itemType === "experience" && (
+                      <div className="flex items-center gap-2 pl-1">
+                        <label className="text-xs text-slate-500 w-24">Kapazität</label>
+                        <input
+                          type="number"
+                          value={item.capacity || ""}
+                          onChange={(e) => updateItem(index, "capacity", e.target.value)}
+                          className="w-24 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-[#1A7D5A] outline-none text-sm"
+                          placeholder="Personen"
+                          min={1}
+                        />
+                      </div>
                     )}
                   </div>
                 ))}
 
-                {bikes.length < 5 && (
+                {items.length < 5 && (
                   <button
-                    onClick={addBike}
+                    onClick={addItem}
                     className="flex items-center gap-2 text-[#3BAA82] hover:text-[#3BAA82] text-sm"
                   >
                     <Plus className="w-4 h-4" />
-                    Weiteres Rad hinzufügen
+                    Weiteres Angebot hinzufügen
                   </button>
                 )}
 
                 <p className="text-xs text-slate-500 mt-4">
-                  💡 Sie können später beliebig viele Räder hinzufügen
+                  Sie können später beliebig viele Angebote hinzufügen
                 </p>
               </div>
             </div>
@@ -344,7 +415,7 @@ export default function SetupWizard({ supabase, user, onComplete }) {
                 <h3 className="text-emerald-400 font-semibold mb-2">✓ Zusammenfassung</h3>
                 <ul className="text-sm text-emerald-300/80 space-y-1">
                   <li>• Unternehmen: <strong>{orgName || ""}</strong></li>
-                  <li>• Fahrräder: <strong>{bikes.filter(b => b.name.trim()).length || "Keine"}</strong></li>
+                  <li>• Angebote: <strong>{items.filter(i => i.name.trim()).length || "Keine"}</strong></li>
                   <li>• Online-Widget: <strong>{settings.enableWidget ? "Aktiv" : "Deaktiviert"}</strong></li>
                 </ul>
               </div>

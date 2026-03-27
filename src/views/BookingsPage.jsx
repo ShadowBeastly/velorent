@@ -205,7 +205,7 @@ export default function BookingsPage() {
         // 2. Prepare Data
         const invoiceNumber = `RE-${(booking.booking_number || '000').replace(/^[A-Z]+-/, '')}`;
         const items = [{
-            description: `Fahrradmiete: ${booking.bike?.name || 'Bike'} (${fmtDate(booking.start_date)} - ${fmtDate(booking.end_date)})`,
+            description: `Angebot: ${booking.bike?.name || 'Angebot'} (${fmtDate(booking.start_date)} - ${fmtDate(booking.end_date)})`,
             quantity: `${booking.total_days || 1} Tage`,
             unit_price: booking.price_per_day,
             total: total
@@ -274,7 +274,7 @@ export default function BookingsPage() {
                             onClick={() => exportToCSV(filtered, [
                                 { key: 'booking_number', label: 'Buchungsnr' },
                                 { key: 'customer_name', label: 'Kunde' },
-                                { key: row => row.bike?.name || '', label: 'Fahrrad' },
+                                { key: row => row.bike?.name || '', label: 'Angebot' },
                                 { key: 'start_date', label: 'Start' },
                                 { key: 'end_date', label: 'Ende' },
                                 { key: 'total_days', label: 'Tage' },

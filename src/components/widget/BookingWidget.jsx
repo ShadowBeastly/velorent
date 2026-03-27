@@ -310,7 +310,7 @@ export default function RentCoreBookingWidget({
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
           <Bike style={{ width: 28, height: 28 }} />
           <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "700" }}>
-            {settings?.organization_name || "Fahrradverleih"}
+            {settings?.organization_name || "Buchungswidget"}
           </h2>
         </div>
         <p style={{ margin: 0, opacity: 0.9, fontSize: "14px" }}>
@@ -338,7 +338,7 @@ export default function RentCoreBookingWidget({
           ))}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px" }}>
-          {["Rad", "Datum", "Daten", "Bestätigen"].map((label, i) => (
+          {["Angebot", "Datum", "Daten", "Bestätigen"].map((label, i) => (
             <span key={i} style={{
               fontSize: "10px",
               color: step > i + 1 ? (settings?.primary_color || "#f97316") : step === i + 1 ? "#1e293b" : "#94a3b8",
@@ -357,12 +357,12 @@ export default function RentCoreBookingWidget({
         {step === 1 && (
           <div>
             <h3 style={{ margin: "0 0 16px", fontSize: "18px", fontWeight: "600" }}>
-              Fahrrad wählen
+              Angebot auswählen
             </h3>
 
             {bikes.length === 0 ? (
               <p style={{ color: "#64748b", textAlign: "center", padding: "32px" }}>
-                Derzeit keine Räder verfügbar
+                Derzeit keine Angebote verfügbar
               </p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -664,7 +664,7 @@ export default function RentCoreBookingWidget({
 
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: "#64748b" }}>Fahrrad</span>
+                  <span style={{ color: "#64748b" }}>Angebot</span>
                   <span style={{ fontWeight: "500" }}>{selectedBike?.name}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>

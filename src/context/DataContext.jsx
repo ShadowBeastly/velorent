@@ -1,11 +1,11 @@
 "use client";
 import { createContext, useContext, useMemo } from "react";
 import { useOrganization } from "./OrgContext";
-import { useBikes } from "../hooks/useBikes";
+import { useItems } from "../hooks/useItems";
 import { useBookings } from "../hooks/useBookings";
 import { useCustomers } from "../hooks/useCustomers";
 import { useInvoices } from "../hooks/useInvoices";
-import { useBikeCategories } from "../hooks/useBikeCategories";
+import { useItemCategories } from "../hooks/useItemCategories";
 import { useAddOns } from "../hooks/useAddOns";
 import { useMaintenanceBlocks } from "../hooks/useMaintenanceBlocks";
 import { useVouchers } from "../hooks/useVouchers";
@@ -21,11 +21,13 @@ export function DataProvider({ children }) {
     const org = useOrganization();
     const orgId = org.currentOrg?.id;
 
-    const bikes = useBikes(orgId);
+    const items = useItems(orgId);
+    const bikes = useMemo(() => ({ bikes: items.items, ...items }), [items]); // backward-compat alias
     const bookings = useBookings(orgId);
     const customers = useCustomers(orgId);
     const invoices = useInvoices(orgId);
-    const bikeCategories = useBikeCategories(orgId);
+    const itemCategories = useItemCategories(orgId);
+    const bikeCategories = itemCategories; // backward-compat alias
     const addOns = useAddOns(orgId);
     const maintenanceBlocks = useMaintenanceBlocks(orgId);
     const vouchers = useVouchers(orgId);
@@ -59,10 +61,12 @@ export function DataProvider({ children }) {
     }, [bookings.bookings, todayStr, org.currentOrg, maintenanceDue.dueMaintenances]);
 
     const value = useMemo(() => ({
+        items,
         bikes,
         bookings,
         customers,
         invoices,
+        itemCategories,
         bikeCategories,
         addOns,
         maintenanceBlocks,
@@ -71,7 +75,7 @@ export function DataProvider({ children }) {
         pricingRules,
         maintenanceDue,
         notifications
-    }), [bikes, bookings, customers, invoices, bikeCategories, addOns,
+    }), [items, bikes, bookings, customers, invoices, itemCategories, bikeCategories, addOns,
          maintenanceBlocks, vouchers, coupons, pricingRules, maintenanceDue, notifications]);
 
     return (

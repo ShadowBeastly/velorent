@@ -83,8 +83,9 @@ export async function POST(req) {
         const session = event.data.object;
         const meta = session.metadata ?? {};
 
-        // Lociva guest booking (has bike_id + org_id in metadata)
-        if (meta.bike_id && meta.org_id) {
+        // Lociva guest booking — dual-read: item_id (new) with bike_id fallback (legacy)
+        const itemId = meta.item_id ?? meta.bike_id;
+        if (itemId && meta.org_id) {
           // Idempotency check: skip if booking already exists for this session
           const { data: existingBooking } = await supabase
             .from("bookings")
@@ -98,7 +99,7 @@ export async function POST(req) {
 
           const rpcParams = {
               p_organization_id: meta.org_id,
-              p_bike_id: meta.bike_id,
+              p_bike_id: itemId,
               p_hotel_id: meta.hotel_id || null,
               p_start_date: meta.start_date,
               p_end_date: meta.end_date,
@@ -134,7 +135,7 @@ export async function POST(req) {
             .from("bookings")
             .select("id, booking_number, cancellation_token")
             .eq("guest_email", meta.guest_email)
-            .eq("bike_id", meta.bike_id)
+            .eq("bike_id", itemId)
             .eq("start_date", meta.start_date)
             .eq("end_date", meta.end_date)
             .eq("status", "reserved")
@@ -173,12 +174,13 @@ export async function POST(req) {
 
           // Send guest confirmation email with cancellation token link (non-fatal)
           try {
-            const [{ data: bikeData }, { data: orgData }] =
+            const itemName = meta.item_name ?? meta.bike_name;
+            const [{ data: itemData }, { data: orgData }] =
               await Promise.all([
                 supabase
-                  .from("bikes")
+                  .from("items")
                   .select("name")
-                  .eq("id", meta.bike_id)
+                  .eq("id", itemId)
                   .single(),
                 supabase
                   .from("organizations")
@@ -202,7 +204,8 @@ export async function POST(req) {
                 data: {
                   guest_name: meta.guest_name,
                   booking_number: bookingData?.booking_number,
-                  bike_name: bikeData?.name || "",
+                  item_name: itemName || itemData?.name || "",
+                  bike_name: itemName || itemData?.name || "",
                   start_date: meta.start_date,
                   end_date: meta.end_date,
                   total_days: meta.total_days,

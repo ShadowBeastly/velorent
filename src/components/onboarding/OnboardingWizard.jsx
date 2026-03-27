@@ -1,14 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import { CheckCircle, Circle, X, Bike, Calendar, ArrowRight, PartyPopper } from "lucide-react";
+import { CheckCircle, Circle, X, Package, Calendar, ArrowRight, PartyPopper } from "lucide-react";
 
-export default function OnboardingWizard({ bikes = [], bookings = [], onCreateBike, onCreateBooking, darkMode, hasWidgetKey = false, hasOrgData = false, onGoToSettings, onGoToWidget }) {
+export default function OnboardingWizard({ items = [], bookings = [], onCreateItem, onCreateBooking, darkMode, hasWidgetKey = false, hasOrgData = false, onGoToSettings, onGoToWidget }) {
     const [visible, setVisible] = useState(false);
     const [minimized, setMinimized] = useState(false);
 
-    const hasBike = bikes.length > 0;
+    const hasItem = items.length > 0;
     const hasBooking = bookings.length > 0;
-    const isComplete = hasBike && hasBooking && hasWidgetKey && hasOrgData;
+    const isComplete = hasItem && hasBooking && hasWidgetKey && hasOrgData;
 
     useEffect(() => {
         // Show if not complete and not permanently dismissed
@@ -40,12 +40,12 @@ export default function OnboardingWizard({ bikes = [], bookings = [], onCreateBi
 
     const steps = [
         {
-            id: "bike",
-            label: "Erstes E-Bike anlegen",
-            done: hasBike,
-            icon: Bike,
-            action: onCreateBike,
-            btnText: "Bike anlegen"
+            id: "item",
+            label: "Erstes Angebot anlegen",
+            done: hasItem,
+            icon: Package,
+            action: onCreateItem,
+            btnText: "Angebot anlegen"
         },
         {
             id: "booking",

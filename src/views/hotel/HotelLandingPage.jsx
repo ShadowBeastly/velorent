@@ -37,7 +37,7 @@ const T = {
     contactTitle: "Kontakt",
     stepOf: "Schritt {n} von 3",
     bookingSummary: "Buchungsübersicht",
-    bike: "Fahrrad",
+    bike: "Angebot",
     period: "Zeitraum",
     totalPrice: "Gesamtpreis",
     cancelPolicy: "Stornierungsbedingungen:",
@@ -82,6 +82,9 @@ const T = {
     perPerson: "/ Person",
     duration: "Dauer",
     minutes: "Min.",
+    moreExperiences: "Weitere Erlebnisse entdecken",
+    bookThis: "Jetzt buchen",
+    yourBookings: "Ihre Buchungen dieser Session",
   },
   en: {
     welcome: "Welcome",
@@ -111,7 +114,7 @@ const T = {
     contactTitle: "Contact",
     stepOf: "Step {n} of 3",
     bookingSummary: "Booking summary",
-    bike: "Bike",
+    bike: "Item",
     period: "Period",
     totalPrice: "Total price",
     cancelPolicy: "Cancellation policy:",
@@ -155,6 +158,9 @@ const T = {
     perPerson: "/ person",
     duration: "Duration",
     minutes: "min.",
+    moreExperiences: "Discover more experiences",
+    bookThis: "Book now",
+    yourBookings: "Your bookings this session",
   },
 };
 
@@ -187,6 +193,7 @@ const MOCK_DATA = {
     },
   ],
 };
+MOCK_DATA.providers.forEach(p => { p.items = p.bikes; });
 
 // ============================================================
 // HELPERS
@@ -232,7 +239,12 @@ const I = {
   box: (p={}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>,
   search: (p={}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
 };
-const CAT_ICON = { "E-Bike": I.bolt, "Mountainbike": I.mountain, "City-Bike": I.city, "Trekking": I.leaf, "E-MTB": I.bolt, "Lastenrad": I.box };
+const CAT_ICON = {
+  "E-Bike": I.bolt, "Mountainbike": I.mountain, "City-Bike": I.city, "Trekking": I.leaf, "E-MTB": I.bolt, "Lastenrad": I.box,
+  "Canoe": I.leaf, "SUP": I.leaf, "Go-Kart": I.bolt, "Climbing": I.mountain, "Escape Room": I.box,
+  "Guided Tour": I.nav, "Wine Tasting": I.leaf, "Wellness": I.leaf, "Spa": I.leaf,
+  "Hot Air Balloon": I.mountain, "Sailing": I.leaf,
+};
 
 // ============================================================
 // MAIN
@@ -267,6 +279,9 @@ export default function HotelLandingPage({ slug }) {
   const [activeTab, setActiveTab] = useState("rental"); // "rental" | "activities"
   const [activities, setActivities] = useState([]);
   const [sessionId] = useState(() => typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36));
+  const [sessionBasket, setSessionBasket] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem("lociva_basket") || "[]"); } catch { return []; }
+  });
 
   const trackEvent = useCallback(async (eventType, metadata = {}) => {
     if (!hotelData?.hotel?.id) return;
@@ -308,6 +323,29 @@ export default function HotelLandingPage({ slug }) {
       stripeSessionRef.current = null;
     }
   }, [hotelData, trackEvent]);
+
+  // Save confirmed booking to session basket when booking number is available
+  const savedToBasketRef = useRef(false);
+  useEffect(() => {
+    if (step !== 4 || !confirmedBooking?.booking_number || savedToBasketRef.current) return;
+    savedToBasketRef.current = true;
+    try {
+      const existing = JSON.parse(sessionStorage.getItem("lociva_basket") || "[]");
+      const alreadyExists = existing.some(b => b.bookingNumber === confirmedBooking.booking_number);
+      if (!alreadyExists) {
+        const entry = {
+          bookingNumber: confirmedBooking.booking_number,
+          itemName: selectedBike?.name || null,
+          totalPrice: confirmedBooking.total_price ?? null,
+        };
+        const updated = [...existing, entry];
+        sessionStorage.setItem("lociva_basket", JSON.stringify(updated));
+        setSessionBasket(updated);
+      } else {
+        setSessionBasket(existing);
+      }
+    } catch { /* ignore */ }
+  }, [step, confirmedBooking, selectedBike]);
 
   useEffect(() => {
     async function f() {
@@ -364,6 +402,22 @@ export default function HotelLandingPage({ slug }) {
     if (!activeCategory) return hotelData.providers;
     return hotelData.providers.map(p => ({ ...p, bikes: p.bikes?.filter(b => b.category === activeCategory) || [] })).filter(p => p.bikes.length > 0);
   }, [hotelData, activeCategory]);
+
+  const recommendedItems = useMemo(() => {
+    if (!hotelData?.providers || !selectedProvider) return [];
+    const EXPERIENCE_CATEGORIES = new Set(["experience", "erlebnis", "tour", "activity", "aktivität", "weinverkostung", "escape room", "kurs", "event"]);
+    const results = [];
+    for (const provider of hotelData.providers) {
+      if (provider.id === selectedProvider.id) continue;
+      const items = provider.items || provider.bikes || [];
+      for (const item of items) {
+        if (item.item_type === "experience" || EXPERIENCE_CATEGORIES.has((item.category || "").toLowerCase())) {
+          results.push({ ...item, _provider: provider });
+        }
+      }
+    }
+    return results.slice(0, 3);
+  }, [hotelData, selectedProvider]);
 
   const totalDays = startDate && endDate ? Math.max(0, Math.floor((new Date(endDate) - new Date(startDate)) / 86400000) + 1) : 0;
   const totalHours = (() => { if (!startTime || !endTime) return 0; const d = (timeToMinutes(endTime) - timeToMinutes(startTime)) / 60; return d >= 1 ? d : 0; })();
@@ -557,7 +611,7 @@ export default function HotelLandingPage({ slug }) {
 
               {/* Bike cards */}
               <div className="flex flex-col gap-3">
-                {provider.bikes?.map(bike => {
+                {(provider.items || provider.bikes || []).map(bike => {
                   const BikeIcon = CAT_ICON[bike.category] || I.bike;
                   return (
                     <div key={bike.id} className="bg-white rounded-xl shadow-sm border border-slate-100 flex p-3 relative">
@@ -961,6 +1015,65 @@ export default function HotelLandingPage({ slug }) {
             <div className="w-full bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-left">
               <p className="text-sm font-bold text-amber-800">{t.deposit}: {formatEur(confirmedBooking.deposit_amount)}</p>
               <p className="text-xs text-amber-700 mt-1">{t.depositInfo}</p>
+            </div>
+          )}
+
+          {/* Session Basket — only shown when multiple bookings exist */}
+          {sessionBasket.length > 1 && (
+            <div className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-5 mb-6 text-left fade-up-5">
+              <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-3">{t.yourBookings}</p>
+              <ul className="space-y-2">
+                {sessionBasket.map((b, idx) => {
+                  const isCurrent = b.bookingNumber === confirmedBooking.booking_number;
+                  return (
+                    <li key={b.bookingNumber || idx}
+                      className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm transition-colors ${isCurrent ? "bg-[#1A7D5A]/10 border border-[#1A7D5A]/20" : "bg-white border border-slate-100"}`}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        {isCurrent && <span className="w-2 h-2 rounded-full bg-[#1A7D5A] flex-shrink-0"/>}
+                        <span className={`font-mono text-xs truncate ${isCurrent ? "text-[#1A7D5A] font-semibold" : "text-slate-500"}`}>{b.bookingNumber}</span>
+                        {b.itemName && <span className="text-slate-600 truncate">{b.itemName}</span>}
+                      </div>
+                      {b.totalPrice != null && (
+                        <span className={`flex-shrink-0 font-semibold text-xs ${isCurrent ? "text-[#1A7D5A]" : "text-slate-700"}`}>{formatEur(b.totalPrice)}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          {/* Post-Booking Recommendations */}
+          {recommendedItems.length > 0 && (
+            <div className="w-full mb-6 text-left fade-up-5">
+              <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-3">{t.moreExperiences}</p>
+              <div className="space-y-3">
+                {recommendedItems.map(item => (
+                  <div key={item.id}
+                    className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-4 cursor-pointer transition-all hover:shadow-md hover:border-[#1A7D5A]/30 active:scale-[0.98]"
+                    onClick={() => { setSelectedBike(item); setSelectedProvider(item._provider); setRentalType(item.price_per_hour ? "hourly" : "daily"); setStep(1); }}>
+                    <div className="w-10 h-10 rounded-xl bg-[#1A7D5A]/10 flex items-center justify-center flex-shrink-0">
+                      <I.bike className="w-5 h-5 text-[#1A7D5A]"/>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-800 text-sm truncate">{item.name}</p>
+                      {item.category && <p className="text-xs text-slate-500 truncate">{item.category}</p>}
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      {(item.price_per_day || item.price_per_hour) && (
+                        <p className="text-sm font-bold text-[#1A7D5A]">
+                          {item.price_per_day ? `${formatEur(item.price_per_day)}${t.perDay}` : `${formatEur(item.price_per_hour)}${t.perHour}`}
+                        </p>
+                      )}
+                      <button
+                        className="text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-[#1A7D5A] text-white hover:bg-[#3BAA82] transition-colors cursor-pointer"
+                        onClick={e => { e.stopPropagation(); setSelectedBike(item); setSelectedProvider(item._provider); setRentalType(item.price_per_hour ? "hourly" : "daily"); setStep(1); }}>
+                        {t.bookThis}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

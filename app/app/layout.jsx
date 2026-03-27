@@ -18,7 +18,7 @@ function AppShell({ children }) {
     const org = useOrganization();
     const auth = useAuth();
     const { darkMode, sidebarOpen, setSidebarOpen, setSearchQuery } = useApp();
-    const { bikes, bookings } = useData();
+    const { items, bikes, bookings } = useData();
 
     useEffect(() => {
         if (!auth.loading && !auth.user) {
@@ -59,12 +59,12 @@ function AppShell({ children }) {
                     {children}
                 </div>
                 <OnboardingWizard
-                    bikes={bikes.bikes}
+                    items={items.items}
                     bookings={bookings.bookings}
                     darkMode={darkMode}
                     hasOrgData={!!(org.currentOrg?.address && org.currentOrg?.city)}
                     hasWidgetKey={!!org.currentOrg?.settings?.widget_api_key}
-                    onCreateBike={() => { setSearchQuery(""); router.push("/app/fleet"); }}
+                    onCreateItem={() => { setSearchQuery(""); router.push("/app/fleet"); }}
                     onCreateBooking={() => { setSearchQuery(""); router.push("/app/bookings"); }}
                     onGoToSettings={() => { setSearchQuery(""); router.push("/app/settings"); }}
                     onGoToWidget={() => { setSearchQuery(""); router.push("/app/settings"); }}

@@ -74,7 +74,7 @@ export default function MaintenancePage() {
             // Auto-reset bike to "available" when maintenance is marked completed
             if (wasCompleted && payload.bike_id) {
                 const { error: bikeError } = await bikes.update(payload.bike_id, { status: "available" });
-                if (bikeError) addToast("Warnung: Fahrrad-Status konnte nicht zurückgesetzt werden.", "error");
+                if (bikeError) addToast("Warnung: Angebot-Status konnte nicht zurückgesetzt werden.", "error");
             }
             addToast("Wartungsblock gespeichert.", "success");
         } else {
@@ -131,7 +131,7 @@ export default function MaintenancePage() {
                         <table className="w-full">
                             <thead className={darkMode ? "bg-slate-800/50" : "bg-slate-50"}>
                                 <tr className={`text-left text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                    <th className="px-4 py-3">Fahrrad</th>
+                                    <th className="px-4 py-3">Angebot</th>
                                     <th className="px-4 py-3">Typ</th>
                                     <th className="px-4 py-3">Beschreibung</th>
                                     <th className="px-4 py-3">Zeitraum</th>
@@ -210,7 +210,7 @@ export default function MaintenancePage() {
                         <h2 className="text-xl font-bold mb-6">{editBlock ? "Wartungsblock bearbeiten" : "Neuer Wartungsblock"}</h2>
                         <div className="space-y-4">
                             <div>
-                                <label className="text-sm font-medium mb-1 block">Fahrrad *</label>
+                                <label className="text-sm font-medium mb-1 block">Angebot *</label>
                                 <select className={inputStyle} value={form.bike_id} onChange={e => setForm({ ...form, bike_id: e.target.value })}>
                                     <option value="">Bitte wählen...</option>
                                     {bikes.bikes.map(b => <option key={b.id} value={b.id}>{b.name} ({b.category})</option>)}

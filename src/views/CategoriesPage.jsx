@@ -8,7 +8,7 @@ import { fmtCurrency } from "../utils/formatters";
 
 export default function CategoriesPage() {
     const { darkMode } = useApp();
-    const { bikeCategories, bikes } = useData();
+    const { bikeCategories, items } = useData();
     const { addToast } = useToast();
     const [showForm, setShowForm] = useState(false);
     const [editCategory, setEditCategory] = useState(null);
@@ -24,15 +24,15 @@ export default function CategoriesPage() {
         ? "bg-slate-800 border-slate-700 text-white focus:border-[#1A7D5A]"
         : "bg-slate-50 border-slate-200 text-slate-900 focus:border-[#1A7D5A] focus:bg-white"}`;
 
-    // Count bikes per category
-    const bikeCounts = useMemo(() => {
+    // Count items per category
+    const itemCounts = useMemo(() => {
         const counts = {};
-        bikes.bikes.forEach(b => {
+        items.items.forEach(b => {
             const cat = b.category || "Sonstige";
             counts[cat] = (counts[cat] || 0) + 1;
         });
         return counts;
-    }, [bikes.bikes]);
+    }, [items.items]);
 
     const openNew = () => {
         setEditCategory(null);
@@ -90,7 +90,7 @@ export default function CategoriesPage() {
                     <div>
                         <h1 className="text-2xl font-bold">Kategorien</h1>
                         <p className={`text-sm mt-1 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                            Verwalte Fahrrad-Kategorien mit Standard-Preisen
+                            Verwalte Angebots-Kategorien mit Standard-Preisen
                         </p>
                     </div>
                     <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1A7D5A] to-[#1A7D5A] text-white rounded-xl font-medium shadow-lg shadow-[#1A7D5A]/25 hover:shadow-[#1A7D5A]/40 transition-all">
@@ -120,7 +120,7 @@ export default function CategoriesPage() {
                                     <div>
                                         <h3 className="font-bold text-lg">{cat.name}</h3>
                                         <span className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                            {bikeCounts[cat.name] || 0} Fahrräder
+                                            {itemCounts[cat.name] || 0} Angebote
                                         </span>
                                     </div>
                                 </div>
@@ -159,7 +159,7 @@ export default function CategoriesPage() {
                         <div className={`col-span-full text-center py-16 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                             <Image className="w-12 h-12 mx-auto mb-4 opacity-30" />
                             <p className="text-lg font-medium">Noch keine Kategorien angelegt</p>
-                            <p className="text-sm mt-1">Erstelle deine erste Kategorie, um Fahrräder zu gruppieren.</p>
+                            <p className="text-sm mt-1">Erstelle deine erste Kategorie, um Angebote zu gruppieren.</p>
                         </div>
                     )}
                 </div>

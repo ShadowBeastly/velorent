@@ -3,7 +3,7 @@ export default {
     "nav.dashboard": "Dashboard",
     "nav.calendar": "Calendar",
     "nav.bookings": "Bookings",
-    "nav.fleet": "Fleet",
+    "nav.fleet": "Angebote",
     "nav.customers": "Customers",
     "nav.invoices": "Invoices",
     "nav.settings": "Settings",
