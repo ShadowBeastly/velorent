@@ -84,7 +84,7 @@ serve(async (req) => {
             // Send guest confirmation email with cancellation token link
             try {
               const [{ data: bikeData }, { data: orgData }, { data: bookingRow }] = await Promise.all([
-                supabase.from("bikes").select("name").eq("id", meta.bike_id).single(),
+                supabase.from("items").select("name").eq("id", meta.bike_id).single(),
                 supabase.from("organizations").select("name, provider_address, provider_phone").eq("id", meta.org_id).single(),
                 supabase.from("bookings").select("cancellation_token").eq("id", booking.booking_id).single(),
               ]);

@@ -144,7 +144,7 @@ export function useMaintenance(orgId) {
     // ── Bike Health ────────────────────────────────────────────────────────
     const getBikeHealth = async (bikeId) => {
         const { data, error } = await supabase
-            .from("bike_health")
+            .from("item_health")
             .select("*")
             .eq("bike_id", bikeId)
             .maybeSingle();
@@ -154,7 +154,7 @@ export function useMaintenance(orgId) {
     const updateBikeHealth = async (bikeId, updates) => {
         // Upsert. bike_health may not exist yet for older bikes.
         const { data, error } = await supabase
-            .from("bike_health")
+            .from("item_health")
             .upsert(
                 { bike_id: bikeId, ...updates, updated_at: new Date().toISOString() },
                 { onConflict: "bike_id" }

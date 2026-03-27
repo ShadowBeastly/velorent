@@ -154,7 +154,7 @@ export default function WeeklyCalendar({ bikes, bookings, darkMode, onBookingCli
                     {/* Day Headers */}
                     <div className={`grid border-b ${darkMode ? "border-slate-800" : "border-slate-100"}`} style={{ gridTemplateColumns: `200px repeat(${gridCols}, 1fr)` }}>
                         <div className={`p-4 border-r flex items-center ${darkMode ? "bg-slate-800/30 border-slate-800" : "bg-slate-50/50 border-slate-100"}`}>
-                            <span className={`text-xs font-bold uppercase tracking-widest ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Fahrzeug</span>
+                            <span className={`text-xs font-bold uppercase tracking-widest ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Angebot</span>
                         </div>
                         {visibleDates.map((date, i) => {
                             const isToday = fmtIso(date) === todayStr;
@@ -178,7 +178,7 @@ export default function WeeklyCalendar({ bikes, bookings, darkMode, onBookingCli
                                 <div className={`p-4 border-r flex items-center gap-3 sticky left-0 z-[5] ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"}`}>
                                     <div className={`w-9 h-9 rounded-lg ${darkMode ? "bg-slate-800" : "bg-slate-100"} flex items-center justify-center`}>
                                         <span className={`text-xl ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                            {bike.battery ? "⚡" : "🚲"}
+                                            {bike.battery ? "⚡" : "•"}
                                         </span>
                                     </div>
                                     <div className="overflow-hidden">

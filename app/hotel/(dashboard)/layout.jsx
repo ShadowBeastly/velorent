@@ -42,20 +42,20 @@ function LocivaShell({ children }) {
 
             // Joined query: hotel_users + hotel details in one round-trip
             const { data } = await supabase
-                .from("hotel_users")
-                .select("hotel_id, hotels(id, name, slug, address, commission_pct, welcome_message, logo_url, theme_color)")
+                .from("venue_users")
+                .select("hotel_id, venues(id, name, slug, address, commission_pct, welcome_message, logo_url, theme_color)")
                 .eq("user_id", auth.user.id)
                 .single();
 
             if (cancelled) return;
 
-            if (!data?.hotels) {
+            if (!data?.venues) {
                 setNoHotel(true);
                 setLoading(false);
                 return;
             }
 
-            setHotel(data.hotels);
+            setHotel(data.venues);
             setHotelId(data.hotel_id);
 
             // Check if the user also has a provider org (to show "Back to RentCore" link)
@@ -79,12 +79,12 @@ function LocivaShell({ children }) {
     const reload = async () => {
         if (!auth.user?.id) return;
         const { data } = await supabase
-            .from("hotel_users")
-            .select("hotel_id, hotels(id, name, slug, address, commission_pct, welcome_message, logo_url, theme_color)")
+            .from("venue_users")
+            .select("hotel_id, venues(id, name, slug, address, commission_pct, welcome_message, logo_url, theme_color)")
             .eq("user_id", auth.user.id)
             .single();
-        if (data?.hotels) {
-            setHotel(data.hotels);
+        if (data?.venues) {
+            setHotel(data.venues);
             setHotelId(data.hotel_id);
         }
     };

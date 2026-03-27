@@ -67,9 +67,9 @@ export default function AdminAnalyticsPage() {
       if (days === 0) { startDate = new Date(); startDate.setHours(0, 0, 0, 0); }
       else if (days) { startDate = new Date(Date.now() - days * 86400000); }
 
-      const evQuery = supabase.from("analytics_events").select("event_type, hotel_id, hotels(name), created_at");
-      const bkQuery = supabase.from("bookings").select("booking_number, total_price, platform_commission, status, created_at, hotels(name), hotel_id, bike:bikes(name)").not("hotel_id", "is", null).order("created_at", { ascending: false }).limit(50);
-      const htQuery = supabase.from("hotels").select("id, name, is_active");
+      const evQuery = supabase.from("analytics_events").select("event_type, hotel_id, venues(name), created_at");
+      const bkQuery = supabase.from("bookings").select("booking_number, total_price, platform_commission, status, created_at, venues(name), hotel_id, item:items(name)").not("hotel_id", "is", null).order("created_at", { ascending: false }).limit(50);
+      const htQuery = supabase.from("venues").select("id, name, is_active");
       const pvQuery = supabase.from("organizations").select("id, name, is_platform_provider, stripe_charges_enabled").eq("is_platform_provider", true);
 
       if (startDate) {
@@ -112,7 +112,7 @@ export default function AdminAnalyticsPage() {
   const eventsByHotel = useMemo(() => {
     const map = {};
     events.forEach(e => {
-      const name = e.hotels?.name || "Unbekannt";
+      const name = e.venues?.name || "Unbekannt";
       if (!map[name]) map[name] = { hotel: name, scans: 0, views: 0, bookings: 0 };
       if (e.event_type === "qr_scan") map[name].scans += 1;
       else if (e.event_type === "page_view") map[name].views += 1;
@@ -125,7 +125,7 @@ export default function AdminAnalyticsPage() {
   const revenueByHotel = useMemo(() => {
     const map = {};
     bookings.forEach(b => {
-      const name = b.hotels?.name || "Direkt";
+      const name = b.venues?.name || "Direkt";
       map[name] = (map[name] || 0) + (b.total_price || 0);
     });
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 6);
@@ -322,7 +322,7 @@ export default function AdminAnalyticsPage() {
                       {bookings.map(b => (
                         <tr key={b.booking_number} className={`border-b last:border-0 ${darkMode ? "border-slate-700 hover:bg-slate-700/30" : "border-slate-100 hover:bg-slate-50"}`}>
                           <td className="px-4 py-3 font-mono text-xs text-[#3BAA82]">{b.booking_number}</td>
-                          <td className="px-4 py-3 text-sm">{b.hotels?.name || ""}</td>
+                          <td className="px-4 py-3 text-sm">{b.venues?.name || ""}</td>
                           <td className="px-4 py-3 text-sm">{b.bike?.name || ""}</td>
                           <td className="px-4 py-3 text-sm font-semibold">{formatEur(b.total_price)}</td>
                           <td className="px-4 py-3 text-sm text-[#3BAA82]">{formatEur(b.platform_commission)}</td>

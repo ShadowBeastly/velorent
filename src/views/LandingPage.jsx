@@ -121,7 +121,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             </h1>
 
             <p className="text-lg leading-relaxed mb-10" style={{ color: C.neutral }}>
-              Lociva bringt lokale Aktivitäten direkt ins Hotelzimmer. Per QR-Code scannen, buchen und bezahlen in 60 Sekunden. Hotels und Anbieter profitieren automatisch.
+              Lociva bringt lokale Aktivitäten direkt ins Zimmer. Per QR-Code scannen, buchen und bezahlen in 60 Sekunden. Unterkünfte und Anbieter profitieren automatisch.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -143,7 +143,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             </div>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm" style={{ color: C.neutral }}>
-              {["Kostenlos für Hotels", "Keine App nötig", "Automatische Auszahlung"].map((t) => (
+              {["Kostenlos für Unterkünfte", "Keine App nötig", "Automatische Auszahlung"].map((t) => (
                 <div key={t} className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" style={{ color: C.primary }} />
                   <span>{t}</span>
@@ -280,7 +280,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
               Drei Partner. Ein System.
             </h2>
             <p className="text-base leading-relaxed" style={{ color: C.neutral }}>
-              Lociva verbindet Hotels, Gäste und lokale Anbieter. Jeder profitiert.
+              Lociva verbindet Unterkünfte, Gäste und lokale Anbieter. Jeder profitiert.
             </p>
           </div>
 
@@ -288,7 +288,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             {[
               {
                 icon: Building2,
-                title: "Für Hotels",
+                title: "Für Unterkünfte",
                 subtitle: "Kostenlos",
                 points: ["QR-Code im Zimmer platzieren", "Gäste begeistern ohne Aufwand", "Optionale Provision pro Buchung", "Echtzeit-Dashboard mit Statistiken"],
                 highlight: false,
@@ -304,7 +304,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 icon: Bike,
                 title: "Für Anbieter",
                 subtitle: "Nur bei Buchung",
-                points: ["Neue Kunden über Hotels", "Automatische Auszahlung via Stripe", "Eigenes Dashboard zur Verwaltung", "Keine Fixkosten, nur Provision"],
+                points: ["Neue Kunden über Unterkünfte", "Automatische Auszahlung via Stripe", "Eigenes Dashboard zur Verwaltung", "Keine Fixkosten, nur Provision"],
                 highlight: false,
               },
             ].map(({ icon: Icon, title, subtitle, points, highlight }) => (
@@ -348,9 +348,9 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: Euro, title: "Keine Fixkosten", desc: "Hotels nutzen Lociva kostenlos. Anbieter zahlen nur bei erfolgreicher Buchung, 5 bis 15% Provision." },
+              { icon: Euro, title: "Keine Fixkosten", desc: "Unterkünfte nutzen Lociva kostenlos. Anbieter zahlen nur bei erfolgreicher Buchung, 5 bis 15% Provision." },
               { icon: Shield, title: "Sicher & DSGVO", desc: "Zahlungen über Stripe. Kein Login für Gäste. Alle Daten DSGVO-konform in der EU gehostet." },
-              { icon: TrendingUp, title: "Mehr Umsatz", desc: "Hotels bieten echten Mehrwert. Anbieter gewinnen Kunden, die sie sonst nie erreicht hätten." },
+              { icon: TrendingUp, title: "Mehr Umsatz", desc: "Unterkünfte bieten echten Mehrwert. Anbieter gewinnen Kunden, die sie sonst nie erreicht hätten." },
               { icon: QrCode, title: "60-Sekunden-Buchung", desc: "Vom Scan bis zur Buchung. Keine App, kein Login, keine Wartezeit. Funktioniert auf jedem Smartphone." },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="rounded-xl p-7 border transition-all duration-200"
@@ -416,7 +416,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
           <div className="space-y-3">
             {[
-              { q: "Was kostet Lociva für Hotels?", a: "Nichts. Hotels nutzen Lociva komplett kostenlos. Wir verdienen ausschließlich über Provisionen auf Buchungen bei den Anbietern." },
+              { q: "Was kostet Lociva für Unterkünfte?", a: "Nichts. Unterkünfte nutzen Lociva komplett kostenlos. Wir verdienen ausschließlich über Provisionen auf Buchungen bei den Anbietern." },
               { q: "Brauchen Gäste eine App oder ein Konto?", a: "Nein. Gäste scannen einfach den QR-Code mit der Smartphone-Kamera und können sofort buchen. Kein Download, kein Login." },
               { q: "Wie werden Anbieter bezahlt?", a: "Automatisch über Stripe Connect. Nach jeder Buchung wird der Anbieteranteil direkt ausgezahlt, abzüglich der vereinbarten Provision." },
               { q: "Welche Aktivitäten können angeboten werden?", a: "Zum Start: E-Bikes und Fahrräder. Danach: Kanu, SUP, Kletterparks, Stadtführungen, Weinproben, Wellness und alle lokalen Erlebnisse." },
@@ -447,7 +447,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             Dabei sein von Anfang an?
           </h2>
           <p className="text-base mb-10" style={{ color: "#9CA3AF" }}>
-            Wir suchen Hotels und Anbieter für unsere Pilotphase in Rhein-Main. Melden Sie sich, wir melden uns innerhalb von 24 Stunden.
+            Wir suchen Unterkünfte und Anbieter für unsere Pilotphase in Rhein-Main. Melden Sie sich, wir melden uns innerhalb von 24 Stunden.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="mailto:info@lociva.de?subject=Pilotphase%20Interesse"

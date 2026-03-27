@@ -58,8 +58,8 @@ export default function MarketplacePage() {
       setLoading(true);
       const [{ data: orgData }, { data: hotelsData }, { data: bookingsData }, { data: ratesData }] = await Promise.all([
         supabase.from("organizations").select("id, name, is_platform_provider, stripe_account_id, stripe_onboarding_complete, stripe_charges_enabled, provider_description, provider_address, provider_phone, agb_accepted_at").eq("id", currentOrg.id).single(),
-        supabase.from("hotel_providers").select("distance_km, is_active, hotels(id, name, address, slug)").eq("organization_id", currentOrg.id).eq("is_active", true),
-        supabase.from("bookings").select("id, booking_number, total_price, platform_commission, status, cancellation_status, created_at, guest_name, start_date, end_date, booking_source, hotels(name), item:items(name)").eq("organization_id", currentOrg.id).eq("booking_source", "hotel_qr").order("created_at", { ascending: false }).limit(20),
+        supabase.from("venue_providers").select("distance_km, is_active, venues(id, name, address, slug)").eq("organization_id", currentOrg.id).eq("is_active", true),
+        supabase.from("bookings").select("id, booking_number, total_price, platform_commission, status, cancellation_status, created_at, guest_name, start_date, end_date, booking_source, venues(name), item:items(name)").eq("organization_id", currentOrg.id).eq("booking_source", "hotel_qr").order("created_at", { ascending: false }).limit(20),
         supabase.from("commission_rates").select("item_type, rate").eq("is_active", true),
       ]);
       setOrg(orgData);
@@ -244,8 +244,8 @@ export default function MarketplacePage() {
                   <div className="flex items-center gap-3">
                     <Building2 className={`w-4 h-4 flex-shrink-0 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
                     <div>
-                      <p className="font-medium text-sm">{hp.hotels?.name}</p>
-                      {hp.hotels?.address && <p className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{hp.hotels.address}</p>}
+                      <p className="font-medium text-sm">{hp.venues?.name}</p>
+                      {hp.venues?.address && <p className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{hp.venues.address}</p>}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -282,7 +282,7 @@ export default function MarketplacePage() {
                 {bookings.map(b => (
                   <tr key={b.booking_number} className={`border-b last:border-0 ${darkMode ? "border-slate-700 hover:bg-slate-700/30" : "border-slate-100 hover:bg-slate-50"}`}>
                     <td className="px-4 py-3 text-xs text-slate-400">{new Date(b.created_at).toLocaleDateString("de-DE")}</td>
-                    <td className="px-4 py-3 text-sm">{b.hotels?.name || ""}</td>
+                    <td className="px-4 py-3 text-sm">{b.venues?.name || ""}</td>
                     <td className="px-4 py-3 text-sm">{b.guest_name || ""}</td>
                     <td className="px-4 py-3 text-sm">{b.item?.name || ""}</td>
                     <td className="px-4 py-3 text-xs text-slate-400">{b.start_date} - {b.end_date}</td>

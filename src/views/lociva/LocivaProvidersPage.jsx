@@ -86,7 +86,7 @@ export default function LocivaProvidersPage() {
             setError(null);
             try {
                 const { data, error: err } = await supabase
-                    .from("hotel_providers")
+                    .from("venue_providers")
                     .select(`
                         id,
                         is_active,

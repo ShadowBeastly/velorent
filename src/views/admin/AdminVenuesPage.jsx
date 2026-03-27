@@ -57,7 +57,7 @@ export default function AdminVenuesPage() {
 
   async function loadVenues() {
     setLoading(true);
-    const { data } = await supabase.from("venues").select("*, regions(name), hotel_providers(count)").order("name");
+    const { data } = await supabase.from("venues").select("*, regions(name), venue_providers(count)").order("name");
     setVenues(data || []);
     setLoading(false);
   }
@@ -134,7 +134,7 @@ export default function AdminVenuesPage() {
 
   async function openProviderModal(venue) {
     setSelectedVenue(venue);
-    const { data } = await supabase.from("hotel_providers").select("id, distance_km, organization_id, organizations(name)").eq("hotel_id", venue.id);
+    const { data } = await supabase.from("venue_providers").select("id, distance_km, organization_id, organizations(name)").eq("hotel_id", venue.id);
     setVenueProviders(data || []);
     setSelectedProviderToAdd("");
     setProviderDistance("");
@@ -220,9 +220,9 @@ export default function AdminVenuesPage() {
   async function handleAddProvider() {
     // TODO: Move to server-side API route with superadmin role verification
     if (!selectedProviderToAdd) return;
-    const { error } = await supabase.from("hotel_providers").upsert({ hotel_id: selectedVenue.id, organization_id: selectedProviderToAdd, distance_km: providerDistance ? parseFloat(providerDistance) : null, is_active: true }, { onConflict: "hotel_id,organization_id" });
+    const { error } = await supabase.from("venue_providers").upsert({ hotel_id: selectedVenue.id, organization_id: selectedProviderToAdd, distance_km: providerDistance ? parseFloat(providerDistance) : null, is_active: true }, { onConflict: "hotel_id,organization_id" });
     if (error) { alert("Fehler: " + error.message); return; }
-    const { data } = await supabase.from("hotel_providers").select("id, distance_km, organization_id, organizations(name)").eq("hotel_id", selectedVenue.id);
+    const { data } = await supabase.from("venue_providers").select("id, distance_km, organization_id, organizations(name)").eq("hotel_id", selectedVenue.id);
     setVenueProviders(data || []);
     setSelectedProviderToAdd("");
     setProviderDistance("");
@@ -231,9 +231,9 @@ export default function AdminVenuesPage() {
 
   async function handleRemoveProvider(linkId) {
     // TODO: Move to server-side API route with superadmin role verification
-    const { error } = await supabase.from("hotel_providers").delete().eq("id", linkId);
+    const { error } = await supabase.from("venue_providers").delete().eq("id", linkId);
     if (error) { alert("Fehler: " + error.message); return; }
-    const { data } = await supabase.from("hotel_providers").select("id, distance_km, organization_id, organizations(name)").eq("hotel_id", selectedVenue.id);
+    const { data } = await supabase.from("venue_providers").select("id, distance_km, organization_id, organizations(name)").eq("hotel_id", selectedVenue.id);
     setVenueProviders(data || []);
     loadVenues();
   }
@@ -349,7 +349,7 @@ export default function AdminVenuesPage() {
                       <td className="px-4 py-3">
                         <button onClick={() => openProviderModal(venue)} className="text-[#3BAA82] hover:text-[#1A7D5A] font-medium text-xs flex items-center gap-1">
                           <Link className="w-3 h-3" />
-                          {venue.hotel_providers?.[0]?.count ?? 0} Anbieter
+                          {venue.venue_providers?.[0]?.count ?? 0} Anbieter
                         </button>
                       </td>
                       <td className="px-4 py-3">

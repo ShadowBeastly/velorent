@@ -83,8 +83,8 @@ export async function POST(req) {
         const session = event.data.object;
         const meta = session.metadata ?? {};
 
-        // Lociva guest booking — dual-read: item_id (new) with bike_id fallback (legacy)
-        const itemId = meta.item_id ?? meta.bike_id;
+        // Lociva guest booking
+        const itemId = meta.item_id;
         if (itemId && meta.org_id) {
           // Idempotency check: skip if booking already exists for this session
           const { data: existingBooking } = await supabase
@@ -135,7 +135,7 @@ export async function POST(req) {
             .from("bookings")
             .select("id, booking_number, cancellation_token")
             .eq("guest_email", meta.guest_email)
-            .eq("bike_id", itemId)
+            .eq("item_id", itemId)
             .eq("start_date", meta.start_date)
             .eq("end_date", meta.end_date)
             .eq("status", "reserved")
@@ -174,7 +174,7 @@ export async function POST(req) {
 
           // Send guest confirmation email with cancellation token link (non-fatal)
           try {
-            const itemName = meta.item_name ?? meta.bike_name;
+            const itemName = meta.item_name;
             const [{ data: itemData }, { data: orgData }] =
               await Promise.all([
                 supabase
@@ -205,7 +205,6 @@ export async function POST(req) {
                   guest_name: meta.guest_name,
                   booking_number: bookingData?.booking_number,
                   item_name: itemName || itemData?.name || "",
-                  bike_name: itemName || itemData?.name || "",
                   start_date: meta.start_date,
                   end_date: meta.end_date,
                   total_days: meta.total_days,

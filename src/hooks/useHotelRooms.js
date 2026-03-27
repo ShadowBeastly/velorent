@@ -11,7 +11,7 @@ export function useHotelRooms(hotelId) {
         setLoading(true);
         try {
             const { data, error } = await supabase
-                .from("hotel_rooms")
+                .from("venue_areas")
                 .select("*")
                 .eq("hotel_id", hotelId)
                 .order("floor", { ascending: true })
@@ -30,7 +30,7 @@ export function useHotelRooms(hotelId) {
 
     const create = async (room) => {
         const { data, error } = await supabase
-            .from("hotel_rooms")
+            .from("venue_areas")
             .insert({ ...room, hotel_id: hotelId })
             .select()
             .single();
@@ -40,7 +40,7 @@ export function useHotelRooms(hotelId) {
 
     const update = async (id, updates) => {
         const { data, error } = await supabase
-            .from("hotel_rooms")
+            .from("venue_areas")
             .update(updates)
             .eq("id", id)
             .eq("hotel_id", hotelId)
@@ -51,7 +51,7 @@ export function useHotelRooms(hotelId) {
     };
 
     const remove = async (id) => {
-        const { error } = await supabase.from("hotel_rooms").delete().eq("id", id).eq("hotel_id", hotelId);
+        const { error } = await supabase.from("venue_areas").delete().eq("id", id).eq("hotel_id", hotelId);
         if (!error) setRooms(prev => prev.filter(r => r.id !== id));
         return { error };
     };

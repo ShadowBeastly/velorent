@@ -48,7 +48,7 @@ export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen
                                     LOCIVA
                                 </h1>
                                 <p className={`text-xs truncate font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                    Hotel Partner
+                                    Unterkunft Partner
                                 </p>
                             </div>
                         )}
@@ -61,7 +61,7 @@ export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen
                                     LOCIVA
                                 </h1>
                                 <p className={`text-xs truncate font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                    Hotel Partner
+                                    Unterkunft Partner
                                 </p>
                             </div>
                         )}
@@ -162,7 +162,7 @@ export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate">{auth?.profile?.full_name}</p>
                                 <p className={`text-xs truncate ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                    Hotel Manager
+                                    Unterkunft Manager
                                 </p>
                             </div>
                             <button
@@ -185,7 +185,7 @@ export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium truncate">{auth?.profile?.full_name}</p>
                                     <p className={`text-xs truncate ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                        Hotel Manager
+                                        Unterkunft Manager
                                     </p>
                                 </div>
                                 <button

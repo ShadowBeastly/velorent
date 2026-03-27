@@ -14,7 +14,7 @@ export default {
     "nav.vouchers": "Gutscheine",
     "nav.advanced": "Erweitert",
     "nav.marketplace": "Marktplatz",
-    "nav.hotelStats": "Hotel Dashboard",
+    "nav.hotelStats": "Lociva Dashboard",
     "nav.adminHotels": "Hotels (Admin)",
     "nav.adminProviders": "Anbieter (Admin)",
     "nav.adminRegions": "Regionen (Admin)",

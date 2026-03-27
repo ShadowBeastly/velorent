@@ -47,7 +47,7 @@ export async function POST(req, { params }) {
 
   // Verify bike belongs to this tenant
   const { data: bike, error: bikeErr } = await supabase
-    .from("bikes")
+    .from("items")
     .select("id, name, price_per_day, price_per_hour, organization_id")
     .eq("id", bikeId)
     .eq("organization_id", params.tenant)

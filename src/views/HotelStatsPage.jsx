@@ -41,7 +41,7 @@ export default function HotelStatsPage() {
   useEffect(() => {
     async function loadHotelUser() {
       if (!user?.id) return;
-      const { data } = await supabase.from("hotel_users").select("hotel_id, hotels(id, name, slug, address, commission_pct)").eq("user_id", user.id).single();
+      const { data } = await supabase.from("venue_users").select("hotel_id, venues(id, name, slug, address, commission_pct)").eq("user_id", user.id).single();
       if (!data) { setNoHotel(true); setLoading(false); return; }
       setHotelUser(data);
     }
@@ -58,7 +58,7 @@ export default function HotelStatsPage() {
       else if (days) { startDate = new Date(Date.now() - days * 86400000); }
 
       const evQ = supabase.from("analytics_events").select("event_type, created_at").eq("hotel_id", hotelUser.hotel_id);
-      const bkQ = supabase.from("bookings").select("booking_number, total_price, hotel_commission, status, created_at, guest_name, start_date, end_date, bike:bikes(name)").eq("hotel_id", hotelUser.hotel_id).eq("booking_source", "hotel_qr").order("created_at", { ascending: false }).limit(50);
+      const bkQ = supabase.from("bookings").select("booking_number, total_price, hotel_commission, status, created_at, guest_name, start_date, end_date, item:items(name)").eq("hotel_id", hotelUser.hotel_id).eq("booking_source", "hotel_qr").order("created_at", { ascending: false }).limit(50);
 
       if (startDate) { evQ.gte("created_at", startDate.toISOString()); bkQ.gte("created_at", startDate.toISOString()); }
 
@@ -71,14 +71,14 @@ export default function HotelStatsPage() {
   }, [hotelUser, period]);
 
   function copyLink() {
-    if (!hotelUser?.hotels?.slug) return;
-    const url = `${window.location.origin}/hotel/${hotelUser.hotels.slug}`;
+    if (!hotelUser?.venues?.slug) return;
+    const url = `${window.location.origin}/hotel/${hotelUser.venues.slug}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const hotel = hotelUser?.hotels;
+  const hotel = hotelUser?.venues;
   const qrScans = events.filter(e => e.event_type === "qr_scan").length;
   const pageViews = events.filter(e => e.event_type === "page_view").length;
   const bookingStarts = events.filter(e => e.event_type === "booking_start").length;
@@ -108,7 +108,7 @@ export default function HotelStatsPage() {
               <Building2 className="w-5 h-5 text-[#1A7D5A]" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Hotel Dashboard</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Lociva Dashboard</h2>
               {hotel && <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{hotel.name}</p>}
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function HotelStatsPage() {
                     {bookings.map(b => (
                       <tr key={b.booking_number} className={`border-b last:border-0 ${darkMode ? "border-slate-700 hover:bg-slate-700/30" : "border-slate-100 hover:bg-slate-50"}`}>
                         <td className="px-4 py-3 text-xs text-slate-400">{new Date(b.created_at).toLocaleDateString("de-DE")}</td>
-                        <td className="px-4 py-3">{b.bike?.name || ""}</td>
+                        <td className="px-4 py-3">{b.item?.name || ""}</td>
                         <td className="px-4 py-3 text-sm">{b.guest_name || ""}</td>
                         <td className="px-4 py-3 text-xs text-slate-400">{b.start_date} - {b.end_date}</td>
                         <td className="px-4 py-3 font-semibold">{formatEur(b.total_price)}</td>

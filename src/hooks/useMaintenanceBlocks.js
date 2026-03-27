@@ -12,7 +12,7 @@ export function useMaintenanceBlocks(orgId) {
         try {
             const { data, error } = await supabase
                 .from("maintenance_logs")
-                .select("*, bike:bikes(id, name, category)")
+                .select("*, item:items(id, name, category)")
                 .eq("organization_id", orgId)
                 .order("created_at", { ascending: false });
             if (error) throw error;
@@ -31,7 +31,7 @@ export function useMaintenanceBlocks(orgId) {
         const { data, error } = await supabase
             .from("maintenance_logs")
             .insert({ ...block, organization_id: orgId })
-            .select("*, bike:bikes(id, name, category)")
+            .select("*, item:items(id, name, category)")
             .single();
         if (!error) setBlocks(prev => [data, ...prev]);
         return { data, error };
@@ -43,7 +43,7 @@ export function useMaintenanceBlocks(orgId) {
             .update(updates)
             .eq("id", id)
             .eq("organization_id", orgId)
-            .select("*, bike:bikes(id, name, category)")
+            .select("*, item:items(id, name, category)")
             .single();
         if (!error) setBlocks(prev => prev.map(b => b.id === id ? data : b));
         return { data, error };

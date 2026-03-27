@@ -136,10 +136,10 @@ export default function LocivaDashboardPage() {
                         .eq("booking_source", "hotel_qr")
                         .order("created_at", { ascending: false })
                         .limit(8),
-                    supabase.from("hotel_activities")
+                    supabase.from("venue_activities")
                         .select("id, is_active", { count: "exact" })
                         .eq("hotel_id", hotelId),
-                    supabase.from("hotel_rooms")
+                    supabase.from("venue_areas")
                         .select("id, has_qr_code", { count: "exact" })
                         .eq("hotel_id", hotelId),
                 ]);

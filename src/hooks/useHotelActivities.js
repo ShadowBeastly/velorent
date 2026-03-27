@@ -11,7 +11,7 @@ export function useHotelActivities(hotelId) {
         setLoading(true);
         try {
             const { data, error } = await supabase
-                .from("hotel_activities")
+                .from("venue_activities")
                 .select("*")
                 .eq("hotel_id", hotelId)
                 .order("sort_order", { ascending: true })
@@ -30,7 +30,7 @@ export function useHotelActivities(hotelId) {
 
     const create = async (activity) => {
         const { data, error } = await supabase
-            .from("hotel_activities")
+            .from("venue_activities")
             .insert({ ...activity, hotel_id: hotelId })
             .select()
             .single();
@@ -40,7 +40,7 @@ export function useHotelActivities(hotelId) {
 
     const update = async (id, updates) => {
         const { data, error } = await supabase
-            .from("hotel_activities")
+            .from("venue_activities")
             .update(updates)
             .eq("id", id)
             .eq("hotel_id", hotelId)
@@ -51,7 +51,7 @@ export function useHotelActivities(hotelId) {
     };
 
     const remove = async (id) => {
-        const { error } = await supabase.from("hotel_activities").delete().eq("id", id).eq("hotel_id", hotelId);
+        const { error } = await supabase.from("venue_activities").delete().eq("id", id).eq("hotel_id", hotelId);
         if (!error) setActivities(prev => prev.filter(a => a.id !== id));
         return { error };
     };

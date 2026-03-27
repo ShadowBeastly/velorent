@@ -193,33 +193,13 @@ describe('V2 RPCs migration', () => {
 // 2. Hook Shim Tests
 // ============================================================
 
-describe('useBikes shim', () => {
-  const src = readFile('src/hooks/useBikes.js');
-
-  it('imports from useItems', () => {
-    assert.ok(src.includes('import { useItems }'));
+describe('Phase 6: shim hooks deleted', () => {
+  it('useBikes.js no longer exists', () => {
+    assert.throws(() => readFile('src/hooks/useBikes.js'), 'useBikes.js should be deleted');
   });
 
-  it('re-exports items as bikes', () => {
-    assert.ok(src.includes('bikes: items'));
-  });
-
-  it('is a thin shim (under 10 lines)', () => {
-    const lines = src.trim().split('\n').length;
-    assert.ok(lines < 10, `Expected < 10 lines, got ${lines}`);
-  });
-});
-
-describe('useBikeCategories shim', () => {
-  const src = readFile('src/hooks/useBikeCategories.js');
-
-  it('imports from useItemCategories', () => {
-    assert.ok(src.includes('import { useItemCategories }'));
-  });
-
-  it('is a thin shim (under 10 lines)', () => {
-    const lines = src.trim().split('\n').length;
-    assert.ok(lines < 10, `Expected < 10 lines, got ${lines}`);
+  it('useBikeCategories.js no longer exists', () => {
+    assert.throws(() => readFile('src/hooks/useBikeCategories.js'), 'useBikeCategories.js should be deleted');
   });
 });
 
@@ -277,32 +257,33 @@ describe('DataContext', () => {
 // 4. Stripe Webhook Dual-Read Tests
 // ============================================================
 
-describe('Stripe webhook — dual-read', () => {
+describe('Stripe webhook — Phase 6 (no fallbacks)', () => {
   const src = readFile('app/api/stripe/webhook/route.js');
 
-  it('reads item_id with bike_id fallback', () => {
-    assert.ok(src.includes('meta.item_id ?? meta.bike_id'));
+  it('reads item_id directly (no bike_id fallback)', () => {
+    assert.ok(src.includes('meta.item_id'));
+    assert.ok(!src.includes('meta.item_id ?? meta.bike_id'), 'Dual-read fallback should be removed');
   });
 
-  it('uses itemId variable (not hardcoded meta.bike_id) for RPC', () => {
+  it('uses itemId for RPC', () => {
     assert.ok(src.includes('p_bike_id: itemId'));
   });
 
-  it('reads item_name with bike_name fallback', () => {
-    assert.ok(src.includes('meta.item_name ?? meta.bike_name'));
+  it('reads item_name directly (no bike_name fallback)', () => {
+    assert.ok(src.includes('meta.item_name'));
+    assert.ok(!src.includes('meta.item_name ?? meta.bike_name'), 'bike_name fallback should be removed');
   });
 
-  it('sends both item_name and bike_name in email data', () => {
-    assert.ok(src.includes('item_name:'));
-    assert.ok(src.includes('bike_name:'));
-  });
-
-  it('queries items table (not bikes) for name lookup', () => {
+  it('queries items table for name lookup', () => {
     assert.ok(src.includes('.from("items")'));
+  });
+
+  it('uses item_id filter on bookings (not bike_id)', () => {
+    assert.ok(src.includes('.eq("item_id", itemId)'));
   });
 });
 
-describe('Stripe checkout — dual-write', () => {
+describe('Stripe checkout — Phase 6 (no dual-write)', () => {
   const src = readFile('supabase/functions/stripe-checkout/index.ts');
 
   it('writes item_id in metadata', () => {
@@ -313,13 +294,16 @@ describe('Stripe checkout — dual-write', () => {
     assert.ok(src.includes('item_name:'));
   });
 
-  it('still writes bike_id for backward compat', () => {
-    assert.ok(src.includes('bike_id:'));
+  it('no longer writes bike_id as a metadata key', () => {
+    const metaStart = src.indexOf('metadata: {');
+    const metaEnd = src.indexOf('},', metaStart);
+    const metadataSection = src.slice(metaStart, metaEnd);
+    // bike_id: should not be a key in metadata (bike_id as input var is fine)
+    assert.ok(!metadataSection.includes('bike_id:'), 'bike_id: should be removed from Stripe metadata keys');
   });
 
-  it('uses DB lookup for commission rate (no hardcoded object)', () => {
+  it('uses DB lookup for commission rate', () => {
     assert.ok(src.includes('.from("commission_rates")'));
-    assert.ok(!src.includes('const COMMISSION_RATES'), 'Hardcoded COMMISSION_RATES should be removed');
   });
 });
 

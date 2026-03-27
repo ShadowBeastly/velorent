@@ -54,7 +54,7 @@ serve(async (req) => {
 
     // 1. Fetch bike
     const { data: bike, error: bikeErr } = await supabase
-      .from("bikes")
+      .from("items")
       .select("id, name, category, price_per_day, price_per_hour, deposit, status, organization_id")
       .eq("id", bike_id)
       .eq("organization_id", org_id)
@@ -78,7 +78,7 @@ serve(async (req) => {
     // 2b. Verify hotel-provider relationship is active (only if hotel_id is provided)
     if (hotel_id) {
       const { data: hotelProvider } = await supabase
-        .from("hotel_providers")
+        .from("venue_providers")
         .select("hotel_id")
         .eq("hotel_id", hotel_id)
         .eq("organization_id", org_id)
@@ -190,9 +190,8 @@ serve(async (req) => {
       cancel_url:  `${origin}/hotel/${hotel_slug}?cancelled=1`,
       metadata: {
         hotel_id:            hotel_id || "",
-        bike_id:             bike_id,
-        item_id:             bike_id,        // Dual-write: new key (same value during transition)
-        item_name:           bike.name,      // Dual-write: new key
+        item_id:             bike_id,
+        item_name:           bike.name,
         org_id:              org_id,
         start_date:          start_date,
         end_date:            end_date,
