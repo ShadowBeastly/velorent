@@ -50,6 +50,29 @@ export async function proxy(request: NextRequest) {
     if ((isApp || isHotelDashboard) && !user) {
         return NextResponse.redirect(new URL("/login", request.url));
     }
+
+    // Lociva.de domain routing: /app → redirect non-admins away from RentCore dashboard
+    // RentCore is for providers (rentcore.de). Lociva is for venues + admins.
+    if (isLociva && isApp && !isAdmin && user) {
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+
+        const role = profile?.role;
+        if (role === "superadmin") {
+            // Superadmins on lociva.de → admin dashboard
+            return NextResponse.redirect(new URL("/app/admin", request.url));
+        }
+        if (role === "hotel") {
+            // Venue users → venue dashboard
+            return NextResponse.redirect(new URL("/hotel", request.url));
+        }
+        // Regular providers on lociva.de → venue dashboard (they shouldn't be on lociva.de)
+        return NextResponse.redirect(new URL("/hotel", request.url));
+    }
+
     if (isAuth && user) {
         const { data: profile } = await supabase
             .from("profiles")
@@ -62,6 +85,10 @@ export async function proxy(request: NextRequest) {
             return NextResponse.redirect(new URL("/app/admin", request.url));
         }
         if (role === "hotel") {
+            return NextResponse.redirect(new URL("/hotel", request.url));
+        }
+        // On lociva.de, providers go to venue dashboard; on rentcore.de, to RentCore dashboard
+        if (isLociva) {
             return NextResponse.redirect(new URL("/hotel", request.url));
         }
         return NextResponse.redirect(new URL("/app", request.url));
