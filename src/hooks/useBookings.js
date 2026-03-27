@@ -13,7 +13,7 @@ export function useBookings(orgId) {
         try {
             const { data, error } = await supabase
                 .from("bookings")
-                .select("*, bike:bikes(*), customer:customers(*), booking_items:booking_items(*, bike:bikes(id, name, category, price_per_day)), booking_addons:booking_addons(*, addon:add_ons(id, name, icon))")
+                .select("*, bike:bikes(*), customer:customers(*), booking_items:booking_items(*, bike:bikes(id, name, category, price_per_day)), booking_addons:booking_addons(*, addon:add_ons(id, name))")
                 .eq("organization_id", orgId)
                 .order("start_date", { ascending: false });
             if (error) throw error;
