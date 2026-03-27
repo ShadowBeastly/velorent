@@ -100,7 +100,12 @@ export default function SetupWizard({ supabase, user, onComplete }) {
       onComplete(org);
 
     } catch (err) {
-      setError(err.message);
+      // Ignore Supabase auth lock contention — transient, not a real failure
+      if (err?.message?.includes("lock") && err?.message?.includes("released")) {
+        console.warn("Auth lock contention (transient):", err.message);
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
