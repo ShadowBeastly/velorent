@@ -107,10 +107,15 @@ CREATE TABLE IF NOT EXISTS maintenance_logs (
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- If table already existed with bike_id column, rename it to item_id
+-- If table already existed with both bike_id and item_id (from migration 103), drop bike_id
+-- If only bike_id exists, rename it to item_id
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='maintenance_logs' AND column_name='bike_id') THEN
-    ALTER TABLE maintenance_logs RENAME COLUMN bike_id TO item_id;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='maintenance_logs' AND column_name='item_id') THEN
+      ALTER TABLE maintenance_logs DROP COLUMN bike_id;
+    ELSE
+      ALTER TABLE maintenance_logs RENAME COLUMN bike_id TO item_id;
+    END IF;
   END IF;
 END $$;
 
@@ -305,10 +310,14 @@ CREATE TABLE IF NOT EXISTS booking_items (
     created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
--- If table already existed with bike_id column, rename to item_id
+-- If table already existed with both bike_id and item_id, drop bike_id
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='booking_items' AND column_name='bike_id') THEN
-    ALTER TABLE booking_items RENAME COLUMN bike_id TO item_id;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='booking_items' AND column_name='item_id') THEN
+      ALTER TABLE booking_items DROP COLUMN bike_id;
+    ELSE
+      ALTER TABLE booking_items RENAME COLUMN bike_id TO item_id;
+    END IF;
   END IF;
 END $$;
 
@@ -369,9 +378,12 @@ ALTER TABLE pricing_rules ADD COLUMN IF NOT EXISTS modifier_value   DECIMAL(10,2
 ALTER TABLE pricing_rules ADD COLUMN IF NOT EXISTS item_category_id UUID REFERENCES item_categories(id) ON DELETE SET NULL;
 -- If table already existed with bike_category_id, rename to item_category_id
 DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='pricing_rules' AND column_name='bike_category_id')
-     AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='pricing_rules' AND column_name='item_category_id') THEN
-    ALTER TABLE pricing_rules RENAME COLUMN bike_category_id TO item_category_id;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='pricing_rules' AND column_name='bike_category_id') THEN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='pricing_rules' AND column_name='item_category_id') THEN
+      ALTER TABLE pricing_rules DROP COLUMN bike_category_id;
+    ELSE
+      ALTER TABLE pricing_rules RENAME COLUMN bike_category_id TO item_category_id;
+    END IF;
   END IF;
 END $$;
 ALTER TABLE pricing_rules ADD COLUMN IF NOT EXISTS min_days         INTEGER;
