@@ -100,9 +100,22 @@ export default function SetupWizard({ supabase, user, onComplete }) {
       onComplete(org);
 
     } catch (err) {
-      // Ignore Supabase auth lock contention — transient, not a real failure
+      // Supabase auth lock contention is transient — the org was likely created.
+      // Try to recover by fetching the org that was just inserted.
       if (err?.message?.includes("lock") && err?.message?.includes("released")) {
-        console.warn("Auth lock contention (transient):", err.message);
+        console.warn("Auth lock contention (transient), attempting recovery...");
+        try {
+          const { data: recoveredOrg } = await supabase
+            .from("organizations")
+            .select("*")
+            .eq("slug", orgSlug.toLowerCase().replace(/[^a-z0-9-]/g, ""))
+            .maybeSingle();
+          if (recoveredOrg) {
+            onComplete(recoveredOrg);
+            return;
+          }
+        } catch { /* recovery failed, show original error */ }
+        setError("Bitte versuchen Sie es erneut.");
       } else {
         setError(err.message);
       }
