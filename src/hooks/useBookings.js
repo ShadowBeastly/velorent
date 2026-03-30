@@ -195,7 +195,6 @@ export function useBookings(orgId) {
     };
 
     const update = async (id, updates, addOnsData) => {
-        // BUG-007: also extract selectedBikes so group booking_items can be updated
         const { selectedBikes, selectedAddOns, bookingRow } = normalizeBookingPayload(updates);
         const { data, error } = await supabase
             .from("bookings")
@@ -208,7 +207,6 @@ export function useBookings(orgId) {
             // Optimistic update immediately so the UI stays responsive
             setBookings(prev => prev.map(b => b.id === id ? data : b));
 
-            // BUG-007: Re-sync booking_items for group bookings so old bikes don't persist
             if (selectedBikes.length > 0) {
                 try {
                     await supabase.from("booking_items").delete().eq("booking_id", id);

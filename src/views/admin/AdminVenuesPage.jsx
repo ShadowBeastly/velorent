@@ -210,18 +210,26 @@ export default function AdminVenuesPage() {
   }
 
   async function handleDelete(venue) {
-    // TODO: Move to server-side API route with superadmin role verification
     if (!confirm(`Unterkunft "${venue.name}" deaktivieren?`)) return;
-    const { error } = await supabase.from("venues").update({ is_active: false }).eq("id", venue.id);
-    if (error) { alert("Fehler: " + error.message); return; }
+    const res = await fetch("/api/admin/venues", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ venue_id: venue.id, action: "deactivate" }),
+    });
+    const json = await res.json();
+    if (!res.ok) { alert("Fehler: " + (json.error || res.statusText)); return; }
     loadVenues();
   }
 
   async function handleAddProvider() {
-    // TODO: Move to server-side API route with superadmin role verification
     if (!selectedProviderToAdd) return;
-    const { error } = await supabase.from("venue_providers").upsert({ hotel_id: selectedVenue.id, organization_id: selectedProviderToAdd, distance_km: providerDistance ? parseFloat(providerDistance) : null, is_active: true }, { onConflict: "hotel_id,organization_id" });
-    if (error) { alert("Fehler: " + error.message); return; }
+    const res = await fetch("/api/admin/venues/providers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ hotel_id: selectedVenue.id, organization_id: selectedProviderToAdd, distance_km: providerDistance || null }),
+    });
+    const json = await res.json();
+    if (!res.ok) { alert("Fehler: " + (json.error || res.statusText)); return; }
     const { data } = await supabase.from("venue_providers").select("id, distance_km, organization_id, organizations(name)").eq("hotel_id", selectedVenue.id);
     setVenueProviders(data || []);
     setSelectedProviderToAdd("");
@@ -230,9 +238,13 @@ export default function AdminVenuesPage() {
   }
 
   async function handleRemoveProvider(linkId) {
-    // TODO: Move to server-side API route with superadmin role verification
-    const { error } = await supabase.from("venue_providers").delete().eq("id", linkId);
-    if (error) { alert("Fehler: " + error.message); return; }
+    const res = await fetch("/api/admin/venues/providers", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ link_id: linkId }),
+    });
+    const json = await res.json();
+    if (!res.ok) { alert("Fehler: " + (json.error || res.statusText)); return; }
     const { data } = await supabase.from("venue_providers").select("id, distance_km, organization_id, organizations(name)").eq("hotel_id", selectedVenue.id);
     setVenueProviders(data || []);
     loadVenues();

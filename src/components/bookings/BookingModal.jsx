@@ -102,7 +102,6 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             pickup_location: booking.pickup_location || "Laden",
             return_location: booking.return_location || "Laden",
             id_number: booking.customer_id_number || booking.id_number || "",
-            // BUG-008: pre-populate selectedBikes from existing booking_items for group edit
             selectedBikes: booking.is_group_booking
                 ? [
                     ...(booking.bike ? [booking.bike] : []),
