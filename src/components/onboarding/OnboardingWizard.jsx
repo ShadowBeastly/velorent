@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, Circle, X, Package, Calendar, ArrowRight, PartyPopper } from "lucide-react";
 
-export default function OnboardingWizard({ items = [], bookings = [], onCreateItem, onCreateBooking, darkMode, hasWidgetKey = false, hasOrgData = false, onGoToSettings, onGoToWidget }) {
+export default function OnboardingChecklist({ items = [], bookings = [], onCreateItem, onCreateBooking, darkMode, hasWidgetKey = false, hasOrgData = false, onGoToSettings, onGoToWidget }) {
     const [visible, setVisible] = useState(false);
     const [minimized, setMinimized] = useState(false);
 

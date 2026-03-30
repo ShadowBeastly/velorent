@@ -101,7 +101,7 @@ export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen
                                             setSidebarOpen(false);
                                         }
                                     }}
-                                    title={!showLabels ? item.labelKey : undefined}
+                                    title={!showLabels ? item.label : undefined}
                                     aria-current={isActive ? "page" : undefined}
                                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
                                         isActive
@@ -126,7 +126,7 @@ export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen
                                         style={isActive ? { color: "#1A7D5A" } : undefined}
                                     />
                                     <span className={`font-medium ${showLabels ? "" : "md:hidden"}`}>
-                                        {item.labelKey}
+                                        {item.label}
                                     </span>
                                 </Link>
                             );

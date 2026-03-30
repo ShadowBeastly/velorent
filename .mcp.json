@@ -17,7 +17,7 @@
         "--read-only"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+        "SUPABASE_ACCESS_TOKEN": "sbp_48d89cb1588602aae98beeef3899d7afd35580b5"
       }
     }
   }

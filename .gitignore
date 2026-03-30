@@ -47,3 +47,7 @@ Designs Rentcore/
 # Agents skill data
 .agents/skills/*/data/
 .agents/skills/*/scripts/__pycache__/
+
+# Sensitive local files
+backups/
+stripe.exe

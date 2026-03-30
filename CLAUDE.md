@@ -86,6 +86,14 @@ NEXT_PUBLIC_DEMO_PASSWORD
 ```
 Edge Function secrets: `BREVO_API_KEY`, `FROM_EMAIL`, `FROM_NAME`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
 
+## Supabase Agent Skills
+
+Supabase Postgres Best Practices sind als Agent Skill installiert (`.claude/skills/supabase-postgres-best-practices`). **Vor jeder SQL-Migration lesen.** Gilt für:
+- Schema-Design (Indexes, Partitionierung, Constraints)
+- RPC-Performance (Query-Pläne, JOIN-Strategien)
+- RLS Policies (sicher + performant)
+- Trigger-Ketten (Seiteneffekte prüfen vor ALTER/UPDATE)
+
 ## Stack
 
 Next.js 16 (App Router), React 19, Tailwind CSS v3, Supabase, Stripe Connect, Brevo, Vercel
