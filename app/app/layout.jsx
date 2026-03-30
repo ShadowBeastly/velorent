@@ -9,7 +9,7 @@ import Sidebar from "../../src/components/layout/Sidebar";
 import Header from "../../src/components/layout/Header";
 import LoadingScreen from "../../src/components/ui/LoadingScreen";
 import OnboardingPage from "../../src/views/OnboardingPage";
-import OnboardingWizard from "../../src/components/onboarding/OnboardingWizard";
+import OnboardingChecklist from "../../src/components/onboarding/OnboardingWizard";
 import { ToastProvider } from "../../src/components/ui/Toast";
 import DemoBanner from "../../src/components/ui/DemoBanner";
 
@@ -58,7 +58,7 @@ function AppShell({ children }) {
                 <div className="p-6">
                     {children}
                 </div>
-                <OnboardingWizard
+                <OnboardingChecklist
                     items={items.items}
                     bookings={bookings.bookings}
                     darkMode={darkMode}
