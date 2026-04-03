@@ -118,8 +118,11 @@ function LocivaShell({ children }) {
                     <a
                         href="/login"
                         onClick={() => {
-                            supabase.auth.signOut({ scope: "local" }).catch(() => {});
+                            supabase.auth.signOut().catch(() => {});
                             localStorage.clear();
+                            document.cookie.split(";").forEach(c => {
+                                document.cookie = c.trim().split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                            });
                         }}
                         className="text-sm underline"
                         style={{ color: "#1A7D5A" }}
