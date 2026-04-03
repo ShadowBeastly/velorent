@@ -41,13 +41,20 @@ function LocivaShell({ children }) {
             setLoading(true);
 
             // Joined query: hotel_users + hotel details in one round-trip
-            const { data } = await supabase
+            const { data, error } = await supabase
                 .from("venue_users")
                 .select("hotel_id, venues(id, name, slug, address, commission_pct, welcome_message, logo_url, theme_color)")
                 .eq("user_id", auth.user.id)
-                .single();
+                .maybeSingle();
 
             if (cancelled) return;
+
+            if (error) {
+                console.error("venue_users query failed:", error);
+                setNoHotel(true);
+                setLoading(false);
+                return;
+            }
 
             if (!data?.venues) {
                 setNoHotel(true);
@@ -82,7 +89,7 @@ function LocivaShell({ children }) {
             .from("venue_users")
             .select("hotel_id, venues(id, name, slug, address, commission_pct, welcome_message, logo_url, theme_color)")
             .eq("user_id", auth.user.id)
-            .single();
+            .maybeSingle();
         if (data?.venues) {
             setHotel(data.venues);
             setHotelId(data.hotel_id);
