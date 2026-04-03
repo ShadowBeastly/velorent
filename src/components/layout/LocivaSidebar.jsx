@@ -8,7 +8,7 @@ import { LOCIVA_NAVIGATION_ITEMS } from "../../utils/locivaNavigationItems";
 export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen, darkMode, hasProviderOrg, bannerOffset }) {
     const pathname = usePathname();
     const showLabels = sidebarOpen;
-    const rentcoreHref = "https://rentcore.de/app";
+    const rentcoreHref = process.env.NEXT_PUBLIC_RENTCORE_URL || "https://rentcore.de/app";
 
     return (
         <>

@@ -58,20 +58,30 @@ export async function POST(req) {
 
   console.log("Received Stripe event:", event.type);
 
-  // Idempotency guard: upsert the event ID with ignoreDuplicates.
-  // count === 0 means the row already existed (conflict was ignored) → skip.
-  const { error: idempotencyError, count } = await supabase
+  // Idempotency guard: insert with status='pending'. If the row already exists
+  // and status='processed', skip. If status='failed' or 'pending', allow retry.
+  const { data: existing } = await supabase
     .from("stripe_events")
-    .upsert({ id: event.id }, { onConflict: "id", ignoreDuplicates: true, count: "exact" });
+    .select("id, status")
+    .eq("id", event.id)
+    .maybeSingle();
 
-  if (idempotencyError) {
-    console.error("Idempotency check failed:", idempotencyError);
-    return new Response("Internal error", { status: 500 });
+  if (existing?.status === "processed") {
+    console.log("Already processed Stripe event, skipping:", event.id);
+    return Response.json({ received: true });
   }
 
-  if (count === 0) {
-    console.log("Duplicate Stripe event, skipping:", event.id);
-    return Response.json({ received: true });
+  if (!existing) {
+    const { error: insertErr } = await supabase
+      .from("stripe_events")
+      .insert({ id: event.id, event_type: event.type, status: "pending" });
+    if (insertErr) {
+      console.error("Idempotency insert failed:", insertErr);
+      return new Response("Internal error", { status: 500 });
+    }
+  } else {
+    // existing.status is 'failed' or 'pending' — allow retry
+    await supabase.from("stripe_events").update({ status: "pending" }).eq("id", event.id);
   }
 
   try {
@@ -94,6 +104,7 @@ export async function POST(req) {
             .maybeSingle();
           if (existingBooking) {
             console.log("Duplicate webhook. Booking already exists:", existingBooking.booking_number);
+            await supabase.from("stripe_events").update({ status: "processed" }).eq("id", event.id);
             return Response.json({ received: true });
           }
 
@@ -125,6 +136,7 @@ export async function POST(req) {
 
           if (rpcErr) {
             console.error("create_guest_booking failed:", rpcErr);
+            await supabase.from("stripe_events").update({ status: "failed" }).eq("id", event.id);
             return new Response(JSON.stringify({ error: "create_guest_booking failed" }), { status: 500 });
           }
 
@@ -145,6 +157,7 @@ export async function POST(req) {
 
           if (lookupErr || !freshBooking) {
             console.error("Post-RPC booking lookup failed:", lookupErr);
+            await supabase.from("stripe_events").update({ status: "failed" }).eq("id", event.id);
             return new Response("Booking lookup failed", { status: 500 });
           }
 
@@ -264,6 +277,8 @@ export async function POST(req) {
             account.id,
             error
           );
+          await supabase.from("stripe_events").delete().eq("id", event.id);
+          return Response.json({ error: "org update failed" }, { status: 500 });
         } else {
           console.log(
             "Provider account updated: charges:",
@@ -290,13 +305,19 @@ export async function POST(req) {
         const refundedRatio = charge.amount_refunded / charge.amount;
         const cancellationStatus = refundedRatio >= 0.99 ? "free" : "partial";
 
-        await supabase
+        const { error: refundUpdateError } = await supabase
           .from("bookings")
           .update({
             cancellation_status: cancellationStatus,
             status: "cancelled",
           })
           .eq("stripe_payment_intent_id", piId);
+
+        if (refundUpdateError) {
+          console.error("Failed to update booking after refund:", refundUpdateError);
+          await supabase.from("stripe_events").delete().eq("id", event.id);
+          return Response.json({ error: "DB update failed" }, { status: 500 });
+        }
 
         console.log(
           "Refund processed, status:",
@@ -309,9 +330,11 @@ export async function POST(req) {
         console.log("Unhandled event type:", event.type);
     }
 
+    await supabase.from("stripe_events").update({ status: "processed" }).eq("id", event.id);
     return Response.json({ received: true });
   } catch (error) {
     console.error("Webhook handler error:", error);
+    await supabase.from("stripe_events").update({ status: "failed" }).eq("id", event.id);
     return new Response("Internal error", { status: 500 });
   }
 }

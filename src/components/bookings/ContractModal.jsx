@@ -117,19 +117,19 @@ export default function ContractModal({ booking, onClose, darkMode }) {
                             <tbody>
                                 <tr className="border-b border-gray-100">
                                     <td className="py-2 w-1/3 font-semibold text-gray-500">Angebot</td>
-                                    <td className="py-2">{booking?.bike?.name || ''}</td>
+                                    <td className="py-2">{booking?.item?.name || ''}</td>
                                 </tr>
                                 <tr className="border-b border-gray-100">
                                     <td className="py-2 font-semibold text-gray-500">Kategorie</td>
-                                    <td className="py-2">{booking?.bike?.category || ''}</td>
+                                    <td className="py-2">{booking?.item?.category || ''}</td>
                                 </tr>
                                 <tr className="border-b border-gray-100">
                                     <td className="py-2 font-semibold text-gray-500">Größe</td>
-                                    <td className="py-2">{booking?.bike?.size || ''}</td>
+                                    <td className="py-2">{booking?.item?.size || ''}</td>
                                 </tr>
                                 <tr className="border-b border-gray-100">
                                     <td className="py-2 font-semibold text-gray-500">Rahmennummer</td>
-                                    <td className="py-2">{booking?.bike?.frame_number || ''}</td>
+                                    <td className="py-2">{booking?.item?.frame_number || ''}</td>
                                 </tr>
                                 <tr>
                                     <td className="py-2 font-semibold text-gray-500">Zustand bei Übergabe</td>

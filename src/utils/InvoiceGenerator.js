@@ -90,7 +90,7 @@ export const generateInvoice = (invoice, organization) => {
         const subtotal = invoice.booking.subtotal || invoice.booking.total_price || invoice.booking.total || 0;
         const unitPrice = invoice.booking.price_per_day || (days > 0 ? subtotal / days : subtotal) || 0;
         items.push({
-            description: `Miete: ${invoice.booking.bike?.name || 'Bike'} (${formatDate(invoice.booking.start_date)} - ${formatDate(invoice.booking.end_date)})`,
+            description: `Miete: ${invoice.booking.item?.name || 'Artikel'} (${formatDate(invoice.booking.start_date)} - ${formatDate(invoice.booking.end_date)})`,
             quantity: `${days} Tage`,
             unit_price: unitPrice,
             total: subtotal

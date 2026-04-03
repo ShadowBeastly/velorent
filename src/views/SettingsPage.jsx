@@ -294,7 +294,7 @@ export default function SettingsPage() {
                                 onChange={(e) => setForm(f => ({ ...f, logo_url: e.target.value }))}
                                 className={inputStyle}
                             />
-                            {form.logo_url && (
+                            {form.logo_url && /^https?:\/\/.+/.test(form.logo_url) && (
                                 <div className="w-12 h-12 rounded-lg border border-slate-200 bg-white flex items-center justify-center p-1 shrink-0">
                                     <img src={form.logo_url} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
                                 </div>

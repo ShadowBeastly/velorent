@@ -239,8 +239,8 @@ export default function MarketplacePage() {
             <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Noch keine Hotels verknüpft. Der Plattform-Admin ordnet Hotels zu.</p>
           ) : (
             <div className="space-y-2">
-              {hotels.map((hp, i) => (
-                <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? "bg-slate-700/50" : "bg-slate-50"}`}>
+              {hotels.map((hp) => (
+                <div key={hp.id || hp.venues?.id} className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? "bg-slate-700/50" : "bg-slate-50"}`}>
                   <div className="flex items-center gap-3">
                     <Building2 className={`w-4 h-4 flex-shrink-0 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
                     <div>

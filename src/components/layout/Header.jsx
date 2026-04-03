@@ -90,7 +90,7 @@ export default function Header({ bannerOffset }) {
                                 {notifications && notifications.length > 0 ? (
                                     notifications.slice(0, 5).map((n, i) => (
                                         <div key={i} className={`text-sm py-1 border-b last:border-0 ${darkMode ? "text-slate-300 border-slate-700" : "text-slate-600 border-slate-100"}`}>
-                                            {n.message || n.title || n.msg || JSON.stringify(n)}
+                                            {n.msg || JSON.stringify(n)}
                                         </div>
                                     ))
                                 ) : (

@@ -2,10 +2,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../utils/supabase";
 
-const SCHEDULE_TYPES = ["routine", "brake", "tire", "chain", "battery", "full_service"];
-
-export { SCHEDULE_TYPES };
-
 export function useMaintenance(orgId) {
     const [dueMaintenances, setDueMaintenances] = useState([]);
     const [loading, setLoading] = useState(true);

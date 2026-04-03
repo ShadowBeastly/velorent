@@ -56,7 +56,7 @@ export default function RecentBookingsTable({ bookings, darkMode, onViewAll }) {
                                     {booking.customer_name}
                                 </td>
                                 <td className={`py-3 hidden sm:table-cell ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                    {booking.bike?.name}
+                                    {booking.item?.name}
                                 </td>
                                 <td className={`py-3 hidden sm:table-cell ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                                     {fmtDateShort(booking.start_date)} - {fmtDateShort(booking.end_date)}

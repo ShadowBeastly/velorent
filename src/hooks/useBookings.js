@@ -103,6 +103,10 @@ export function useBookings(orgId) {
                     .insert(items);
                 if (itemsError) {
                     console.error("booking_items insert failed:", itemsError);
+                    // Compensating delete: remove the orphan booking
+                    const { error: rollbackErr } = await supabase.from("bookings").delete().eq("id", data.id);
+                    if (rollbackErr) console.error("Rollback of orphan booking failed:", data.id, rollbackErr);
+                    throw new Error(`Gruppenbuchung-Items konnten nicht gespeichert werden: ${itemsError.message}`);
                 }
             }
 
@@ -208,23 +212,38 @@ export function useBookings(orgId) {
             setBookings(prev => prev.map(b => b.id === id ? data : b));
 
             if (selectedBikes.length > 0) {
-                try {
-                    await supabase.from("booking_items").delete().eq("booking_id", id);
-                    const additionalBikes = selectedBikes.slice(1); // first item lives on bookings.item_id
-                    if (additionalBikes.length > 0) {
-                        const items = additionalBikes.map(bike => ({
-                            booking_id: id,
-                            item_id: bike.id,
-                            price_per_day: bike.price_per_day ?? null,
-                            subtotal: bike.subtotal ?? null,
-                        }));
-                        const { error: itemsErr } = await supabase.from("booking_items").insert(items);
-                        if (itemsErr) console.error("booking_items update failed:", itemsErr);
-                    }
-                    load({ silent: true }).catch(() => {});
-                } catch (itemsErr) {
-                    console.error("booking_items update failed:", itemsErr);
+                // Backup existing items before delete so we can restore on insert failure
+                const { data: oldItems, error: backupErr } = await supabase
+                    .from("booking_items")
+                    .select("booking_id, item_id, price_per_day, subtotal")
+                    .eq("booking_id", id);
+
+                if (backupErr) {
+                    throw new Error(`Booking-Items konnten nicht gelesen werden: ${backupErr.message}`);
                 }
+
+                await supabase.from("booking_items").delete().eq("booking_id", id);
+
+                const additionalBikes = selectedBikes.slice(1); // first item lives on bookings.item_id
+                if (additionalBikes.length > 0) {
+                    const items = additionalBikes.map(bike => ({
+                        booking_id: id,
+                        item_id: bike.id,
+                        price_per_day: bike.price_per_day ?? null,
+                        subtotal: bike.subtotal ?? null,
+                    }));
+                    const { error: itemsErr } = await supabase.from("booking_items").insert(items);
+                    if (itemsErr) {
+                        console.error("booking_items update failed:", itemsErr);
+                        // Restore old items to prevent data loss
+                        if (oldItems?.length > 0) {
+                            const { error: restoreErr } = await supabase.from("booking_items").insert(oldItems);
+                            if (restoreErr) console.error("Restore of old booking_items failed:", id, restoreErr);
+                        }
+                        throw new Error(`Gruppenbuchung-Items konnten nicht aktualisiert werden: ${itemsErr.message}`);
+                    }
+                }
+                load({ silent: true }).catch(() => {});
             }
 
             // Re-save add-ons if caller explicitly passed addOnsData (empty selection removes all)

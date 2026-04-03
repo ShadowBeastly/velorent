@@ -67,7 +67,7 @@ export default function TodaySidebar({ bookings, bikes, darkMode, onAction }) {
                                     <div className={`w-px flex-1 my-1 ${darkMode ? "bg-slate-800" : "bg-slate-100"}`} />
                                 </div>
                                 <div className={`flex-1 p-3 rounded-lg border border-transparent transition-all ${darkMode ? "bg-slate-800 group-hover:border-[#1A7D5A]/30" : "bg-slate-50 group-hover:border-[#1A7D5A]/30"}`}>
-                                    <p className="text-xs font-bold mb-1">{booking.customer_name}</p>
+                                    <p className="text-xs font-bold mb-1">{booking.customer_name || booking.customer?.first_name || "Unbekannt"}</p>
                                     <p className={`text-[10px] flex items-center gap-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                                         • {getBikeName(booking.item_id)}
                                     </p>
@@ -105,7 +105,7 @@ export default function TodaySidebar({ bookings, bikes, darkMode, onAction }) {
                                         <div className={`w-px flex-1 my-1 ${darkMode ? "bg-slate-800" : "bg-slate-100"}`} />
                                     </div>
                                     <div className={`flex-1 p-3 rounded-lg border border-transparent transition-all ${darkMode ? "bg-slate-800 group-hover:border-slate-600" : "bg-slate-50 group-hover:border-slate-300"}`}>
-                                        <p className="text-xs font-bold mb-1">{booking.customer_name}</p>
+                                        <p className="text-xs font-bold mb-1">{booking.customer_name || booking.customer?.first_name || "Unbekannt"}</p>
                                         <p className={`text-[10px] flex items-center gap-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                                             • {getBikeName(booking.item_id)}
                                         </p>

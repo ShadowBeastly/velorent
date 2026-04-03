@@ -72,9 +72,8 @@ export function useProvideOrganization(userId) {
 
         if (memberError) {
             // Rollback: delete the org since it has no owner
-            try {
-                await supabase.from("organizations").delete().eq("id", org.id);
-            } catch (rollbackError) {
+            const { error: rollbackError } = await supabase.from("organizations").delete().eq("id", org.id);
+            if (rollbackError) {
                 console.error("Rollback failed — orphaned org:", org.id, rollbackError);
             }
             return { error: memberError };

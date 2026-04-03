@@ -50,7 +50,7 @@ export default function RevenueChart({ bookings = [], darkMode }) {
             return result;
         }
 
-        if (period === "90w") {
+        if (period === "90d") {
             // 13 complete weeks (91 days), grouped by week
             const result = [];
             // Find the start of the current week (Monday)

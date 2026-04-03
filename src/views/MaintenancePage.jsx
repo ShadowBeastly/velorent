@@ -148,8 +148,8 @@ export default function MaintenancePage() {
                                     return (
                                         <tr key={block.id} className={darkMode ? "hover:bg-slate-800/50" : "hover:bg-slate-50"}>
                                             <td className="px-4 py-3">
-                                                <div className="font-medium">{block.bike?.name || ""}</div>
-                                                <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{block.bike?.category}</div>
+                                                <div className="font-medium">{block.item?.name || ""}</div>
+                                                <div className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>{block.item?.category}</div>
                                             </td>
                                             <td className="px-4 py-3">
                                                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${typeInfo.color}`}>

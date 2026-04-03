@@ -367,7 +367,7 @@ export default function InvoiceModal({ invoice, customers, bookings, org, onSave
                                 </thead>
                                 <tbody>
                                     {formData.items.map((item, i) => (
-                                        <tr key={i}>
+                                        <tr key={item.id || `item-${i}-${item.description}`}>
                                             <td>{i + 1}</td>
                                             <td>{item.description}</td>
                                             <td className="text-right">{item.quantity}</td>

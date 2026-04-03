@@ -323,7 +323,7 @@ export default function AdminAnalyticsPage() {
                         <tr key={b.booking_number} className={`border-b last:border-0 ${darkMode ? "border-slate-700 hover:bg-slate-700/30" : "border-slate-100 hover:bg-slate-50"}`}>
                           <td className="px-4 py-3 font-mono text-xs text-[#3BAA82]">{b.booking_number}</td>
                           <td className="px-4 py-3 text-sm">{b.venues?.name || ""}</td>
-                          <td className="px-4 py-3 text-sm">{b.bike?.name || ""}</td>
+                          <td className="px-4 py-3 text-sm">{b.item?.name || ""}</td>
                           <td className="px-4 py-3 text-sm font-semibold">{formatEur(b.total_price)}</td>
                           <td className="px-4 py-3 text-sm text-[#3BAA82]">{formatEur(b.platform_commission)}</td>
                           <td className="px-4 py-3">

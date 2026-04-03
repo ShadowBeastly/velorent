@@ -13,11 +13,12 @@ const supabase = createClient(
 );
 
 const ALLOWED_ORIGINS = ["https://lociva.de", "https://www.lociva.de", "http://localhost:3000"];
+const isAllowedOrigin = (o?: string) => typeof o === "string" && o.length > 0 && (ALLOWED_ORIGINS.includes(o) || o.endsWith(".vercel.app"));
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const requestOrigin = req.headers.get("origin") || "";
-  const origin = ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
+  const origin = isAllowedOrigin(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
   const hotelSlug = body.hotel_slug || body.slug || null;
   const successUrl = hotelSlug
     ? `${origin}/hotel/${hotelSlug}?session_id={CHECKOUT_SESSION_ID}`

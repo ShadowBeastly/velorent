@@ -1,3 +1,5 @@
+"use client";
+
 export function exportToCSV(data, columns, filename) {
     // columns = [{ key: 'field_name', label: 'Header Label' }, ...]
     const header = columns.map(c => c.label).join(';');

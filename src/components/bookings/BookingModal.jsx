@@ -104,8 +104,8 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
             id_number: booking.customer_id_number || booking.id_number || "",
             selectedBikes: booking.is_group_booking
                 ? [
-                    ...(booking.bike ? [booking.bike] : []),
-                    ...(booking.booking_items || []).map(bi => ({ ...bi.bike, subtotal: bi.subtotal })),
+                    ...(booking.item ? [booking.item] : []),
+                    ...(booking.booking_items || []).map(bi => ({ ...bi.item, subtotal: bi.subtotal })),
                   ].filter(Boolean)
                 : [],
             selectedAddOns: booking.booking_addons?.map(ba => ba.addon_id).filter(Boolean) || [],
@@ -252,7 +252,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         if (!form.bike_id || !form.start_date || !form.end_date) return null;
         return existingBookings.find(b =>
             b.id !== booking?.id &&
-            b.bike_id === form.bike_id &&
+            b.item_id === form.bike_id &&
             !["cancelled", "returned", "deleted"].includes(b.status) &&
             new Date(b.start_date) <= new Date(form.end_date) &&
             new Date(b.end_date) >= new Date(form.start_date)
@@ -265,7 +265,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         return form.selectedBikes.filter(bike =>
             existingBookings.some(b =>
                 b.id !== booking?.id &&
-                b.bike_id === bike.id &&
+                b.item_id === bike.id &&
                 !["cancelled", "returned", "deleted"].includes(b.status) &&
                 new Date(b.start_date) <= new Date(form.end_date) &&
                 new Date(b.end_date) >= new Date(form.start_date)
@@ -292,6 +292,7 @@ export default function BookingModal({ booking, initialDate, initialBikeId, bike
         }
         if (step === 2) {
             if (!form.customer_name) { setStepError("Bitte einen Kundennamen angeben."); return; }
+            if (form.customer_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customer_email)) { setStepError("Bitte eine gültige E-Mail-Adresse angeben."); return; }
         }
         setStep(s => s + 1);
     };

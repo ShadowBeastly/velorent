@@ -123,10 +123,10 @@ export const generateContract = (booking, organization) => {
     autoTable(doc, {
         startY: y,
         body: [
-            ['Fahrrad', booking?.bike?.name || ''],
-            ['Kategorie', booking?.bike?.category || ''],
-            ['Größe', booking?.bike?.size || ''],
-            ['Rahmennummer', booking?.bike?.frame_number || '(siehe Rad)'],
+            ['Fahrrad', booking?.item?.name || ''],
+            ['Kategorie', booking?.item?.category || ''],
+            ['Größe', booking?.item?.size || ''],
+            ['Rahmennummer', booking?.item?.frame_number || '(siehe Rad)'],
             ['Zustand bei Übergabe', '___________________________'],
         ],
         theme: 'plain',

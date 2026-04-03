@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 
 const ALLOWED_ORIGINS = ["https://lociva.de", "https://www.lociva.de", "http://localhost:3000"];
+const isAllowedOrigin = (o?: string) => typeof o === "string" && o.length > 0 && (ALLOWED_ORIGINS.includes(o) || o.endsWith(".vercel.app"));
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies();
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const requestOrigin = req.headers.get("origin") || "";
-  const origin = ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
+  const origin = isAllowedOrigin(requestOrigin) ? requestOrigin : ALLOWED_ORIGINS[0];
 
   const { data, error } = await supabase.functions.invoke("stripe-connect", {
     body: { ...body, origin },

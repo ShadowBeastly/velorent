@@ -21,8 +21,11 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
     };
 
     const addDamage = () => {
-        if (newDamage.trim()) {
-            setDamages([...damages, newDamage.trim()]);
+        const val = newDamage.trim();
+        if (val && !damages.includes(val)) {
+            setDamages([...damages, val]);
+            setNewDamage("");
+        } else if (val) {
             setNewDamage("");
         }
     };
@@ -63,8 +66,8 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
                     {/* Bike Info */}
                     <div className={`p-4 rounded-xl border ${darkMode ? "bg-slate-950/50 border-slate-800" : "bg-slate-50 border-slate-100"}`}>
                         <div className="text-sm font-medium text-slate-500 mb-1">Artikel</div>
-                        <div className="font-semibold text-lg">{booking.bike?.name}</div>
-                        <div className="text-sm text-slate-500">{booking.bike?.category} • {booking.bike?.size}</div>
+                        <div className="font-semibold text-lg">{booking.item?.name}</div>
+                        <div className="text-sm text-slate-500">{booking.item?.category} • {booking.item?.size}</div>
                     </div>
 
                     {/* Battery Level */}
@@ -111,10 +114,10 @@ export default function HandoverModal({ booking, type, onConfirm, onClose, darkM
                             </button>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            {damages.map((d, i) => (
-                                <span key={i} className={`text-xs px-2 py-1 rounded-md border flex items-center gap-2 ${darkMode ? "bg-rose-500/10 border-rose-500/20 text-rose-400" : "bg-rose-50 border-rose-100 text-rose-600"}`}>
+                            {damages.map((d) => (
+                                <span key={d} className={`text-xs px-2 py-1 rounded-md border flex items-center gap-2 ${darkMode ? "bg-rose-500/10 border-rose-500/20 text-rose-400" : "bg-rose-50 border-rose-100 text-rose-600"}`}>
                                     {d}
-                                    <button onClick={() => setDamages(damages.filter((_, idx) => idx !== i))} aria-label={`Schaden entfernen: ${d}`} className="hover:text-rose-800">
+                                    <button onClick={() => setDamages(damages.filter((tag) => tag !== d))} aria-label={`Schaden entfernen: ${d}`} className="hover:text-rose-800">
                                         <X className="w-3 h-3" />
                                     </button>
                                 </span>

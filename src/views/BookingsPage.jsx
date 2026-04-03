@@ -6,7 +6,7 @@ import HandoverModal from "../components/dashboard/HandoverModal";
 import { STATUS } from "../utils/constants";
 import { fmtCurrency, fmtDate } from "../utils/formatters";
 import { calculateLateFee } from "../utils/calculateLateFee";
-import { generateInvoice } from "../utils/InvoiceGenerator";
+import { generateInvoicePDF } from "../utils/InvoiceGenerator";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
 import { useOrganization } from "../context/OrgContext";
@@ -128,21 +128,26 @@ export default function BookingsPage() {
             bookingData.customer_id = createdCustomer.id;
         }
 
-        if (editBooking) {
-            const { error } = await bookings.update(editBooking.id, bookingData, addOns.addOns);
-            if (error) {
-                addToast("Fehler beim Aktualisieren: " + error.message, "error");
-                return;
+        try {
+            if (editBooking) {
+                const { error } = await bookings.update(editBooking.id, bookingData, addOns.addOns);
+                if (error) {
+                    addToast("Fehler beim Aktualisieren: " + error.message, "error");
+                    return;
+                }
+            } else {
+                const { data: newBooking, error } = await bookings.create(bookingData, addOns.addOns);
+                if (error) {
+                    addToast("Fehler beim Erstellen: " + error.message, "error");
+                    return;
+                }
+                if (newBooking?.id && _couponId && _couponDiscountAmount) {
+                    await coupons.recordUsage(_couponId, newBooking.id, _couponDiscountAmount);
+                }
             }
-        } else {
-            const { data: newBooking, error } = await bookings.create(bookingData, addOns.addOns);
-            if (error) {
-                addToast("Fehler beim Erstellen: " + error.message, "error");
-                return;
-            }
-            if (newBooking?.id && _couponId && _couponDiscountAmount) {
-                await coupons.recordUsage(_couponId, newBooking.id, _couponDiscountAmount);
-            }
+        } catch (err) {
+            addToast(err.message || "Unbekannter Fehler", "error");
+            return;
         }
         setShowModal(false);
     };
@@ -205,7 +210,7 @@ export default function BookingsPage() {
         // 2. Prepare Data
         const invoiceNumber = `RE-${(booking.booking_number || '000').replace(/^[A-Z]+-/, '')}`;
         const items = [{
-            description: `Angebot: ${booking.bike?.name || 'Angebot'} (${fmtDate(booking.start_date)} - ${fmtDate(booking.end_date)})`,
+            description: `Angebot: ${booking.item?.name || 'Angebot'} (${fmtDate(booking.start_date)} - ${fmtDate(booking.end_date)})`,
             quantity: `${booking.total_days || 1} Tage`,
             unit_price: booking.price_per_day,
             total: total
@@ -248,7 +253,7 @@ export default function BookingsPage() {
                 booking: booking
             };
 
-            generateInvoice(pdfData, currentOrg).save(`${invoiceNumber}.pdf`);
+            generateInvoicePDF(pdfData, currentOrg);
 
         } catch (err) {
             console.error(err);
@@ -274,7 +279,7 @@ export default function BookingsPage() {
                             onClick={() => exportToCSV(filtered, [
                                 { key: 'booking_number', label: 'Buchungsnr' },
                                 { key: 'customer_name', label: 'Kunde' },
-                                { key: row => row.bike?.name || '', label: 'Angebot' },
+                                { key: row => row.item?.name || '', label: 'Angebot' },
                                 { key: 'start_date', label: 'Start' },
                                 { key: 'end_date', label: 'Ende' },
                                 { key: 'total_days', label: 'Tage' },
@@ -486,7 +491,7 @@ export default function BookingsPage() {
                                             </td>
                                             {/* Fahrrad */}
                                             <td className="px-6 py-4 hidden sm:table-cell">
-                                                <div className="text-sm font-medium">{b.bike?.name || ""}</div>
+                                                <div className="text-sm font-medium">{b.item?.name || ""}</div>
                                                 {b.is_group_booking && (
                                                     <span className="text-xs px-1.5 py-0.5 rounded bg-[#1A7D5A]/10 text-[#1A7D5A] mt-0.5 inline-flex items-center gap-1">
                                                         <Users className="w-3 h-3" /> {b.bike_count || "?"}x
