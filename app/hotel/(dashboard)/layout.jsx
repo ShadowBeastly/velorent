@@ -115,17 +115,17 @@ function LocivaShell({ children }) {
                         Ihr Account ist noch keinem Hotel zugeordnet. Bitte kontaktieren Sie uns unter{" "}
                         <a href="mailto:info@lociva.de" className="text-[#1A7D5A] hover:underline">info@lociva.de</a>.
                     </p>
-                    <button
-                        onClick={async () => {
-                            try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+                    <a
+                        href="/login"
+                        onClick={() => {
+                            supabase.auth.signOut({ scope: "local" }).catch(() => {});
                             localStorage.clear();
-                            window.location.href = "/login";
                         }}
                         className="text-sm underline"
                         style={{ color: "#1A7D5A" }}
                     >
                         Abmelden
-                    </button>
+                    </a>
                 </div>
             </div>
         );
