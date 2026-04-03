@@ -117,7 +117,8 @@ function LocivaShell({ children }) {
                     </p>
                     <button
                         onClick={async () => {
-                            try { await auth.signOut(); } catch (_) {}
+                            try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+                            localStorage.clear();
                             window.location.href = "/login";
                         }}
                         className="text-sm underline"
