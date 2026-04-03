@@ -281,7 +281,7 @@ export default function CalendarPage() {
             const updates = {
                 start_date: fmtISO(newStart),
                 end_date: fmtISO(newEnd),
-                bike_id: newBikeId
+                item_id: newBikeId
             };
 
             // Optimistic update (optional, but good for UX - here we just rely on the await reload)
@@ -433,13 +433,13 @@ export default function CalendarPage() {
                         <div className={`min-w-max pb-10 ${viewMode === 'day' ? 'w-full' : ''}`}>
                             {filteredBikes.map((bike) => {
                                 const bikeBookings = bookings.bookings.filter(b =>
-                                    b.bike_id === bike.id &&
+                                    b.item_id === bike.id &&
                                     b.status !== "cancelled" &&
                                     new Date(b.end_date) >= viewStart &&
                                     new Date(b.start_date) <= viewEnd
                                 );
                                 const bikeMaintenance = maintenanceBlocks.blocks.filter(m =>
-                                    m.bike_id === bike.id &&
+                                    m.item_id === bike.id &&
                                     m.status !== "completed" &&
                                     new Date(m.end_date || m.start_date) >= viewStart &&
                                     new Date(m.start_date) <= viewEnd

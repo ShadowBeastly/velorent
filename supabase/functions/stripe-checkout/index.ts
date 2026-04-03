@@ -41,7 +41,7 @@ serve(async (req) => {
       bike_id, hotel_id, org_id,
       start_date, end_date,
       guest_name, guest_email, guest_phone,
-      lang, origin, hotel_slug,
+      lang, origin: _clientOrigin, hotel_slug,
       // Hourly fields (optional)
       rental_type = "daily",
       start_time,
@@ -164,6 +164,15 @@ serve(async (req) => {
 
     const applicationFeeAmount = Math.round(totalPriceEur * commissionRate * 100); // in Cent
 
+    // SEC-06: Derive origin from allowlist, never trust client-supplied origin
+    const requestOrigin = req.headers.get("origin") || "";
+    const safeOrigin = ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : "https://lociva.de";
+
+    // SEC-16: Validate hotel_slug format to prevent URL injection
+    if (hotel_slug && !/^[a-z0-9-]+$/.test(hotel_slug)) {
+      return Response.json({ error: "Invalid hotel slug" }, { status: 400, headers: CORS });
+    }
+
     // 4. Create Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -186,8 +195,8 @@ serve(async (req) => {
       },
       customer_email: guest_email,
       locale: lang === "en" ? "en" : "de",
-      success_url: `${origin}/hotel/${hotel_slug}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${origin}/hotel/${hotel_slug}?cancelled=1`,
+      success_url: `${safeOrigin}/hotel/${hotel_slug}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${safeOrigin}/hotel/${hotel_slug}?cancelled=1`,
       metadata: {
         hotel_id:            hotel_id || "",
         item_id:             bike_id,

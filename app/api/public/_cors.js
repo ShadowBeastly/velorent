@@ -6,12 +6,14 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    "placeholder-key"
-);
+// SEC-12: Require service_role key — do not fall back to anon key
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAdmin = serviceRoleKey
+  ? createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+      serviceRoleKey
+    )
+  : null;
 
 /**
  * Resolves CORS headers for a widget request.
@@ -20,6 +22,11 @@ const supabaseAdmin = createClient(
  * @returns {{ allowed: boolean, headers: Record<string, string> }}
  */
 export async function resolveWidgetCors(req, tenantId) {
+  // SEC-12: If service_role key is missing, block all widget requests
+  if (!supabaseAdmin) {
+    return { allowed: false, headers: {} };
+  }
+
   const origin = req.headers.get("origin") || "";
 
   const { data: org } = await supabaseAdmin
@@ -33,8 +40,8 @@ export async function resolveWidgetCors(req, tenantId) {
   }
 
   const domains = org.widget_allowed_domains ?? [];
-  const allowAll = domains.length === 0; // empty list = dev / allow-all
-  const originAllowed = allowAll || domains.includes(origin);
+  // SEC-05: Empty domain list = blocked (not allow-all). Orgs must configure domains.
+  const originAllowed = domains.length > 0 && domains.includes(origin);
 
   const headers = {
     "Access-Control-Allow-Origin": originAllowed

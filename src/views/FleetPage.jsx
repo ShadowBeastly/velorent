@@ -45,7 +45,7 @@ export default function FleetPage() {
                 b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 b.frame_number?.toLowerCase().includes(searchQuery.toLowerCase());
 
-            const isOut = bookings.bookings.some(bk => bk.bike_id === b.id && bk.status === "picked_up");
+            const isOut = bookings.bookings.some(bk => bk.item_id === b.id && bk.status === "picked_up");
 
             const matchesStatus = statusFilter === "all" ||
                 (statusFilter === "out" && isOut) ||
@@ -83,7 +83,7 @@ export default function FleetPage() {
     };
 
     const getBikeStatus = (bike) => {
-        const isOut = bookings.bookings.some(b => b.bike_id === bike.id && b.status === "picked_up");
+        const isOut = bookings.bookings.some(b => b.item_id === bike.id && b.status === "picked_up");
         if (isOut) return { label: "Vermietet", bg: "bg-[#1A7D5A]", text: "text-white" };
         if (bike.status === "maintenance") return { label: "Wartung", bg: "bg-slate-500", text: "text-white" };
         return { label: "Verfügbar", bg: "bg-emerald-500", text: "text-white" };

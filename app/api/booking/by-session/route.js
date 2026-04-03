@@ -1,7 +1,9 @@
 // GET /api/booking/by-session?session_id=cs_xxx
-// Returns cancellation_token and booking_number for a given Stripe checkout session.
+// Returns booking details for a given Stripe checkout session.
 // Used by the guest confirmation page (Step 4) to display the pickup QR code
 // after the webhook has created the booking.
+// SEC-02: cancellation_token is needed for the confirmation page QR code.
+// Mitigations: strict session_id format check, no-cache headers, generic error messages.
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -12,17 +14,23 @@ function getSupabase() {
   return createClient(url, key);
 }
 
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, private",
+  "Pragma": "no-cache",
+};
+
 export async function GET(req) {
   const supabase = getSupabase();
   if (!supabase) {
-    return Response.json({ error: "Server configuration error" }, { status: 500 });
+    return Response.json({ error: "Server error" }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get("session_id");
 
-  if (!sessionId || !sessionId.startsWith("cs_")) {
-    return Response.json({ error: "Invalid session_id" }, { status: 400 });
+  // Strict format: Stripe checkout session IDs are cs_ followed by alphanumeric chars
+  if (!sessionId || !/^cs_[a-zA-Z0-9]{10,}$/.test(sessionId)) {
+    return Response.json({ error: "Invalid request" }, { status: 400, headers: NO_CACHE_HEADERS });
   }
 
   const { data, error } = await supabase
@@ -32,12 +40,12 @@ export async function GET(req) {
     .maybeSingle();
 
   if (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: "Server error" }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 
   if (!data) {
-    return Response.json({ error: "Booking not found" }, { status: 404 });
+    return Response.json({ error: "Not found" }, { status: 404, headers: NO_CACHE_HEADERS });
   }
 
-  return Response.json(data);
+  return Response.json(data, { headers: NO_CACHE_HEADERS });
 }

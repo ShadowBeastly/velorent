@@ -63,7 +63,7 @@ export async function POST(req, { params }) {
   // Check availability
   const { data: avail } = await supabase.rpc("check_public_availability", {
     p_tenant:  params.tenant,
-    p_bike_id: bikeId,
+    p_item_id: bikeId,
     p_start:   startDate,
     p_end:     endDate,
   });

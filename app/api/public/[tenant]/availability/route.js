@@ -38,7 +38,7 @@ export async function GET(req, { params }) {
 
   const { data, error } = await supabase.rpc("check_public_availability", {
     p_tenant:  params.tenant,
-    p_bike_id: bikeId,
+    p_item_id: bikeId,
     p_start:   start,
     p_end:     end,
   });

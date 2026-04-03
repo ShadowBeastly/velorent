@@ -88,13 +88,13 @@ export function useBookings(orgId) {
             .single();
 
         if (!error) {
-            // For group bookings, insert additional bikes as booking_items
-            // (the first bike is already stored on bookings.bike_id)
+            // For group bookings, insert additional items as booking_items
+            // (the first item is already stored on bookings.item_id)
             if (isGroup && selectedBikes.length > 1) {
                 const additionalBikes = selectedBikes.slice(1);
                 const items = additionalBikes.map(bike => ({
                     booking_id: data.id,
-                    bike_id: bike.id,
+                    item_id: bike.id,
                     price_per_day: bike.price_per_day ?? null,
                     subtotal: bike.subtotal ?? null,
                 }));
@@ -146,7 +146,7 @@ export function useBookings(orgId) {
             ? `${bookingData.customer.first_name} ${bookingData.customer.last_name}`
             : (bookingData.customer_name || "Gast"),
         customer_phone: bookingData.customer?.phone ?? "",
-        organization_name: org?.name || "Lociva",
+        organization_name: org?.name || "Unbekannt",
         organization_email: org?.email,
         organization_phone: org?.phone,
         bike_name: bookingData.bike?.name || bookingData.booking_items?.[0]?.bike?.name || "Angebot",
@@ -210,11 +210,11 @@ export function useBookings(orgId) {
             if (selectedBikes.length > 0) {
                 try {
                     await supabase.from("booking_items").delete().eq("booking_id", id);
-                    const additionalBikes = selectedBikes.slice(1); // first bike lives on bookings.bike_id
+                    const additionalBikes = selectedBikes.slice(1); // first item lives on bookings.item_id
                     if (additionalBikes.length > 0) {
                         const items = additionalBikes.map(bike => ({
                             booking_id: id,
-                            bike_id: bike.id,
+                            item_id: bike.id,
                             price_per_day: bike.price_per_day ?? null,
                             subtotal: bike.subtotal ?? null,
                         }));

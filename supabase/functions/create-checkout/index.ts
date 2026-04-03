@@ -69,6 +69,21 @@ serve(async (req) => {
       throw new Error(`Invalid price key: ${priceKey}`);
     }
 
+    // SEC-03: Verify caller is owner or admin of the organization
+    const { data: membership } = await supabase
+      .from("organization_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("organization_id", organizationId)
+      .single();
+
+    if (!membership || !["owner", "admin"].includes(membership.role)) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Get organization
     const { data: org, error: orgError } = await supabase
       .from("organizations")
@@ -102,7 +117,11 @@ serve(async (req) => {
     }
 
     // Create checkout session
-    const origin = req.headers.get("origin") || "https://rentcore.de";
+    // SEC-03: Derive origin from allowlist, do not trust client-supplied URLs
+    const requestOrigin = req.headers.get("origin") || "";
+    const safeOrigin = ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : "https://rentcore.de";
+    const safeSuccessUrl = `${safeOrigin}/app/settings?success=true`;
+    const safeCancelUrl = `${safeOrigin}/app/settings?canceled=true`;
 
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
@@ -112,8 +131,8 @@ serve(async (req) => {
         price: PRICES[priceKey],
         quantity: 1
       }],
-      success_url: successUrl || `${origin}/app/settings?success=true`,
-      cancel_url: cancelUrl || `${origin}/app/settings?canceled=true`,
+      success_url: safeSuccessUrl,
+      cancel_url: safeCancelUrl,
       subscription_data: {
         metadata: {
           organization_id: organizationId

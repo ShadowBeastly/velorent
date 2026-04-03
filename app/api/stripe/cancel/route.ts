@@ -19,6 +19,27 @@ export async function POST(req: NextRequest) {
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
+  const { booking_id } = body;
+
+  if (!booking_id) return Response.json({ error: "Missing booking_id" }, { status: 400 });
+
+  // SEC-04: Verify the booking belongs to one of the caller's organizations
+  const { data: booking } = await anonClient
+    .from("bookings")
+    .select("organization_id")
+    .eq("id", booking_id)
+    .single();
+
+  if (!booking) return Response.json({ error: "Booking not found" }, { status: 404 });
+
+  const { data: membership } = await anonClient
+    .from("organization_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("organization_id", booking.organization_id)
+    .single();
+
+  if (!membership) return Response.json({ error: "Forbidden" }, { status: 403 });
 
   // Use service-role client to invoke stripe-cancel so the Bearer token
   // satisfies stripe-cancel's auth check (bearerToken === serviceRoleKey).
@@ -28,6 +49,6 @@ export async function POST(req: NextRequest) {
   );
 
   const { data, error } = await serviceClient.functions.invoke("stripe-cancel", { body });
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return Response.json({ error: "Internal error" }, { status: 500 });
   return Response.json(data);
 }

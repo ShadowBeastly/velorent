@@ -37,14 +37,30 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   // Auth check: require service-role JWT or internal secret
+  // SEC-08: Use constant-time comparison for secrets
   const authHeader = req.headers.get("authorization") || "";
   const internalSecret = req.headers.get("x-internal-secret") || "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const functionSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") || "";
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+
+  function timingSafeEqual(a: string, b: string): boolean {
+    if (a.length !== b.length) return false;
+    const encoder = new TextEncoder();
+    const bufA = encoder.encode(a);
+    const bufB = encoder.encode(b);
+    // crypto.subtle.timingSafeEqual is not available in all Deno versions,
+    // so we use a manual constant-time comparison
+    let result = 0;
+    for (let i = 0; i < bufA.length; i++) {
+      result |= bufA[i] ^ bufB[i];
+    }
+    return result === 0;
+  }
+
   const isAuthorized =
-    (bearerToken && bearerToken === serviceRoleKey) ||
-    (functionSecret && internalSecret === functionSecret);
+    (bearerToken.length > 0 && timingSafeEqual(bearerToken, serviceRoleKey)) ||
+    (functionSecret.length > 0 && internalSecret.length > 0 && timingSafeEqual(internalSecret, functionSecret));
   if (!isAuthorized) {
     return Response.json({ error: "Unauthorized" }, { status: 401, headers: CORS });
   }

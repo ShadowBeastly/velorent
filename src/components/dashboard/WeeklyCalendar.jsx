@@ -76,7 +76,7 @@ export default function WeeklyCalendar({ bikes, bookings, darkMode, onBookingCli
         const dateRange = { start: fmtIso(dates[0]), end: fmtIso(dates[dates.length - 1]) };
         return bikes.map(bike => {
             const bBookings = bookings.filter(b =>
-                b.bike_id === bike.id &&
+                b.item_id === bike.id &&
                 b.start_date <= dateRange.end &&
                 b.end_date >= dateRange.start &&
                 !["cancelled", "no_show"].includes(b.status)

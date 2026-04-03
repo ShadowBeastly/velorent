@@ -34,7 +34,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
-    const { org_id, org_email, origin } = await req.json();
+    const { org_id, org_email, origin: _clientOrigin } = await req.json();
     if (!org_id) return Response.json({ error: "org_id required" }, { status: 400, headers: CORS });
 
     // Ownership check: caller must be owner or admin of org_id
@@ -86,10 +86,14 @@ serve(async (req) => {
     }
 
     // 3. Create Account Link for onboarding (or re-onboarding)
+    // SEC-07: Derive origin from request header allowlist, not from client body
+    const requestOrigin = req.headers.get("origin") || "";
+    const safeOrigin = ALLOWED_ORIGINS.includes(requestOrigin) ? requestOrigin : "https://rentcore.de";
+
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${origin}/app/marketplace?stripe_refresh=1`,
-      return_url:  `${origin}/app/marketplace?stripe_return=1`,
+      refresh_url: `${safeOrigin}/app/marketplace?stripe_refresh=1`,
+      return_url:  `${safeOrigin}/app/marketplace?stripe_return=1`,
       type: "account_onboarding",
     });
 

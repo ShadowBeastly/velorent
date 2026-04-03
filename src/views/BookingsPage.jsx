@@ -64,7 +64,7 @@ export default function BookingsPage() {
 
             // Category filter. match on bike's category
             if (categoryFilter !== "all") {
-                const bike = bikes.bikes.find(bk => bk.id === b.bike_id);
+                const bike = bikes.bikes.find(bk => bk.id === b.item_id);
                 if (!bike || bike.category !== categoryFilter) return false;
             }
 
