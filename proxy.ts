@@ -10,7 +10,9 @@ export async function proxy(request: NextRequest) {
 
     // Hostname-based routing: lociva.de/ → /lociva, rentcore.de/ → / (no rewrite needed)
     const hostname = (request.headers.get("host") ?? "").toLowerCase().replace(/:\d+$/, "");
-    const isLociva = hostname.includes("lociva");
+    // SEC-11: Exact hostname match instead of substring to prevent spoofing
+    const LOCIVA_HOSTS = ["lociva.de", "www.lociva.de"];
+    const isLociva = LOCIVA_HOSTS.includes(hostname) || hostname.endsWith(".lociva.de");
     const isRootPath = request.nextUrl.pathname === "/";
     if (isLociva && isRootPath) {
         const url = request.nextUrl.clone();
@@ -40,12 +42,10 @@ export async function proxy(request: NextRequest) {
     const isApp = pathname.startsWith("/app");
     const isAdmin = pathname.startsWith("/app/admin");
     const isAuth = ["/login", "/signup"].includes(pathname);
-    // /hotel (exact) and /hotel/dashboard, /hotel/activities, etc. are protected
-    // /hotel/[slug] and /hotel/[slug]/cancel are public guest pages (handled by [slug] route)
-    const isHotelDashboard = pathname === "/hotel" || [
-        "/hotel/activities", "/hotel/rooms",
-        "/hotel/providers", "/hotel/analytics"
-    ].some(p => pathname.startsWith(p));
+    // SEC-10: Protected hotel dashboard routes. /hotel/[slug] is public (guest pages).
+    // A slug is always a lowercase alphanumeric string with hyphens — dashboard routes use fixed names.
+    const HOTEL_DASHBOARD_PATHS = ["/hotel/activities", "/hotel/rooms", "/hotel/providers", "/hotel/analytics", "/hotel/dashboard", "/hotel/settings"];
+    const isHotelDashboard = pathname === "/hotel" || HOTEL_DASHBOARD_PATHS.some(p => pathname.startsWith(p));
 
     if ((isApp || isHotelDashboard) && !user) {
         return NextResponse.redirect(new URL("/login", request.url));
@@ -124,5 +124,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/", "/app/:path*", "/hotel", "/hotel/activities/:path*", "/hotel/rooms/:path*", "/hotel/providers/:path*", "/hotel/analytics/:path*", "/login", "/signup"]
+    matcher: ["/", "/app/:path*", "/hotel", "/hotel/:path*", "/login", "/signup"]
 };

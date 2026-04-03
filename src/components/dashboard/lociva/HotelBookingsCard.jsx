@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Building2, ArrowRight } from "lucide-react";
-import { fmtDateShort, fmtCurrency } from "../../utils/formatters";
+import { fmtDateShort, fmtCurrency } from "../../../utils/formatters";
 
 const SOURCE_LABELS = {
     hotel_qr: "Hotel QR",

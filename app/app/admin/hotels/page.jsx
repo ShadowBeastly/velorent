@@ -1,2 +1,2 @@
-import AdminHotelsPage from "@/src/views/admin/AdminHotelsPage";
-export default AdminHotelsPage;
+import AdminVenuesPage from "@/src/views/admin/AdminVenuesPage";
+export default AdminVenuesPage;

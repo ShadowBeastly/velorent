@@ -344,6 +344,15 @@ serve(async (req) => {
 
   try {
     const { type, to, data } = await req.json();
+
+    // SEC-19: Validate email format before sending
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!to || !EMAIL_RE.test(to)) {
+      return new Response(JSON.stringify({ error: "Invalid email address" }), {
+        status: 400, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const template = templates[type];
     if (!template) throw new Error(`Unknown email type: ${type}`);
 

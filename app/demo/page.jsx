@@ -3,26 +3,21 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../src/context/AuthContext";
 import { Loader2, Bike, AlertCircle } from "lucide-react";
+import { demoSignIn } from "./actions";
 
 const C = { primary: "#1A7D5A", dark: "#1E2D26", bg: "#F5FAF7", neutral: "#6B7280" };
 
 export default function DemoPage() {
-    const { signIn, signOut, user, loading, profile } = useAuth();
+    const { signOut, user, loading, profile, supabase } = useAuth();
     const router = useRouter();
-    const demoEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL;
-    const demoPassword = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
     const started = useRef(false);
     const [demoSignedIn, setDemoSignedIn] = useState(false);
-    const [error, setError] = useState(
-        !demoEmail || !demoPassword
-            ? "Demo-Account ist nicht konfiguriert. Bitte wende dich an info@rentcore.de."
-            : ""
-    );
+    const [demoEmail, setDemoEmail] = useState(null);
+    const [error, setError] = useState("");
 
-    // Navigate only after the auth context has updated user + profile — avoids a race
-    // where router.push fires before onAuthStateChange propagates to React state.
+    // Navigate after auth context reflects the demo user
     useEffect(() => {
-        if (!demoSignedIn || !user || user.email !== demoEmail || loading || !profile) return;
+        if (!demoSignedIn || !user || !demoEmail || user.email !== demoEmail || loading || !profile) return;
         if (profile.role === "hotel") {
             router.push("/hotel");
         } else {
@@ -36,25 +31,28 @@ export default function DemoPage() {
         async function run() {
             started.current = true;
             try {
-                // Sign out first if anyone is logged in (even demo user, to get clean state)
-                if (user) {
-                    await signOut();
+                if (user) await signOut();
+
+                // SEC-17: Use server action — password never reaches the client bundle
+                const result = await demoSignIn();
+                if (result.error) {
+                    started.current = false;
+                    setError(result.error);
+                    return;
                 }
 
-                // Sign in as demo
-                await signIn(demoEmail, demoPassword);
+                // Set the session client-side using the tokens from the server
+                await supabase.auth.setSession({
+                    access_token: result.access_token,
+                    refresh_token: result.refresh_token,
+                });
 
-                // Set demo org; navigation is handled by the effect above once
-                // the auth context reflects the new user.
+                setDemoEmail(result.email);
                 localStorage.setItem("currentOrgId", "d0000000-0000-0000-0000-000000000001");
                 setDemoSignedIn(true);
             } catch (err) {
                 started.current = false;
-                setError(
-                    err.message?.includes("Invalid login")
-                        ? "Demo-Account nicht gefunden. Bitte Demo zuerst in Supabase einrichten."
-                        : "Demo-Login fehlgeschlagen: " + (err.message || "Unbekannter Fehler.")
-                );
+                setError("Demo-Login fehlgeschlagen: " + (err.message || "Unbekannter Fehler."));
             }
         }
 

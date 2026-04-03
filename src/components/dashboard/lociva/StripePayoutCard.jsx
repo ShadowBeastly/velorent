@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Wallet, ExternalLink, CheckCircle2, Clock, AlertCircle } from "lucide-react";
-import { fmtCurrency } from "../../utils/formatters";
+import { fmtCurrency } from "../../../utils/formatters";
 
 export default function StripePayoutCard({ bookings = [], org, darkMode }) {
     const stripeConnected = !!org?.stripe_account_id;

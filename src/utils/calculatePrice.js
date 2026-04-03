@@ -137,7 +137,7 @@ function bestDurationRule(totalDays, bike, rules) {
 /**
  * Calculate dynamic price for a booking.
  *
- * @param {Object}        bike         -must have `.price_per_day` and `.category`
+ * @param {Object}        item         -must have `.price_per_day` and `.category`
  * @param {string|Date}   startDate    -booking start (inclusive)
  * @param {string|Date}   endDate      -booking end   (inclusive)
  * @param {Array}         pricingRules -all org pricing_rules rows
