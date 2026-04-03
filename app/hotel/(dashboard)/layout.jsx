@@ -102,7 +102,12 @@ function LocivaShell({ children }) {
     // Not authenticated — redirect firing in useEffect, render nothing
     if (!auth.user) return null;
 
-    // User exists but has no hotel_users row
+    // User exists but has no hotel_users row — redirect non-hotel users to /app
+    if (noHotel && auth.profile?.role && auth.profile.role !== "hotel") {
+        router.push("/app");
+        return null;
+    }
+
     if (noHotel) {
         return (
             <div className={`min-h-screen flex items-center justify-center ${darkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
@@ -115,20 +120,17 @@ function LocivaShell({ children }) {
                         Ihr Account ist noch keinem Hotel zugeordnet. Bitte kontaktieren Sie uns unter{" "}
                         <a href="mailto:info@lociva.de" className="text-[#1A7D5A] hover:underline">info@lociva.de</a>.
                     </p>
-                    <a
-                        href="/login"
-                        onClick={() => {
-                            supabase.auth.signOut().catch(() => {});
-                            localStorage.clear();
-                            document.cookie.split(";").forEach(c => {
-                                document.cookie = c.trim().split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-                            });
+                    <button
+                        onClick={async () => {
+                            try { await supabase.auth.signOut(); } catch (_) {}
+                            localStorage.removeItem("currentOrgId");
+                            window.location.href = "/login";
                         }}
                         className="text-sm underline"
                         style={{ color: "#1A7D5A" }}
                     >
                         Abmelden
-                    </a>
+                    </button>
                 </div>
             </div>
         );

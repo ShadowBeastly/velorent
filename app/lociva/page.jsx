@@ -6,16 +6,16 @@ import LandingPage from "../../src/views/LandingPage";
 
 export default function LocivaHomePage() {
     const router = useRouter();
-    const { user, profile } = useAuth();
+    const { user, profile, loading } = useAuth();
 
     useEffect(() => {
-        if (!user) return;
+        if (!user || loading) return;
         const role = profile?.role;
         // Only redirect platform staff and hotel users.
         // Providers visiting lociva.de see the guest landing page — that's fine.
         if (role === "superadmin") router.push("/app/admin");
         else if (role === "hotel") router.push("/hotel");
-    }, [user, profile, router]);
+    }, [user, profile, loading, router]);
 
     return (
         <LandingPage

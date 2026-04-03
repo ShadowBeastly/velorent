@@ -18,8 +18,8 @@ export default function DemoPage() {
 
     // Navigate after auth context reflects the demo user
     useEffect(() => {
-        if (!demoSignedIn || !user || !demoEmail || user.email !== demoEmail || loading || !profile) return;
-        if (profile.role === "hotel") {
+        if (!demoSignedIn || !user || !demoEmail || user.email !== demoEmail || loading) return;
+        if (profile?.role === "hotel") {
             router.push("/hotel");
         } else {
             router.push("/app");
@@ -32,8 +32,9 @@ export default function DemoPage() {
         async function run() {
             started.current = true;
             try {
-                // Clear any existing session first (fire-and-forget)
+                // Clear any existing session and wait for onAuthStateChange to process
                 try { await supabase.auth.signOut(); } catch (_) {}
+                await new Promise(r => setTimeout(r, 300));
 
                 // SEC-17: Use server action — password never reaches the client bundle
                 const result = await demoSignIn();

@@ -35,6 +35,8 @@ export function useProvideAuth() {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (!mounted) return;
+            // Skip the initial event if getSession already handled it
+            if (event === "INITIAL_SESSION" && initialized) return;
             initialized = true;
             setSession(session);
             setUser(session?.user ?? null);

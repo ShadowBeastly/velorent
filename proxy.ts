@@ -51,36 +51,28 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    // Lociva.de domain routing: /app → redirect non-admins away from RentCore dashboard
-    // RentCore is for providers (rentcore.de). Lociva is for venues + admins.
-    if (isLociva && isApp && !isAdmin && user) {
+    // Load profile once for all role-based routing decisions
+    let role: string | null = null;
+    if (user) {
         const { data: profile } = await supabase
             .from("profiles")
             .select("role")
             .eq("id", user.id)
             .single();
+        role = profile?.role ?? null;
+    }
 
-        const role = profile?.role;
+    // Lociva.de domain routing: /app → redirect non-admins away from RentCore dashboard
+    // RentCore is for providers (rentcore.de). Lociva is for venues + admins.
+    if (isLociva && isApp && !isAdmin && user) {
         if (role === "superadmin") {
-            // Superadmins on lociva.de → admin dashboard
             return NextResponse.redirect(new URL("/app/admin", request.url));
         }
-        if (role === "hotel") {
-            // Venue users → venue dashboard
-            return NextResponse.redirect(new URL("/hotel", request.url));
-        }
-        // Regular providers on lociva.de → venue dashboard (they shouldn't be on lociva.de)
+        // Hotel users and providers on lociva.de → venue dashboard
         return NextResponse.redirect(new URL("/hotel", request.url));
     }
 
     if (isAuth && user) {
-        const { data: profile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .single();
-
-        const role = profile?.role;
         if (role === "superadmin") {
             return NextResponse.redirect(new URL("/app/admin", request.url));
         }
@@ -95,29 +87,13 @@ export async function proxy(request: NextRequest) {
     }
 
     // Hotel users must not access /app — redirect them to their dashboard.
-    if (isApp && !isAdmin && user) {
-        const { data: profile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .single();
-
-        if (profile?.role === "hotel") {
-            return NextResponse.redirect(new URL("/hotel", request.url));
-        }
+    if (isApp && !isAdmin && user && role === "hotel") {
+        return NextResponse.redirect(new URL("/hotel", request.url));
     }
 
     // Server-side admin role check. Client-side check alone is not sufficient.
-    if (isAdmin && user) {
-        const { data: profile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .single();
-
-        if (profile?.role !== "superadmin") {
-            return NextResponse.redirect(new URL("/app", request.url));
-        }
+    if (isAdmin && user && role !== "superadmin") {
+        return NextResponse.redirect(new URL("/app", request.url));
     }
 
     return response;
