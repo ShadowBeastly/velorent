@@ -116,7 +116,10 @@ function LocivaShell({ children }) {
                         <a href="mailto:info@lociva.de" className="text-[#1A7D5A] hover:underline">info@lociva.de</a>.
                     </p>
                     <button
-                        onClick={() => auth.signOut()}
+                        onClick={async () => {
+                            try { await auth.signOut(); } catch (_) {}
+                            window.location.href = "/login";
+                        }}
                         className="text-sm underline"
                         style={{ color: "#1A7D5A" }}
                     >
