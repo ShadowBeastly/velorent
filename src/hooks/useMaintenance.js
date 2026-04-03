@@ -32,7 +32,7 @@ export function useMaintenance(orgId) {
         const { data, error } = await supabase
             .from("maintenance_schedules")
             .select("*")
-            .eq("item_id", bikeId)
+            .eq("bike_id", bikeId)
             .order("created_at", { ascending: true });
         return { data: data || [], error };
     };
@@ -146,7 +146,7 @@ export function useMaintenance(orgId) {
         const { data, error } = await supabase
             .from("item_health")
             .select("*")
-            .eq("item_id", bikeId)
+            .eq("bike_id", bikeId)
             .maybeSingle();
         return { data, error };
     };
@@ -156,7 +156,7 @@ export function useMaintenance(orgId) {
         const { data, error } = await supabase
             .from("item_health")
             .upsert(
-                { item_id: bikeId, ...updates, updated_at: new Date().toISOString() },
+                { bike_id: bikeId, ...updates, updated_at: new Date().toISOString() },
                 { onConflict: "bike_id" }
             )
             .select()

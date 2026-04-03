@@ -19,6 +19,10 @@ const supabase = createClient(
 const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
 
 serve(async (req) => {
+  if (Deno.env.get("ENABLE_LEGACY_STRIPE_WEBHOOK") !== "true") {
+    return new Response("Legacy webhook disabled", { status: 410 });
+  }
+
   const signature = req.headers.get("stripe-signature");
   const body = await req.text();
 

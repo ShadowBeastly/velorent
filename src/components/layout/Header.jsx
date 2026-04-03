@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import { NAVIGATION_ITEMS } from "../../utils/navigationItems";
 import { useApp } from "../../context/AppContext";
 import { useData } from "../../context/DataContext";
+import { useI18n } from "../../utils/i18n";
 
 export default function Header({ bannerOffset }) {
     const pathname = usePathname();
     const { sidebarOpen, setSidebarOpen, searchQuery, setSearchQuery, darkMode, setDarkMode } = useApp();
     const { notifications } = useData();
+    const { t } = useI18n();
     const [showNotifications, setShowNotifications] = useState(false);
     const [showMobileSearch, setShowMobileSearch] = useState(false);
     const currentItem = NAVIGATION_ITEMS.find(item => item.path === pathname) || NAVIGATION_ITEMS[0];
@@ -39,7 +41,7 @@ export default function Header({ bannerOffset }) {
                         <Menu className="w-5 h-5" />
                     </button>
                     <h2 className="text-xl font-semibold tracking-tight font-sans truncate min-w-0">
-                        {currentItem.label}
+                        {currentItem?.labelKey ? t(currentItem.labelKey) : ""}
                     </h2>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0">

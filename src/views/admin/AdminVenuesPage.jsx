@@ -72,7 +72,7 @@ export default function AdminVenuesPage() {
     setAllProviders(data || []);
   }
 
-  async function loadRegistrations() {
+  const loadRegistrations = useCallback(async () => {
     setRegsLoading(true);
     const { data } = await supabase
       .from("venue_registrations")
@@ -81,7 +81,7 @@ export default function AdminVenuesPage() {
       .order("created_at", { ascending: false });
     setRegistrations(data || []);
     setRegsLoading(false);
-  }
+  }, []);
 
   function showToast(msg, type = "success") {
     setToast({ msg, type });
@@ -105,10 +105,6 @@ export default function AdminVenuesPage() {
     async function init() { await Promise.all([loadVenues(), loadRegions(), loadAllProviders()]); }
     init();
   }, []);
-
-  useEffect(() => {
-    if (activeTab === "registrations") loadRegistrations();
-  }, [activeTab]);
 
   function openAddModal() {
     setEditingVenue(null);
@@ -296,7 +292,10 @@ export default function AdminVenuesPage() {
         ].map(tab => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => {
+              setActiveTab(tab.key);
+              if (tab.key === "registrations") loadRegistrations();
+            }}
             className={`px-5 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
               activeTab === tab.key
                 ? "border-[#1A7D5A] text-[#1A7D5A]"

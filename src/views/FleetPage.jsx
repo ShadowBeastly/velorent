@@ -25,10 +25,7 @@ export default function FleetPage() {
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [sizeFilter, setSizeFilter] = useState("all");
 
-    // Feature flag: render new generic ItemsPage when enabled
-    if (org.currentOrg?.feature_flags?.generic_items_ui) {
-        return <ItemsPage />;
-    }
+    const genericItemsUiEnabled = !!org.currentOrg?.feature_flags?.generic_items_ui;
 
     // Build category list
     const categories = useMemo(() => {
@@ -58,6 +55,10 @@ export default function FleetPage() {
             return matchesSearch && matchesStatus && matchesCategory && matchesSize;
         });
     }, [bikes.bikes, searchQuery, bookings.bookings, statusFilter, categoryFilter, sizeFilter]);
+
+    if (genericItemsUiEnabled) {
+        return <ItemsPage />;
+    }
 
     const handleSave = async (data) => {
         try {

@@ -98,7 +98,7 @@ export async function POST(req) {
           }
 
           const rpcParams = {
-              p_organization_id: meta.org_id,
+              p_organization_id: meta.organization_id || meta.org_id,
               p_bike_id: itemId,
               p_hotel_id: meta.hotel_id || null,
               p_start_date: meta.start_date,
@@ -185,7 +185,7 @@ export async function POST(req) {
                 supabase
                   .from("organizations")
                   .select("name, provider_address, provider_phone")
-                  .eq("id", meta.org_id)
+                  .eq("id", meta.organization_id || meta.org_id)
                   .single(),
               ]);
 
@@ -232,6 +232,7 @@ export async function POST(req) {
                   booking_id: freshBooking.id,
                   booking_number: freshBooking.booking_number,
                   total_price: meta.total_price,
+                  source: meta.source || "hotel_qr",
                 },
               });
             } catch (analyticsErr) {

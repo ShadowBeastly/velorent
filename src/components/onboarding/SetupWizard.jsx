@@ -57,11 +57,12 @@ export default function SetupWizard({ supabase, user, onComplete }) {
         joined_at: new Date().toISOString()
       });
 
-      // Create public booking settings
-      await supabase.from("public_booking_settings").insert({
-        organization_id: org.id,
-        is_enabled: settings.enableWidget
-      });
+      if (settings.enableWidget) {
+        await supabase
+          .from("organizations")
+          .update({ widget_enabled: true })
+          .eq("id", org.id);
+      }
 
       // Add items
       const validItems = items.filter(i => i.name.trim());

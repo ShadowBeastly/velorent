@@ -18,7 +18,7 @@ function AppShell({ children }) {
     const org = useOrganization();
     const auth = useAuth();
     const { darkMode, sidebarOpen, setSidebarOpen, setSearchQuery } = useApp();
-    const { items, bikes, bookings } = useData();
+    const { items, bookings } = useData();
 
     useEffect(() => {
         if (!auth.loading && !auth.user) {

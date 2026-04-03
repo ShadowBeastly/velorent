@@ -5,7 +5,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
-    { ignores: ['dist', 'app/api/**/*.ts', 'app/api/**/*.tsx', 'funk-e.solution/**', 'docs/**'] },
+    { ignores: ['dist', '.next/**', '.claude/**', 'public/widget/**', 'widget/**', 'app/api/**/*.ts', 'app/api/**/*.tsx', 'funk-e.solution/**', 'docs/**'] },
     {
         files: ['**/*.{js,jsx}'],
         languageOptions: {

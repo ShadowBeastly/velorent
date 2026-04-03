@@ -38,10 +38,11 @@ serve(async (req) => {
 
   try {
     const {
-      bike_id, hotel_id, org_id,
+      item_id, bike_id, venue_id, hotel_id, organization_id, org_id,
       start_date, end_date,
       guest_name, guest_email, guest_phone,
       lang, origin: _clientOrigin, hotel_slug,
+      success_url, cancel_url, source,
       // Hourly fields (optional)
       rental_type = "daily",
       start_time,
@@ -52,23 +53,42 @@ serve(async (req) => {
       total_price: client_total_price,
     } = await req.json();
 
-    // 1. Fetch bike
+    const normalizedItemId = item_id || bike_id;
+    const normalizedHotelId = venue_id || hotel_id || null;
+    const normalizedOrgId = organization_id || org_id;
+
+    if (!normalizedItemId || !normalizedOrgId || !start_date || !end_date || !guest_name || !guest_email) {
+      return Response.json({ error: "Missing required checkout fields" }, { status: 400, headers: CORS });
+    }
+
+    // 1. Fetch item
     const { data: bike, error: bikeErr } = await supabase
       .from("items")
       .select("id, name, category, price_per_day, price_per_hour, deposit, status, organization_id")
-      .eq("id", bike_id)
-      .eq("organization_id", org_id)
+      .eq("id", normalizedItemId)
+      .eq("organization_id", normalizedOrgId)
       .single();
 
     if (bikeErr || !bike) {
       return Response.json({ error: "Bike not found or not available" }, { status: 404, headers: CORS });
     }
 
+    const { data: availability, error: availabilityErr } = await supabase.rpc("check_public_availability", {
+      p_tenant: normalizedOrgId,
+      p_item_id: normalizedItemId,
+      p_start: start_date,
+      p_end: end_date,
+    });
+    const availabilityResult = Array.isArray(availability) ? availability[0] : availability;
+    if (availabilityErr || !availabilityResult?.available) {
+      return Response.json({ error: "Item is no longer available for the selected dates" }, { status: 409, headers: CORS });
+    }
+
     // 2. Fetch provider Stripe account
     const { data: org } = await supabase
       .from("organizations")
       .select("stripe_account_id, stripe_charges_enabled, name")
-      .eq("id", org_id)
+      .eq("id", normalizedOrgId)
       .single();
 
     if (!org?.stripe_account_id || !org?.stripe_charges_enabled) {
@@ -76,12 +96,12 @@ serve(async (req) => {
     }
 
     // 2b. Verify hotel-provider relationship is active (only if hotel_id is provided)
-    if (hotel_id) {
+    if (normalizedHotelId) {
       const { data: hotelProvider } = await supabase
         .from("venue_providers")
         .select("hotel_id")
-        .eq("hotel_id", hotel_id)
-        .eq("organization_id", org_id)
+        .eq("hotel_id", normalizedHotelId)
+        .eq("organization_id", normalizedOrgId)
         .eq("is_active", true)
         .maybeSingle();
       if (!hotelProvider) {
@@ -173,6 +193,17 @@ serve(async (req) => {
       return Response.json({ error: "Invalid hotel slug" }, { status: 400, headers: CORS });
     }
 
+    const normalizedSuccessUrl = typeof success_url === "string" && success_url.trim()
+      ? success_url.trim()
+      : (hotel_slug ? `${safeOrigin}/hotel/${hotel_slug}?session_id={CHECKOUT_SESSION_ID}` : null);
+    const normalizedCancelUrl = typeof cancel_url === "string" && cancel_url.trim()
+      ? cancel_url.trim()
+      : (hotel_slug ? `${safeOrigin}/hotel/${hotel_slug}?cancelled=1` : null);
+
+    if (!normalizedSuccessUrl || !normalizedCancelUrl) {
+      return Response.json({ error: "Missing success_url or cancel_url" }, { status: 400, headers: CORS });
+    }
+
     // 4. Create Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -195,13 +226,14 @@ serve(async (req) => {
       },
       customer_email: guest_email,
       locale: lang === "en" ? "en" : "de",
-      success_url: `${safeOrigin}/hotel/${hotel_slug}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${safeOrigin}/hotel/${hotel_slug}?cancelled=1`,
+      success_url: normalizedSuccessUrl,
+      cancel_url:  normalizedCancelUrl,
       metadata: {
-        hotel_id:            hotel_id || "",
-        item_id:             bike_id,
+        hotel_id:            normalizedHotelId || "",
+        item_id:             normalizedItemId,
         item_name:           bike.name,
-        org_id:              org_id,
+        organization_id:     normalizedOrgId,
+        org_id:              normalizedOrgId,
         start_date:          start_date,
         end_date:            end_date,
         guest_name:          guest_name,
@@ -209,6 +241,7 @@ serve(async (req) => {
         guest_phone:         guest_phone || "",
         lang:                lang || "de",
         hotel_slug:          hotel_slug || "",
+        source:              source || (normalizedHotelId ? "hotel_qr" : "widget"),
         rental_type:         rental_type,
         // Price fields
         total_price:         String(totalPriceEur),

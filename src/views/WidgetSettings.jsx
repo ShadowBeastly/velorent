@@ -1,110 +1,54 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Globe, Copy, Check, Eye, EyeOff, RefreshCw,
-  Palette, Settings, Code, Link, AlertCircle, CheckCircle, Loader2
+  Globe, Copy, Check, Code, Link, AlertCircle, CheckCircle, Loader2,
 } from "lucide-react";
 
-// ============ WIDGET SETTINGS COMPONENT ============
-// Diese Komponente in die Settings-Page integrieren
 export default function WidgetSettings({ supabase, orgId, darkMode }) {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [confirmRegenerate, setConfirmRegenerate] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null);
 
   const cardStyle = darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
-  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${darkMode ? "bg-slate-800 border-slate-700 text-white focus:border-[#1A7D5A]" : "bg-white border-slate-300 focus:border-[#1A7D5A]"
-    }`;
+  const inputStyle = `w-full px-3 py-2 rounded-lg border outline-none transition-colors ${
+    darkMode ? "bg-slate-800 border-slate-700 text-white focus:border-[#1A7D5A]" : "bg-white border-slate-300 focus:border-[#1A7D5A]"
+  }`;
 
-  // Load settings
   useEffect(() => {
     let mounted = true;
 
     const loadSettings = async () => {
-      if (!orgId) { setLoading(false); return; }
-      // Try to get existing settings
-      let { data, error } = await supabase
-        .from("public_booking_settings")
-        .select("*")
-        .eq("organization_id", orgId)
-        .single();
-
-      // Create if not exists
-      if (error?.code === "PGRST116") {
-        const { data: newData } = await supabase
-          .from("public_booking_settings")
-          .insert({ organization_id: orgId })
-          .select()
-          .single();
-        data = newData;
+      if (!orgId) {
+        setLoading(false);
+        return;
       }
 
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("id, widget_enabled, widget_allowed_domains")
+        .eq("id", orgId)
+        .single();
+
       if (mounted) {
-        setSettings(data);
+        setSettings(error ? null : {
+          id: data.id,
+          widget_enabled: data.widget_enabled ?? false,
+          widget_allowed_domains: Array.isArray(data.widget_allowed_domains) ? data.widget_allowed_domains : [],
+        });
         setLoading(false);
       }
     };
 
     loadSettings();
-
     return () => { mounted = false; };
   }, [orgId, supabase]);
 
-  const [saveStatus, setSaveStatus] = useState(null); // 'success' | 'error' | null
-
-  const handleSave = async () => {
-    setSaving(true);
-    setSaveStatus(null);
-
-    const { error } = await supabase
-      .from("public_booking_settings")
-      .update({
-        is_enabled: settings.is_enabled,
-        primary_color: settings.primary_color,
-        secondary_color: settings.secondary_color,
-        border_radius: settings.border_radius,
-        min_days: settings.min_days,
-        max_days: settings.max_days,
-        max_advance_days: settings.max_advance_days,
-        require_phone: settings.require_phone,
-        require_email: settings.require_email,
-        require_address: settings.require_address,
-        auto_confirm: settings.auto_confirm,
-        deposit_required: settings.deposit_required,
-        welcome_text: settings.welcome_text,
-        success_text: settings.success_text,
-        terms_url: settings.terms_url,
-        privacy_url: settings.privacy_url
-      })
-      .eq("id", settings.id);
-
-    setSaving(false);
-    setSaveStatus(error ? 'error' : 'success');
-    if (!error) setTimeout(() => setSaveStatus(null), 3000);
-  };
-
-  const regenerateApiKey = async () => {
-    try {
-      const bytes = new Uint8Array(32);
-      window.crypto.getRandomValues(bytes);
-      const newKey = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-
-      const { error } = await supabase
-        .from("public_booking_settings")
-        .update({ public_api_key: newKey })
-        .eq("id", settings.id);
-
-      if (error) throw error;
-      setSettings(prev => ({ ...prev, public_api_key: newKey }));
-      setConfirmRegenerate(false);
-    } catch (err) {
-      console.error("Error regenerating API key:", err);
-      setConfirmRegenerate(false);
-    }
-  };
+  const domainText = useMemo(
+    () => (settings?.widget_allowed_domains || []).join("\n"),
+    [settings]
+  );
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -112,22 +56,50 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const generateEmbedCode = () => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "YOUR_SUPABASE_URL";
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "YOUR_SUPABASE_ANON_KEY";
-    return `<!-- Lociva Buchungs-Widget -->
-<div id="rentcore-booking"></div>
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  const handleSave = async () => {
+    if (!settings) return;
+    setSaving(true);
+    setSaveStatus(null);
 
-  const SUPABASE_URL = "${supabaseUrl}";
-  const SUPABASE_KEY = "${supabaseKey}";
-  const API_KEY = "${settings?.public_api_key || 'YOUR_API_KEY'}";
+    const domains = domainText
+      .split("\n")
+      .map((value) => value.trim())
+      .filter(Boolean);
 
-  // Widget initialisieren...
-  // Vollständigen Code unter widget-embed-example.html
-</script>`;
+    const { error } = await supabase
+      .from("organizations")
+      .update({
+        widget_enabled: settings.widget_enabled,
+        widget_allowed_domains: domains,
+      })
+      .eq("id", settings.id);
+
+    setSaving(false);
+    setSaveStatus(error ? "error" : "success");
+    if (!error) {
+      setSettings((prev) => ({ ...prev, widget_allowed_domains: domains }));
+      setTimeout(() => setSaveStatus(null), 3000);
+    }
   };
+
+  const embedCode = `<!-- Lociva Buchungs-Widget -->
+<div id="lociva-booking-widget"></div>
+<script type="module">
+  const tenantId = "${orgId || "YOUR_TENANT_ID"}";
+  const apiBase = "${process.env.NEXT_PUBLIC_SITE_URL || "https://lociva.de"}";
+
+  async function createCheckout(payload) {
+    const response = await fetch(\`\${apiBase}/api/public/\${tenantId}/checkout\`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return await response.json();
+  }
+
+  // Die konkrete Widget-UI kann lokal gerendert werden.
+  // Der kanonische Serververtrag läuft über /api/public/[tenant]/*.
+</script>`;
 
   if (loading) {
     return (
@@ -151,7 +123,6 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
 
   return (
     <div className="space-y-6">
-      {/* Widget Status */}
       <div className={`rounded-2xl border p-6 ${cardStyle}`}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -161,334 +132,93 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
             <div>
               <h3 className="font-semibold text-lg">Öffentliches Buchungswidget</h3>
               <p className={`text-sm ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-                Für Ihre Hotel-Website
+                Tenant-basierter Public-API-Zugang
               </p>
             </div>
           </div>
 
-          {/* Toggle */}
           <button
-            onClick={() => setSettings(prev => ({ ...prev, is_enabled: !prev.is_enabled }))}
-            className={`relative w-14 h-7 rounded-full transition-colors ${settings.is_enabled ? "bg-emerald-500" : darkMode ? "bg-slate-700" : "bg-slate-300"
-              }`}
+            onClick={() => setSettings((prev) => ({ ...prev, widget_enabled: !prev.widget_enabled }))}
+            className={`relative w-14 h-7 rounded-full transition-colors ${
+              settings.widget_enabled ? "bg-emerald-500" : darkMode ? "bg-slate-700" : "bg-slate-300"
+            }`}
           >
-            <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${settings.is_enabled ? "translate-x-7" : ""
-              }`} />
+            <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${
+              settings.widget_enabled ? "translate-x-7" : ""
+            }`} />
           </button>
         </div>
 
-        {settings.is_enabled && (
-          <div className={`p-4 rounded-lg ${darkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-200"} border flex items-center gap-3`}>
+        <div className={`p-4 rounded-lg border flex items-center gap-3 ${
+          settings.widget_enabled
+            ? darkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-200"
+            : darkMode ? "bg-amber-500/10 border-amber-500/20" : "bg-amber-50 border-amber-200"
+        }`}>
+          {settings.widget_enabled ? (
             <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-            <p className={`text-sm ${darkMode ? "text-emerald-400" : "text-emerald-700"}`}>
-              Widget ist aktiv. Kunden können über Ihre Website buchen.
-            </p>
-          </div>
-        )}
-
-        {!settings.is_enabled && (
-          <div className={`p-4 rounded-lg ${darkMode ? "bg-amber-500/10 border-amber-500/20" : "bg-amber-50 border-amber-200"} border flex items-center gap-3`}>
-            <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-            <p className={`text-sm ${darkMode ? "text-amber-400" : "text-amber-700"}`}>
-              Widget ist deaktiviert. Aktivieren Sie es, um Online-Buchungen zu ermöglichen.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* API Key */}
-      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-        <div className="flex items-center gap-3 mb-4">
-          <Code className="w-5 h-5 text-[#1A7D5A]" />
-          <h3 className="font-semibold">API-Schlüssel</h3>
-        </div>
-
-        <p className={`text-sm mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-          Dieser Schlüssel wird benötigt, um das Widget auf Ihrer Website einzubetten.
-          Halten Sie ihn geheim. Er identifiziert Ihren Account.
-        </p>
-
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <input
-              type={showApiKey ? "text" : "password"}
-              value={settings.public_api_key || ""}
-              readOnly
-              className={inputStyle}
-            />
-            <button
-              onClick={() => setShowApiKey(!showApiKey)}
-              className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded ${darkMode ? "hover:bg-slate-700" : "hover:bg-slate-100"}`}
-            >
-              {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-          <button
-            onClick={() => copyToClipboard(settings.public_api_key)}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${darkMode ? "bg-slate-800 hover:bg-slate-700" : "bg-slate-100 hover:bg-slate-200"}`}
-          >
-            {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-          </button>
-          {confirmRegenerate ? (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-amber-600 font-medium">Alter Key wird ungültig!</span>
-              <button onClick={regenerateApiKey} className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-medium hover:bg-amber-600">Ja</button>
-              <button onClick={() => setConfirmRegenerate(false)} className={`px-3 py-1.5 rounded-lg text-xs ${darkMode ? "bg-slate-700 text-slate-300" : "bg-slate-200 text-slate-600"}`}>Nein</button>
-            </div>
           ) : (
-            <button
-              onClick={() => setConfirmRegenerate(true)}
-              className={`px-4 py-2 rounded-lg flex items-center gap-2 text-amber-500 ${darkMode ? "bg-amber-500/10 hover:bg-amber-500/20" : "bg-amber-50 hover:bg-amber-100"}`}
-              title="API-Key neu generieren"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
+            <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
           )}
+          <p className={`text-sm ${
+            settings.widget_enabled
+              ? darkMode ? "text-emerald-400" : "text-emerald-700"
+              : darkMode ? "text-amber-400" : "text-amber-700"
+          }`}>
+            {settings.widget_enabled
+              ? "Widget ist aktiv. Freigabe erfolgt ausschließlich über die erlaubten Domains unten."
+              : "Widget ist deaktiviert. Öffentliche Aufrufe werden serverseitig blockiert."}
+          </p>
         </div>
       </div>
 
-      {/* Embed Code */}
       <div className={`rounded-2xl border p-6 ${cardStyle}`}>
         <div className="flex items-center gap-3 mb-4">
           <Link className="w-5 h-5 text-[#1A7D5A]" />
+          <h3 className="font-semibold">Erlaubte Domains</h3>
+        </div>
+
+        <p className={`text-sm mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+          Jede Zeile muss eine vollständige Origin sein, zum Beispiel <code>https://hotel.example</code>.
+          Leere Listen blockieren das Widget.
+        </p>
+
+        <textarea
+          value={domainText}
+          onChange={(e) => setSettings((prev) => ({ ...prev, widget_allowed_domains: e.target.value.split("\n") }))}
+          rows={6}
+          className={inputStyle}
+          placeholder={"https://hotel.example\nhttps://www.hotel.example"}
+        />
+      </div>
+
+      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
+        <div className="flex items-center gap-3 mb-4">
+          <Code className="w-5 h-5 text-[#1A7D5A]" />
           <h3 className="font-semibold">Einbettungscode</h3>
         </div>
 
         <p className={`text-sm mb-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-          Kopieren Sie diesen Code und fügen Sie ihn in Ihre Website ein.
+          Der kanonische Serververtrag läuft über <code>/api/public/[tenant]</code>. API-Keys aus dem Legacy-Modell werden nicht mehr verwendet.
         </p>
 
         <div className={`relative rounded-lg overflow-hidden ${darkMode ? "bg-slate-800" : "bg-slate-100"}`}>
           <pre className="p-4 text-sm overflow-x-auto">
             <code className={darkMode ? "text-slate-300" : "text-slate-700"}>
-              {generateEmbedCode()}
+              {embedCode}
             </code>
           </pre>
           <button
-            onClick={() => copyToClipboard(generateEmbedCode())}
-            className="absolute top-2 right-2 p-2 rounded bg-[#1A7D5A] text-white hover:bg-[#1A7D5A]"
+            onClick={() => copyToClipboard(embedCode)}
+            className="absolute top-2 right-2 p-2 rounded bg-[#1A7D5A] text-white hover:bg-[#176c4e]"
           >
-            <Copy className="w-4 h-4" />
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
           </button>
         </div>
-
-        <p className={`text-xs mt-3 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-          💡 Tipp: Laden Sie die vollständige <code>widget-embed-example.html</code> herunter für ein komplettes Beispiel.
-        </p>
       </div>
 
-      {/* Styling */}
-      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-        <div className="flex items-center gap-3 mb-6">
-          <Palette className="w-5 h-5 text-[#1A7D5A]" />
-          <h3 className="font-semibold">Design anpassen</h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-              Primärfarbe
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="color"
-                value={settings.primary_color || "#f97316"}
-                onChange={(e) => setSettings(prev => ({ ...prev, primary_color: e.target.value }))}
-                className="w-12 h-10 rounded-lg border-0 cursor-pointer"
-              />
-              <input
-                type="text"
-                value={settings.primary_color || "#f97316"}
-                onChange={(e) => setSettings(prev => ({ ...prev, primary_color: e.target.value }))}
-                className={`${inputStyle} flex-1`}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-              Sekundärfarbe
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="color"
-                value={settings.secondary_color || "#fbbf24"}
-                onChange={(e) => setSettings(prev => ({ ...prev, secondary_color: e.target.value }))}
-                className="w-12 h-10 rounded-lg border-0 cursor-pointer"
-              />
-              <input
-                type="text"
-                value={settings.secondary_color || "#fbbf24"}
-                onChange={(e) => setSettings(prev => ({ ...prev, secondary_color: e.target.value }))}
-                className={`${inputStyle} flex-1`}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-              Eckenradius
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min="0"
-                max="24"
-                value={settings.border_radius || 12}
-                onChange={(e) => setSettings(prev => ({ ...prev, border_radius: parseInt(e.target.value) }))}
-                className="flex-1"
-              />
-              <span className={`text-sm w-8 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                {settings.border_radius || 12}px
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-              Vorschau
-            </label>
-            <div
-              className="h-10 flex items-center justify-center text-white text-sm font-medium"
-              style={{
-                background: `linear-gradient(135deg, ${settings.primary_color || "#f97316"}, ${settings.secondary_color || "#fbbf24"})`,
-                borderRadius: `${settings.border_radius || 12}px`
-              }}
-            >
-              Jetzt buchen
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Buchungsregeln */}
-      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-        <div className="flex items-center gap-3 mb-6">
-          <Settings className="w-5 h-5 text-[#1A7D5A]" />
-          <h3 className="font-semibold">Buchungsregeln</h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-              Min. Tage
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={settings.min_days || 1}
-              onChange={(e) => setSettings(prev => ({ ...prev, min_days: parseInt(e.target.value) }))}
-              className={inputStyle}
-            />
-          </div>
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-              Max. Tage
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={settings.max_days || 30}
-              onChange={(e) => setSettings(prev => ({ ...prev, max_days: parseInt(e.target.value) }))}
-              className={inputStyle}
-            />
-          </div>
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-              Max. Vorlauf (Tage)
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={settings.max_advance_days || 90}
-              onChange={(e) => setSettings(prev => ({ ...prev, max_advance_days: parseInt(e.target.value) }))}
-              className={inputStyle}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { key: "require_email", label: "E-Mail Pflicht" },
-            { key: "require_phone", label: "Telefon Pflicht" },
-            { key: "require_address", label: "Adresse Pflicht" },
-            { key: "auto_confirm", label: "Auto-Bestätigung" }
-          ].map(({ key, label }) => (
-            <label key={key} className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings[key] || false}
-                onChange={(e) => setSettings(prev => ({ ...prev, [key]: e.target.checked }))}
-                className="w-5 h-5 rounded accent-[#1A7D5A]"
-              />
-              <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-700"}`}>{label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Texte */}
-      <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-        <h3 className="font-semibold mb-4">Texte & Links</h3>
-
-        <div className="space-y-4">
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-              Willkommenstext
-            </label>
-            <input
-              type="text"
-              value={settings.welcome_text || ""}
-              onChange={(e) => setSettings(prev => ({ ...prev, welcome_text: e.target.value }))}
-              className={inputStyle}
-              placeholder="Buchen Sie Ihr Angebot in wenigen Schritten"
-            />
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-              Erfolgstext
-            </label>
-            <input
-              type="text"
-              value={settings.success_text || ""}
-              onChange={(e) => setSettings(prev => ({ ...prev, success_text: e.target.value }))}
-              className={inputStyle}
-              placeholder="Vielen Dank! Ihre Buchung wurde erfolgreich erstellt."
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                AGB-Link
-              </label>
-              <input
-                type="url"
-                value={settings.terms_url || ""}
-                onChange={(e) => setSettings(prev => ({ ...prev, terms_url: e.target.value }))}
-                className={inputStyle}
-                placeholder="https://..."
-              />
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                Datenschutz-Link
-              </label>
-              <input
-                type="url"
-                value={settings.privacy_url || ""}
-                onChange={(e) => setSettings(prev => ({ ...prev, privacy_url: e.target.value }))}
-                className={inputStyle}
-                placeholder="https://..."
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
+      <div className="flex justify-end items-center gap-3">
+        {saveStatus === "success" && <span className="text-emerald-500 text-sm font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" />Gespeichert</span>}
+        {saveStatus === "error" && <span className="text-rose-500 text-sm font-medium flex items-center gap-1"><AlertCircle className="w-4 h-4" />Fehler beim Speichern</span>}
         <button
           onClick={handleSave}
           disabled={saving}
@@ -497,8 +227,6 @@ export default function WidgetSettings({ supabase, orgId, darkMode }) {
           {saving && <Loader2 className="w-5 h-5 animate-spin" />}
           Einstellungen speichern
         </button>
-        {saveStatus === 'success' && <span className="text-emerald-500 text-sm font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" />Gespeichert</span>}
-        {saveStatus === 'error' && <span className="text-rose-500 text-sm font-medium flex items-center gap-1"><AlertCircle className="w-4 h-4" />Fehler beim Speichern</span>}
       </div>
     </div>
   );

@@ -133,7 +133,6 @@ export default function LocivaDashboardPage() {
                     supabase.from("bookings")
                         .select("id, booking_number, guest_name, total_price, status, created_at, start_date, end_date")
                         .eq("hotel_id", hotelId)
-                        .eq("booking_source", "hotel_qr")
                         .order("created_at", { ascending: false })
                         .limit(8),
                     supabase.from("venue_activities")

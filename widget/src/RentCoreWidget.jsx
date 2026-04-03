@@ -9,7 +9,7 @@
  *  5. done    - Booking confirmation
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 // Import CSS as a string and self-inject into the host page <head>
 // This keeps embed.js fully self-contained (no separate style.css needed)
 import cssText from "./widget.css?inline";

@@ -13,7 +13,7 @@ export async function OPTIONS(req, { params }) {
 
 /**
  * POST /api/public/[tenant]/checkout
- * Body: { bikeId, startDate, endDate, quantity, customer: { name, email, phone }, couponCode?, successUrl, cancelUrl }
+ * Body: { itemId|bikeId, startDate, endDate, quantity, customer: { name, email, phone }, couponCode?, successUrl, cancelUrl }
  * Returns: { checkoutUrl } - redirect to Stripe Checkout
  */
 export async function POST(req, { params }) {
@@ -36,10 +36,11 @@ export async function POST(req, { params }) {
     });
   }
 
-  const { bikeId, startDate, endDate, quantity = 1, customer, couponCode, successUrl, cancelUrl } = body;
+  const itemId = body.itemId || body.bikeId;
+  const { startDate, endDate, quantity = 1, customer, couponCode, successUrl, cancelUrl } = body;
 
-  if (!bikeId || !startDate || !endDate || !customer?.email || !customer?.name) {
-    return new Response(JSON.stringify({ error: "bikeId, startDate, endDate, customer.name and customer.email are required" }), {
+  if (!itemId || !startDate || !endDate || !customer?.email || !customer?.name) {
+    return new Response(JSON.stringify({ error: "itemId, startDate, endDate, customer.name and customer.email are required" }), {
       status: 400,
       headers: { ...headers, "Content-Type": "application/json" },
     });
@@ -49,7 +50,7 @@ export async function POST(req, { params }) {
   const { data: bike, error: bikeErr } = await supabase
     .from("items")
     .select("id, name, price_per_day, price_per_hour, organization_id")
-    .eq("id", bikeId)
+    .eq("id", itemId)
     .eq("organization_id", params.tenant)
     .single();
 
@@ -63,7 +64,7 @@ export async function POST(req, { params }) {
   // Check availability
   const { data: avail } = await supabase.rpc("check_public_availability", {
     p_tenant:  params.tenant,
-    p_item_id: bikeId,
+    p_item_id: itemId,
     p_start:   startDate,
     p_end:     endDate,
   });
@@ -77,12 +78,14 @@ export async function POST(req, { params }) {
   }
 
   // Delegate to the existing stripe-checkout Edge Function
-  const origin = req.headers.get("origin") || successUrl || process.env.NEXT_PUBLIC_APP_URL || "https://rentcore.de";
+  const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "https://rentcore.de";
+  const normalizedSuccessUrl = successUrl || `${origin.replace(/\/$/, "")}?widget_success=1&session_id={CHECKOUT_SESSION_ID}`;
+  const normalizedCancelUrl = cancelUrl || `${origin.replace(/\/$/, "")}?widget_cancel=1`;
 
   const { data, error } = await supabase.functions.invoke("stripe-checkout", {
     body: {
-      // Map widget payload to the format stripe-checkout Edge Function expects
-      bike_id:        bikeId,
+      item_id:        itemId,
+      bike_id:        itemId,
       start_date:     startDate,
       end_date:       endDate,
       quantity,
@@ -90,9 +93,9 @@ export async function POST(req, { params }) {
       guest_email:    customer.email,
       guest_phone:    customer.phone ?? null,
       coupon_code:    couponCode ?? null,
-      success_url:    successUrl ?? `${origin}?widget_success=1`,
-      cancel_url:     cancelUrl  ?? `${origin}?widget_cancel=1`,
-      // Widget bookings are scoped to a specific org, not a hotel slug
+      success_url:    normalizedSuccessUrl,
+      cancel_url:     normalizedCancelUrl,
+      organization_id: params.tenant,
       org_id:         params.tenant,
       source:         "widget",
       origin,

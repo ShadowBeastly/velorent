@@ -63,39 +63,39 @@ export async function POST(req) {
     return Response.json({ error: "Invalid token format" }, { status: 400 });
   }
 
-  // 1. Cancel in DB (determines free vs partial)
-  const { data: cancelResult, error: cancelErr } = await supabase.rpc(
-    "cancel_booking_by_token",
-    { p_token: token }
-  );
+  const { data: bookingInfo, error: bookingErr } = await supabase.rpc("get_booking_by_token", {
+    p_token: token,
+  });
 
-  if (cancelErr) {
-    return Response.json({ error: cancelErr.message }, { status: 500 });
+  if (bookingErr) {
+    return Response.json({ error: bookingErr.message }, { status: 500 });
   }
 
-  if (cancelResult?.error) {
-    return Response.json({ error: cancelResult.error }, { status: 400 });
+  if (!bookingInfo?.booking_id) {
+    return Response.json({ error: "Booking not found" }, { status: 404 });
   }
 
-  // 2. If there's a Stripe payment intent, trigger refund via stripe-cancel Edge Function
-  if (cancelResult.stripe_pi) {
-    try {
-      const { error: stripeErr } = await supabase.functions.invoke("stripe-cancel", {
-        body: {
-          booking_id: cancelResult.booking_id,
-          cancellation_type: cancelResult.cancellation_type,
-        },
-        headers: {
-          "x-internal-secret": process.env.INTERNAL_FUNCTION_SECRET ?? "",
-        },
-      });
-      if (stripeErr) {
-        console.error("Stripe cancel failed:", stripeErr);
-        // Booking is already marked cancelled in DB. Log but don't fail.
-      }
-    } catch (err) {
-      console.error("Stripe cancel error:", err);
-    }
+  if (bookingInfo.status === "cancelled") {
+    return Response.json({ error: "Booking is already cancelled" }, { status: 400 });
+  }
+
+  const cancellationType = bookingInfo.can_cancel_free ? "free" : "partial";
+  const { data: cancelResponse, error: stripeErr } = await supabase.functions.invoke("stripe-cancel", {
+    body: {
+      booking_id: bookingInfo.booking_id,
+      cancellation_type: cancellationType,
+    },
+    headers: {
+      "x-internal-secret": process.env.INTERNAL_FUNCTION_SECRET ?? "",
+    },
+  });
+
+  if (stripeErr) {
+    return Response.json({ error: stripeErr.message }, { status: 500 });
+  }
+
+  if (cancelResponse?.error) {
+    return Response.json({ error: cancelResponse.error }, { status: 400 });
   }
 
   // 3. Track analytics event
@@ -105,18 +105,18 @@ export async function POST(req) {
       p_event_type: "booking_cancelled",
       p_session_id: null,
       p_metadata: {
-        booking_id: cancelResult.booking_id,
-        cancellation_type: cancelResult.cancellation_type,
+        booking_id: bookingInfo.booking_id,
+        cancellation_type: cancellationType,
       },
     });
   } catch { /* non-fatal */ }
 
   return Response.json({
     success: true,
-    booking_number: cancelResult.booking_number,
-    cancellation_type: cancelResult.cancellation_type,
+    booking_number: bookingInfo.booking_number,
+    cancellation_type: cancellationType,
     refund_info:
-      cancelResult.cancellation_type === "free"
+      cancellationType === "free"
         ? "full_refund"
         : "50_percent_refund",
   });

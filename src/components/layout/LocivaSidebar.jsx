@@ -8,6 +8,7 @@ import { LOCIVA_NAVIGATION_ITEMS } from "../../utils/locivaNavigationItems";
 export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen, darkMode, hasProviderOrg, bannerOffset }) {
     const pathname = usePathname();
     const showLabels = sidebarOpen;
+    const rentcoreHref = "https://rentcore.de/app";
 
     return (
         <>
@@ -138,7 +139,7 @@ export default function LocivaSidebar({ auth, hotel, sidebarOpen, setSidebarOpen
                         {/* Back to RentCore link — only if user also has a provider org */}
                         {hasProviderOrg && (
                             <Link
-                                href="/app"
+                                href={rentcoreHref}
                                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                                     darkMode
                                         ? "text-slate-400 hover:text-white hover:bg-slate-800"

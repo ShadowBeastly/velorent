@@ -2,13 +2,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../src/context/AuthContext";
+import { supabase } from "../../src/utils/supabase";
 import { Loader2, Bike, AlertCircle } from "lucide-react";
 import { demoSignIn } from "./actions";
 
 const C = { primary: "#1A7D5A", dark: "#1E2D26", bg: "#F5FAF7", neutral: "#6B7280" };
 
 export default function DemoPage() {
-    const { signOut, user, loading, profile, supabase } = useAuth();
+    const { signOut, user, loading, profile } = useAuth();
     const router = useRouter();
     const started = useRef(false);
     const [demoSignedIn, setDemoSignedIn] = useState(false);
@@ -31,7 +32,7 @@ export default function DemoPage() {
         async function run() {
             started.current = true;
             try {
-                if (user) await signOut();
+                if (user) await signOut({ redirectToLogin: false });
 
                 // SEC-17: Use server action — password never reaches the client bundle
                 const result = await demoSignIn();
@@ -57,7 +58,7 @@ export default function DemoPage() {
         }
 
         run();
-    }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [loading, error, user, signOut]);
 
     if (error) {
         return (
