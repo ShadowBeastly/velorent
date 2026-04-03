@@ -32,7 +32,8 @@ export default function DemoPage() {
         async function run() {
             started.current = true;
             try {
-                if (user) await signOut({ redirectToLogin: false });
+                // Clear any existing session first (fire-and-forget)
+                try { await supabase.auth.signOut(); } catch (_) {}
 
                 // SEC-17: Use server action — password never reaches the client bundle
                 const result = await demoSignIn();
@@ -58,7 +59,7 @@ export default function DemoPage() {
         }
 
         run();
-    }, [loading, error, user, signOut]);
+    }, [loading, error]);
 
     if (error) {
         return (
